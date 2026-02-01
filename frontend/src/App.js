@@ -3,6 +3,7 @@ import "@/App.css";
 import LoginPage from "./components/LoginPage";
 import DashboardListPage from "./components/DashboardListPage";
 import Header from "./components/Header";
+import Footer from "./components/Footer";
 import KPISummary from "./components/KPISummary";
 import GasComposition from "./components/GasComposition";
 import DewPointMeter from "./components/DewPointMeter";
@@ -114,9 +115,12 @@ function App() {
   };
 
   return (
-    <div className="App min-h-screen bg-slate-50">
+    <div className="App min-h-screen bg-slate-50 flex flex-col">
       <Header currentPage={currentPage} onNavigate={setCurrentPage} onLogout={handleLogout} />
-      {renderPage()}
+      <div className="flex-1">
+        {renderPage()}
+      </div>
+      <Footer />
     </div>
   );
 }
