@@ -75,6 +75,10 @@ module.exports = {
                                 to: {
                                         height: '0'
                                 }
+                        },
+                        'pulse-subtle': {
+                                '0%, 100%': { opacity: '1' },
+                                '50%': { opacity: '0.8' }
                         }
                 },
                 animation: {
