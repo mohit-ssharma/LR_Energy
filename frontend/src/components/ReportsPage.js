@@ -9,6 +9,8 @@ const ReportsPage = () => {
   const [exportFormat, setExportFormat] = useState('pdf');
   const [showPreview, setShowPreview] = useState(false);
   const [showCustomBuilder, setShowCustomBuilder] = useState(false);
+  const [customStartDate, setCustomStartDate] = useState('');
+  const [customEndDate, setCustomEndDate] = useState('');
 
   const reportTemplates = [
     {
@@ -163,6 +165,47 @@ const ReportsPage = () => {
                   </button>
                 ))}
               </div>
+              
+              {dateRange === 'custom' && (
+                <div className="mt-4 p-4 bg-gradient-to-br from-emerald-50 to-cyan-50 rounded-lg border border-emerald-200">
+                  <div className="flex items-center space-x-2 mb-3">
+                    <Calendar className="w-4 h-4 text-emerald-600" />
+                    <span className="text-sm font-semibold text-slate-700">Custom Date Selection</span>
+                  </div>
+                  <div className="space-y-3">
+                    <div>
+                      <label className="block text-xs font-medium text-slate-600 mb-1">Start Date</label>
+                      <input
+                        type="date"
+                        value={customStartDate}
+                        onChange={(e) => setCustomStartDate(e.target.value)}
+                        className="w-full px-3 py-2 rounded-md border border-slate-300 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                        data-testid="custom-start-date"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-xs font-medium text-slate-600 mb-1">End Date</label>
+                      <input
+                        type="date"
+                        value={customEndDate}
+                        onChange={(e) => setCustomEndDate(e.target.value)}
+                        className="w-full px-3 py-2 rounded-md border border-slate-300 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                        data-testid="custom-end-date"
+                      />
+                    </div>
+                    {customStartDate && customEndDate && (
+                      <div className="bg-white rounded-md p-2 border border-emerald-200">
+                        <div className="text-xs text-slate-600">Selected Range:</div>
+                        <div className="text-sm font-semibold text-emerald-700">
+                          {new Date(customStartDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })} 
+                          {' → '}
+                          {new Date(customEndDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              )}
             </div>
 
             <div>
