@@ -1,22 +1,16 @@
 import React from 'react';
 import { Thermometer, Gauge, Layers, Activity } from 'lucide-react';
-import { BarChart, Bar, ResponsiveContainer, XAxis, YAxis, Tooltip, Cell } from 'recharts';
 
 const Digester = ({ unit, data }) => {
-  const tempComparisonData = [
-    { name: 'Bottom', value: parseFloat(data.temperature.bottom), color: '#f59e0b' },
-    { name: 'Top', value: parseFloat(data.temperature.top), color: '#ef4444' }
-  ];
-
   const MetricCard = ({ label, value, unit, min, max, color, testId }) => {
     const percentage = max ? ((value - min) / (max - min)) * 100 : 0;
     
     return (
-      <div className="bg-slate-50 rounded-lg p-3 border border-slate-100">
-        <div className="text-xs font-semibold uppercase tracking-wider text-slate-500 mb-2">{label}</div>
+      <div className="bg-gradient-to-br from-slate-50 to-slate-100/50 rounded-lg p-3 border border-slate-200">
+        <div className="text-xs font-semibold uppercase tracking-wider text-slate-600 mb-2">{label}</div>
         <div className="flex items-baseline space-x-1 mb-2">
           <span className="text-2xl font-bold font-mono text-slate-900" data-testid={testId}>{value}</span>
-          <span className="text-sm font-medium text-slate-400">{unit}</span>
+          <span className="text-sm font-medium text-slate-500">{unit}</span>
         </div>
         {min !== undefined && max !== undefined && (
           <>
@@ -39,14 +33,14 @@ const Digester = ({ unit, data }) => {
 
   return (
     <div className="bg-white border border-slate-200 shadow-sm rounded-lg overflow-hidden" data-testid={`digester-${unit}-section`}>
-      <div className="px-5 py-3 border-b border-slate-100 bg-slate-50/50 flex justify-between items-center">
+      <div className="px-5 py-3 border-b border-slate-100 bg-gradient-to-r from-violet-50 to-purple-50 flex justify-between items-center">
         <div className="flex items-center space-x-3">
           <div className="p-2 bg-violet-700 rounded-md">
             <Activity className="w-4 h-4 text-white" />
           </div>
           <div>
-            <h3 className="text-lg font-medium text-slate-700">Digester {unit}</h3>
-            <span className="text-xs text-slate-500">Unit {unit} - Active</span>
+            <h3 className="text-lg font-medium text-slate-800">Digester {unit}</h3>
+            <span className="text-xs text-slate-600">Unit {unit} - Active</span>
           </div>
         </div>
         <span className="text-xs px-3 py-1 bg-emerald-100 text-emerald-700 rounded-full border border-emerald-200 font-semibold">
@@ -54,13 +48,13 @@ const Digester = ({ unit, data }) => {
         </span>
       </div>
 
-      <div className="p-5">
+      <div className="p-5 bg-gradient-to-br from-slate-50/30 to-white">
         <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
           {/* Temperature Section */}
-          <div>
+          <div className="bg-gradient-to-br from-orange-50/50 to-red-50/30 rounded-lg p-4 border border-orange-100">
             <div className="flex items-center space-x-2 mb-3">
               <Thermometer className="w-4 h-4 text-orange-600" />
-              <h4 className="text-sm font-semibold uppercase tracking-wider text-slate-500">Temperature</h4>
+              <h4 className="text-sm font-semibold uppercase tracking-wider text-slate-700">Temperature</h4>
             </div>
             
             <div className="space-y-3">
@@ -83,47 +77,24 @@ const Digester = ({ unit, data }) => {
                 color="bg-gradient-to-r from-orange-400 to-red-500"
                 testId={`digester-${unit}-temp-top`}
               />
-              
-              <div className="bg-white rounded-lg p-3 border border-slate-200">
-                <div className="text-xs font-semibold uppercase tracking-wider text-slate-500 mb-2">Comparison</div>
-                <ResponsiveContainer width="100%" height={100}>
-                  <BarChart data={tempComparisonData}>
-                    <XAxis dataKey="name" style={{ fontSize: '11px' }} stroke="#94a3b8" />
-                    <YAxis hide domain={[35, 42]} />
-                    <Tooltip 
-                      contentStyle={{
-                        backgroundColor: '#fff',
-                        border: '1px solid #e2e8f0',
-                        borderRadius: '6px',
-                        fontSize: '11px'
-                      }}
-                    />
-                    <Bar dataKey="value" radius={[4, 4, 0, 0]}>
-                      {tempComparisonData.map((entry, index) => (
-                        <Cell key={`cell-${index}`} fill={entry.color} />
-                      ))}
-                    </Bar>
-                  </BarChart>
-                </ResponsiveContainer>
-              </div>
             </div>
           </div>
 
           {/* Pressure Section */}
-          <div>
+          <div className="bg-gradient-to-br from-cyan-50/50 to-blue-50/30 rounded-lg p-4 border border-cyan-100">
             <div className="flex items-center space-x-2 mb-3">
               <Gauge className="w-4 h-4 text-cyan-600" />
-              <h4 className="text-sm font-semibold uppercase tracking-wider text-slate-500">Pressure</h4>
+              <h4 className="text-sm font-semibold uppercase tracking-wider text-slate-700">Pressure</h4>
             </div>
             
             <div className="space-y-3">
-              <div className="bg-slate-50 rounded-lg p-3 border border-slate-100">
-                <div className="text-xs font-semibold uppercase tracking-wider text-slate-500 mb-2">Balloon Gas</div>
+              <div className="bg-gradient-to-br from-white to-slate-50 rounded-lg p-3 border border-slate-200">
+                <div className="text-xs font-semibold uppercase tracking-wider text-slate-600 mb-2">Balloon Gas</div>
                 <div className="flex items-baseline space-x-1 mb-2">
                   <span className="text-2xl font-bold font-mono text-slate-900" data-testid={`digester-${unit}-gas-pressure`}>
                     {data.pressure.balloonGas}
                   </span>
-                  <span className="text-sm font-medium text-slate-400">mmWC</span>
+                  <span className="text-sm font-medium text-slate-500">mmWC</span>
                 </div>
                 <div className="flex items-center justify-between text-xs text-slate-500 mb-1">
                   <span>{Math.round((parseFloat(data.pressure.balloonGas) / 200) * 100)}%</span>
@@ -138,13 +109,13 @@ const Digester = ({ unit, data }) => {
                 <div className="text-xs text-slate-400 mt-2 font-mono">08:43:41</div>
               </div>
 
-              <div className="bg-slate-50 rounded-lg p-3 border border-slate-100">
-                <div className="text-xs font-semibold uppercase tracking-wider text-slate-500 mb-2">Balloon Air</div>
+              <div className="bg-gradient-to-br from-white to-slate-50 rounded-lg p-3 border border-slate-200">
+                <div className="text-xs font-semibold uppercase tracking-wider text-slate-600 mb-2">Balloon Air</div>
                 <div className="flex items-baseline space-x-1 mb-2">
                   <span className="text-2xl font-bold font-mono text-slate-900" data-testid={`digester-${unit}-air-pressure`}>
                     {data.pressure.balloonAir}
                   </span>
-                  <span className="text-sm font-medium text-slate-400">mmWC</span>
+                  <span className="text-sm font-medium text-slate-500">mmWC</span>
                 </div>
                 <div className="flex items-center justify-between text-xs text-slate-500 mb-1">
                   <span>{Math.round((parseFloat(data.pressure.balloonAir) / 150) * 100)}%</span>
@@ -162,22 +133,22 @@ const Digester = ({ unit, data }) => {
           </div>
 
           {/* Levels Section */}
-          <div>
+          <div className="bg-gradient-to-br from-emerald-50/50 to-teal-50/30 rounded-lg p-4 border border-emerald-100">
             <div className="flex items-center space-x-2 mb-3">
               <Layers className="w-4 h-4 text-emerald-600" />
-              <h4 className="text-sm font-semibold uppercase tracking-wider text-slate-500">Levels</h4>
+              <h4 className="text-sm font-semibold uppercase tracking-wider text-slate-700">Levels</h4>
             </div>
             
             <div className="space-y-3">
-              <div className="bg-slate-50 rounded-lg p-3 border border-slate-100">
-                <div className="text-xs font-semibold uppercase tracking-wider text-slate-500 mb-2">Gas Level</div>
+              <div className="bg-gradient-to-br from-white to-slate-50 rounded-lg p-3 border border-slate-200">
+                <div className="text-xs font-semibold uppercase tracking-wider text-slate-600 mb-2">Gas Level</div>
                 <div className="flex items-baseline space-x-1 mb-2">
                   <span className="text-2xl font-bold font-mono text-slate-900" data-testid={`digester-${unit}-gas-level`}>
                     {data.levels.gasLevel}
                   </span>
-                  <span className="text-sm font-medium text-slate-400">%</span>
+                  <span className="text-sm font-medium text-slate-500">%</span>
                 </div>
-                <div className="relative h-20 bg-slate-200 rounded-lg overflow-hidden mt-2">
+                <div className="relative h-20 bg-slate-200 rounded-lg overflow-hidden mt-2 border border-slate-300">
                   <div 
                     className="absolute bottom-0 w-full bg-gradient-to-t from-emerald-500 to-emerald-400 transition-all duration-500"
                     style={{ height: `${data.levels.gasLevel}%` }}
