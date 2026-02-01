@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import { Clock, Activity } from 'lucide-react';
+import { Clock, Activity, LogOut, List } from 'lucide-react';
 
-const Header = ({ currentPage, onNavigate }) => {
+const Header = ({ currentPage, onNavigate, onLogout }) => {
   const [currentTime, setCurrentTime] = useState(new Date());
 
   useEffect(() => {
@@ -79,6 +79,15 @@ const Header = ({ currentPage, onNavigate }) => {
                 {formatTime(currentTime)}
               </span>
             </div>
+            {onLogout && (
+              <button
+                onClick={onLogout}
+                className="flex items-center space-x-2 px-3 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-lg transition-colors"
+                title="Logout"
+              >
+                <LogOut className="w-4 h-4" />
+              </button>
+            )}
           </div>
         </div>
       </div>
