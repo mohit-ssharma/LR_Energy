@@ -22,50 +22,82 @@ const LoginPage = ({ onLogin }) => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-emerald-50 via-cyan-50 to-violet-50 flex items-center justify-center p-4">
-      <div className="w-full max-w-md">
-        <div className="bg-white rounded-2xl shadow-2xl overflow-hidden border border-slate-200">
-          {/* Header */}
-          <div className="bg-gradient-to-r from-emerald-600 to-cyan-600 p-8 text-center">
-            <div className="flex items-center justify-between mb-4 px-4">
+    <div className="min-h-screen bg-gradient-to-br from-emerald-50 via-cyan-50 to-violet-50 flex items-center justify-center p-4 relative overflow-hidden">
+      {/* Background decorative elements */}
+      <div className="absolute top-0 left-0 w-96 h-96 bg-emerald-400 rounded-full filter blur-3xl opacity-20 -translate-x-1/2 -translate-y-1/2"></div>
+      <div className="absolute bottom-0 right-0 w-96 h-96 bg-cyan-400 rounded-full filter blur-3xl opacity-20 translate-x-1/2 translate-y-1/2"></div>
+      
+      <div className="w-full max-w-md relative z-10">
+        {/* Top Logo Bar - Creative Design */}
+        <div className="mb-6 flex items-center justify-between bg-white/80 backdrop-blur-lg rounded-2xl p-4 shadow-lg border border-white/50">
+          <div className="flex items-center space-x-3">
+            <div className="relative">
+              <div className="absolute inset-0 bg-emerald-500 rounded-lg blur-md opacity-30"></div>
               <img 
                 src="https://customer-assets.emergentagent.com/job_4acfe114-4f71-44b3-ba66-02b58d5e96c3/artifacts/aywrj4co_LR%20Energy%20Logo.jpeg" 
                 alt="LR Energy Logo" 
-                className="h-10 w-auto object-contain bg-white rounded px-2 py-1"
+                className="h-12 w-auto object-contain relative z-10 bg-white rounded-lg p-2 shadow-md"
               />
+            </div>
+            <div className="h-10 w-px bg-gradient-to-b from-transparent via-slate-300 to-transparent"></div>
+            <div className="text-left">
+              <div className="text-sm font-bold text-slate-800">LR Energy</div>
+              <div className="text-xs text-slate-500">Biogas Plant</div>
+            </div>
+          </div>
+          <div className="flex items-center space-x-3">
+            <div className="text-right">
+              <div className="text-xs text-slate-500">Powered by</div>
+              <div className="text-sm font-bold text-slate-800">ELAN EPMC</div>
+            </div>
+            <div className="h-10 w-px bg-gradient-to-b from-transparent via-slate-300 to-transparent"></div>
+            <div className="relative">
+              <div className="absolute inset-0 bg-violet-500 rounded-lg blur-md opacity-30"></div>
               <img 
                 src="https://customer-assets.emergentagent.com/job_4acfe114-4f71-44b3-ba66-02b58d5e96c3/artifacts/rp3d3dho_elan_logo.jpg" 
                 alt="ELAN Logo" 
-                className="h-10 w-auto object-contain bg-white rounded px-2 py-1"
+                className="h-12 w-auto object-contain relative z-10 bg-white rounded-lg p-2 shadow-md"
               />
             </div>
-            <div className="w-16 h-16 bg-white rounded-full flex items-center justify-center mx-auto mb-4 shadow-lg">
-              <Lock className="w-8 h-8 text-emerald-600" />
+          </div>
+        </div>
+
+        {/* Login Card */}
+        <div className="bg-white/95 backdrop-blur-xl rounded-2xl shadow-2xl overflow-hidden border border-white/50">
+          {/* Header */}
+          <div className="bg-gradient-to-r from-emerald-600 to-cyan-600 p-8 text-center relative overflow-hidden">
+            <div className="absolute top-0 right-0 w-32 h-32 bg-white rounded-full opacity-10 -mr-16 -mt-16"></div>
+            <div className="absolute bottom-0 left-0 w-24 h-24 bg-white rounded-full opacity-10 -ml-12 -mb-12"></div>
+            <div className="relative z-10">
+              <div className="w-20 h-20 bg-white/20 backdrop-blur-sm rounded-2xl flex items-center justify-center mx-auto mb-4 shadow-lg">
+                <Lock className="w-10 h-10 text-white" />
+              </div>
+              <h1 className="text-3xl font-bold text-white mb-2">Welcome Back</h1>
+              <p className="text-emerald-100 text-sm">Sign in to access SCADA monitoring dashboards</p>
             </div>
-            <h1 className="text-3xl font-bold text-white mb-2">SCADA Login</h1>
-            <p className="text-emerald-100 text-sm">Access your monitoring dashboards</p>
           </div>
 
           {/* Form */}
-          <form onSubmit={handleSubmit} className="p-8">
+          <form onSubmit={handleSubmit} className="p-8 bg-gradient-to-b from-white to-slate-50">
             {error && (
-              <div className="mb-6 p-3 bg-rose-50 border border-rose-200 rounded-lg text-rose-700 text-sm">
-                {error}
+              <div className="mb-6 p-3 bg-rose-50 border border-rose-200 rounded-lg text-rose-700 text-sm flex items-center space-x-2">
+                <span className="w-2 h-2 bg-rose-500 rounded-full"></span>
+                <span>{error}</span>
               </div>
             )}
 
             <div className="space-y-5">
               <div>
                 <label className="block text-sm font-semibold text-slate-700 mb-2">Email Address</label>
-                <div className="relative">
+                <div className="relative group">
                   <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                    <User className="w-5 h-5 text-slate-400" />
+                    <User className="w-5 h-5 text-slate-400 group-focus-within:text-emerald-600 transition-colors" />
                   </div>
                   <input
                     type="email"
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
-                    className="w-full pl-10 pr-4 py-3 rounded-lg border border-slate-300 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition-all"
+                    className="w-full pl-10 pr-4 py-3 rounded-lg border-2 border-slate-200 focus:border-emerald-500 focus:outline-none transition-all bg-white"
                     placeholder="admin@example.com"
                     data-testid="login-email"
                   />
@@ -74,22 +106,22 @@ const LoginPage = ({ onLogin }) => {
 
               <div>
                 <label className="block text-sm font-semibold text-slate-700 mb-2">Password</label>
-                <div className="relative">
+                <div className="relative group">
                   <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                    <Lock className="w-5 h-5 text-slate-400" />
+                    <Lock className="w-5 h-5 text-slate-400 group-focus-within:text-emerald-600 transition-colors" />
                   </div>
                   <input
                     type={showPassword ? 'text' : 'password'}
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
-                    className="w-full pl-10 pr-12 py-3 rounded-lg border border-slate-300 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition-all"
+                    className="w-full pl-10 pr-12 py-3 rounded-lg border-2 border-slate-200 focus:border-emerald-500 focus:outline-none transition-all bg-white"
                     placeholder="Enter your password"
                     data-testid="login-password"
                   />
                   <button
                     type="button"
                     onClick={() => setShowPassword(!showPassword)}
-                    className="absolute inset-y-0 right-0 pr-3 flex items-center"
+                    className="absolute inset-y-0 right-0 pr-3 flex items-center hover:scale-110 transition-transform"
                   >
                     {showPassword ? (
                       <EyeOff className="w-5 h-5 text-slate-400 hover:text-slate-600" />
@@ -102,28 +134,32 @@ const LoginPage = ({ onLogin }) => {
 
               <button
                 type="submit"
-                className="w-full bg-gradient-to-r from-emerald-600 to-cyan-600 text-white py-3 rounded-lg font-semibold hover:from-emerald-700 hover:to-cyan-700 transition-all shadow-md hover:shadow-lg"
+                className="w-full bg-gradient-to-r from-emerald-600 to-cyan-600 text-white py-3 rounded-lg font-semibold hover:from-emerald-700 hover:to-cyan-700 transition-all shadow-lg hover:shadow-xl transform hover:scale-[1.02]"
                 data-testid="login-submit"
               >
-                Sign In
+                Sign In to Dashboard
               </button>
             </div>
 
             <div className="mt-6 text-center">
-              <p className="text-sm text-slate-500">
-                Demo: Use any email and password to login
-              </p>
+              <div className="flex items-center justify-center space-x-2 text-sm text-slate-500">
+                <div className="h-px w-12 bg-slate-200"></div>
+                <p>Demo: Use any email and password</p>
+                <div className="h-px w-12 bg-slate-200"></div>
+              </div>
             </div>
           </form>
         </div>
 
         {/* Footer */}
-        <div className="text-center mt-6 text-sm text-slate-600">
-          <p>Powered by SCADA Monitoring System</p>
-          <div className="flex items-center justify-center space-x-3 mt-2">
-            <span className="text-xs text-slate-500">© 2026 LR Energy</span>
-            <span className="text-slate-300">•</span>
-            <span className="text-xs text-slate-500">Technology by ELAN EPMC</span>
+        <div className="text-center mt-6">
+          <div className="bg-white/60 backdrop-blur-lg rounded-xl p-4 border border-white/50">
+            <p className="text-sm font-semibold text-slate-700">Secure SCADA Monitoring System</p>
+            <div className="flex items-center justify-center space-x-2 mt-2 text-xs text-slate-500">
+              <span>© 2026 LR Energy</span>
+              <span>•</span>
+              <span>Technology by ELAN EPMC</span>
+            </div>
           </div>
         </div>
       </div>
