@@ -27,6 +27,18 @@ const LoginPage = ({ onLogin }) => {
         <div className="bg-white rounded-2xl shadow-2xl overflow-hidden border border-slate-200">
           {/* Header */}
           <div className="bg-gradient-to-r from-emerald-600 to-cyan-600 p-8 text-center">
+            <div className="flex items-center justify-between mb-4 px-4">
+              <img 
+                src="https://customer-assets.emergentagent.com/job_4acfe114-4f71-44b3-ba66-02b58d5e96c3/artifacts/aywrj4co_LR%20Energy%20Logo.jpeg" 
+                alt="LR Energy Logo" 
+                className="h-10 w-auto object-contain bg-white rounded px-2 py-1"
+              />
+              <img 
+                src="https://customer-assets.emergentagent.com/job_4acfe114-4f71-44b3-ba66-02b58d5e96c3/artifacts/rp3d3dho_elan_logo.jpg" 
+                alt="ELAN Logo" 
+                className="h-10 w-auto object-contain bg-white rounded px-2 py-1"
+              />
+            </div>
             <div className="w-16 h-16 bg-white rounded-full flex items-center justify-center mx-auto mb-4 shadow-lg">
               <Lock className="w-8 h-8 text-emerald-600" />
             </div>
@@ -108,6 +120,11 @@ const LoginPage = ({ onLogin }) => {
         {/* Footer */}
         <div className="text-center mt-6 text-sm text-slate-600">
           <p>Powered by SCADA Monitoring System</p>
+          <div className="flex items-center justify-center space-x-3 mt-2">
+            <span className="text-xs text-slate-500">© 2026 LR Energy</span>
+            <span className="text-slate-300">•</span>
+            <span className="text-xs text-slate-500">Technology by ELAN EPMC</span>
+          </div>
         </div>
       </div>
     </div>

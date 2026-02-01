@@ -71,9 +71,17 @@ const DashboardListPage = ({ onSelectDashboard, onLogout, user }) => {
       <header className="bg-white border-b border-slate-200 shadow-sm">
         <div className="max-w-7xl mx-auto px-6 py-4">
           <div className="flex items-center justify-between">
-            <div>
-              <h1 className="text-2xl font-bold text-slate-800">SCADA Monitoring Systems</h1>
-              <p className="text-sm text-slate-600 mt-1">Select a plant to monitor</p>
+            <div className="flex items-center space-x-4">
+              <img 
+                src="https://customer-assets.emergentagent.com/job_4acfe114-4f71-44b3-ba66-02b58d5e96c3/artifacts/aywrj4co_LR%20Energy%20Logo.jpeg" 
+                alt="LR Energy Logo" 
+                className="h-12 w-auto object-contain"
+              />
+              <div className="h-8 w-px bg-slate-200"></div>
+              <div>
+                <h1 className="text-2xl font-bold text-slate-800">SCADA Monitoring Systems</h1>
+                <p className="text-sm text-slate-600 mt-1">Select a plant to monitor</p>
+              </div>
             </div>
             <div className="flex items-center space-x-4">
               <div className="text-right">
@@ -88,6 +96,13 @@ const DashboardListPage = ({ onSelectDashboard, onLogout, user }) => {
                 <LogOut className="w-4 h-4" />
                 <span className="text-sm font-medium">Logout</span>
               </button>
+              <div className="h-8 w-px bg-slate-200"></div>
+              <img 
+                src="https://customer-assets.emergentagent.com/job_4acfe114-4f71-44b3-ba66-02b58d5e96c3/artifacts/rp3d3dho_elan_logo.jpg" 
+                alt="ELAN Logo" 
+                className="h-10 w-auto object-contain"
+                title="Powered by ELAN"
+              />
             </div>
           </div>
         </div>
