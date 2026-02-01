@@ -1,5 +1,5 @@
 import React from 'react';
-import { Waves, Activity } from 'lucide-react';
+import { Waves } from 'lucide-react';
 import { LineChart, Line, ResponsiveContainer } from 'recharts';
 
 const FlowMeterCard = ({ title, flowRate, totalizer, percentage, color }) => {
@@ -30,7 +30,7 @@ const FlowMeterCard = ({ title, flowRate, totalizer, percentage, color }) => {
           <div className={`p-1.5 rounded-md ${colorClasses.bg}`}>
             <Waves className="w-3.5 h-3.5 text-white" />
           </div>
-          <span className="text-xs font-semibold uppercase tracking-wider text-slate-500">{title}</span>
+          <span className="text-xs font-semibold uppercase tracking-wider text-slate-600">{title}</span>
         </div>
         <span className="text-xs text-slate-400 font-mono">08:43:41</span>
       </div>
@@ -89,13 +89,6 @@ const FlowMeterCard = ({ title, flowRate, totalizer, percentage, color }) => {
 const WaterFlowMeters = () => {
   const flowMetersData = [
     {
-      title: 'Fresh Water FM',
-      flowRate: '45.8',
-      totalizer: '1,523.6',
-      percentage: 31,
-      color: 'emerald'
-    },
-    {
       title: 'Feed FM – I',
       flowRate: '125.3',
       totalizer: '4,856.2',
@@ -103,18 +96,25 @@ const WaterFlowMeters = () => {
       color: 'violet'
     },
     {
-      title: 'Recycle Water FM',
-      flowRate: '68.7',
-      totalizer: '2,342.1',
-      percentage: 46,
-      color: 'cyan'
-    },
-    {
       title: 'Feed FM – II',
       flowRate: '132.5',
       totalizer: '5,127.8',
       percentage: 88,
       color: 'amber'
+    },
+    {
+      title: 'Fresh Water FM',
+      flowRate: '45.8',
+      totalizer: '1,523.6',
+      percentage: 31,
+      color: 'emerald'
+    },
+    {
+      title: 'Recycle Water FM',
+      flowRate: '68.7',
+      totalizer: '2,342.1',
+      percentage: 46,
+      color: 'cyan'
     }
   ];
 
