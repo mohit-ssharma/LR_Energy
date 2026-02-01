@@ -7,24 +7,28 @@ const KPICard = ({ title, value, unit, totalizer, totalizerValue, totalizerUnit,
   
   return (
     <div className="bg-white border border-slate-200 shadow-sm rounded-lg overflow-hidden hover:shadow-md transition-all duration-200" data-testid={`kpi-card-${title.toLowerCase().replace(/\s+/g, '-')}`}>
-      <div className="px-4 py-3 border-b border-slate-100 bg-slate-50/50 flex justify-between items-center">
+      <div className="px-4 py-3 border-b border-slate-100 bg-gradient-to-br from-slate-50 to-slate-100/50 flex justify-between items-center">
         <div className="flex items-center space-x-2">
           <div className={`p-1.5 rounded-md ${color}`}>
             <Icon className="w-3.5 h-3.5 text-white" />
           </div>
-          <span className="text-xs font-semibold uppercase tracking-wider text-slate-500">{title}</span>
+          <span className="text-xs font-semibold uppercase tracking-wider text-slate-600">{title}</span>
         </div>
         <span className="text-xs text-slate-400 font-mono">08:43:41</span>
       </div>
       
       <div className="p-4">
-        <div className="flex items-baseline space-x-2 mb-3">
-          <span className="text-4xl font-bold font-mono tracking-tighter text-slate-900" data-testid={`${title.toLowerCase().replace(/\s+/g, '-')}-value`}>
-            {value}
-          </span>
-          <span className="text-sm font-medium text-slate-400">{unit}</span>
+        {/* Value - Fixed height for alignment */}
+        <div className="h-16 flex items-center mb-3">
+          <div className="flex items-baseline space-x-2">
+            <span className="text-4xl font-bold font-mono tracking-tighter text-slate-900" data-testid={`${title.toLowerCase().replace(/\s+/g, '-')}-value`}>
+              {value}
+            </span>
+            <span className="text-sm font-medium text-slate-500">{unit}</span>
+          </div>
         </div>
         
+        {/* Chart - Fixed height */}
         <div className="h-12 mb-3">
           <ResponsiveContainer width="100%" height="100%">
             <AreaChart data={trendData}>
@@ -46,8 +50,9 @@ const KPICard = ({ title, value, unit, totalizer, totalizerValue, totalizerUnit,
           </ResponsiveContainer>
         </div>
         
-        <div className="flex items-center justify-between">
-          <div className="bg-slate-50 rounded-md px-3 py-2 border border-slate-100 flex-1 mr-2">
+        {/* Bottom section - Fixed height for alignment */}
+        <div className="flex items-center justify-between h-16">
+          <div className="bg-gradient-to-br from-slate-50 to-slate-100 rounded-md px-3 py-2 border border-slate-200 flex-1 mr-2">
             <div className="text-xs text-slate-500 mb-0.5">{totalizer}</div>
             <div className="flex items-baseline space-x-1">
               <span className="text-lg font-bold font-mono text-slate-700">{totalizerValue}</span>
