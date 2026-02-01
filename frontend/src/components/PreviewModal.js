@@ -14,6 +14,17 @@ const PreviewModal = ({ show, onClose, reportType, dateRange, reportTemplates })
   };
 
   const template = reportTemplates.find(r => r.id === reportType) || reportTemplates[0];
+  
+  const getIncludes = () => {
+    const includes = {
+      production: ['Raw Biogas Flow', 'Purified Gas Flow', 'Product Gas Flow', 'CH₄ Average', 'O₂ Average', 'Efficiency', 'Production Summary'],
+      quality: ['CH₄ Min/Max/Avg', 'CO₂ Levels', 'O₂ Min/Max/Avg', 'H₂S Content', 'Dew Point', 'Compliance Status', 'Out-of-Spec Incidents'],
+      performance: ['Digester 1&2 Temps', 'Digester 1&2 Pressures', 'Digester 1&2 Gas Levels', 'Tank Levels', 'Flow Meters (All 4)', 'Equipment Uptime', 'Performance Trends'],
+      compliance: ['All Gas Composition', 'Safety Threshold Breaches', 'Environmental Parameters', 'H₂S Compliance', 'Operating Hours Log', 'Alarm History', 'Regulatory Standards'],
+      custom: ['Select Parameters', 'Choose Date Range', 'Pick Format', 'Add Notes', 'Save Template']
+    };
+    return includes[reportType] || includes.production;
+  };
 
   return (
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
@@ -61,7 +72,7 @@ const PreviewModal = ({ show, onClose, reportType, dateRange, reportTemplates })
           <div className="bg-blue-50 rounded-lg p-4 border border-blue-200">
             <h4 className="font-semibold text-blue-900 mb-3">Parameters Included in Report</h4>
             <div className="grid grid-cols-2 gap-2">
-              {template.includes.map((param, idx) => (
+              {getIncludes().map((param, idx) => (
                 <div key={idx} className="flex items-center space-x-2 text-sm text-blue-800">
                   <Check className="w-4 h-4 text-blue-600 flex-shrink-0" />
                   <span>{param}</span>
