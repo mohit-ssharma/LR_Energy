@@ -1,5 +1,4 @@
 import React from 'react';
-<parameter name="file_text">import React from 'react';
 import { Droplets, TrendingDown, CheckCircle2, AlertTriangle } from 'lucide-react';
 import { LineChart, Line, ResponsiveContainer, XAxis, YAxis, CartesianGrid, Tooltip, ReferenceLine } from 'recharts';
 
