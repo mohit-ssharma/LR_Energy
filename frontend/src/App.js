@@ -12,7 +12,7 @@ import ReportsPage from "./components/ReportsPage";
 
 const Dashboard = () => {
   return (
-    <div className="px-6 py-6 bg-gradient-to-br from-blue-50 via-white to-gray-50 min-h-screen" data-testid="dashboard-page">
+    <div className="max-w-[1920px] mx-auto p-4 md:p-6 lg:p-8 bg-slate-50 min-h-screen" data-testid="dashboard-page">
       <KPISummary />
       <GasComposition />
       <DewPointMeter />
@@ -38,7 +38,7 @@ function App() {
   };
 
   return (
-    <div className="App min-h-screen bg-gray-50">
+    <div className="App min-h-screen bg-slate-50">
       <Header currentPage={currentPage} onNavigate={setCurrentPage} />
       {renderPage()}
     </div>
