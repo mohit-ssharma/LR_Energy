@@ -61,7 +61,8 @@ const FlowMeterCard = ({ title, flowRate, totalizer, percentage, color }) => {
           </ResponsiveContainer>
         </div>
 
-        <div className={`${colorClasses.light} rounded-md p-3 border ${colorClasses.border} mb-3`}>
+        {/* Fixed height box for uniform appearance */}
+        <div className={`${colorClasses.light} rounded-md p-3 border ${colorClasses.border} mb-3 min-h-[76px] flex flex-col justify-center`}>
           <div className="text-xs text-slate-500 mb-1">Totalizer</div>
           <div className="flex items-baseline space-x-1">
             <span className="text-xl font-bold font-mono text-slate-900">{totalizer}</span>
