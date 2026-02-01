@@ -1,5 +1,5 @@
 import React from 'react';
-import { Waves, TrendingUp } from 'lucide-react';
+import { Waves, Activity } from 'lucide-react';
 import { LineChart, Line, ResponsiveContainer } from 'recharts';
 
 const FlowMeterCard = ({ title, flowRate, totalizer, percentage, color }) => {
@@ -10,61 +10,76 @@ const FlowMeterCard = ({ title, flowRate, totalizer, percentage, color }) => {
   };
 
   const sparklineData = generateSparklineData();
+  
+  const getColorClasses = (color) => {
+    const colors = {
+      'emerald': { bg: 'bg-emerald-600', light: 'bg-emerald-50', border: 'border-emerald-200', text: 'text-emerald-600', stroke: '#10b981' },
+      'violet': { bg: 'bg-violet-700', light: 'bg-violet-50', border: 'border-violet-200', text: 'text-violet-700', stroke: '#8b5cf6' },
+      'cyan': { bg: 'bg-cyan-600', light: 'bg-cyan-50', border: 'border-cyan-200', text: 'text-cyan-600', stroke: '#06b6d4' },
+      'amber': { bg: 'bg-amber-600', light: 'bg-amber-50', border: 'border-amber-200', text: 'text-amber-600', stroke: '#f59e0b' }
+    };
+    return colors[color] || colors.emerald;
+  };
+
+  const colorClasses = getColorClasses(color);
 
   return (
-    <div className="bg-white rounded-xl border border-gray-200 p-5 hover:shadow-lg transition-all duration-300" data-testid={`flow-meter-${title.toLowerCase().replace(/\s+/g, '-')}`}>
-      <div className="flex items-center justify-between mb-3">
+    <div className="bg-white border border-slate-200 shadow-sm rounded-lg overflow-hidden" data-testid={`flow-meter-${title.toLowerCase().replace(/\s+/g, '-')}`}>
+      <div className="px-4 py-3 border-b border-slate-100 bg-slate-50/50 flex justify-between items-center">
         <div className="flex items-center space-x-2">
-          <div className={`p-2 rounded-lg ${color}`}>
-            <Waves className="w-5 h-5 text-white" />
+          <div className={`p-1.5 rounded-md ${colorClasses.bg}`}>
+            <Waves className="w-3.5 h-3.5 text-white" />
           </div>
-          <div>
-            <h3 className="text-sm font-semibold text-gray-700">{title}</h3>
+          <span className="text-xs font-semibold uppercase tracking-wider text-slate-500">{title}</span>
+        </div>
+        <span className="text-xs text-slate-400 font-mono">08:43:41</span>
+      </div>
+
+      <div className="p-4">
+        <div className="mb-3">
+          <div className="text-xs text-slate-500 mb-1">Flow Rate</div>
+          <div className="flex items-baseline space-x-2">
+            <span className="text-3xl font-bold font-mono tracking-tighter text-slate-900" data-testid={`${title.toLowerCase().replace(/\s+/g, '-')}-flow-rate`}>
+              {flowRate}
+            </span>
+            <span className="text-sm font-medium text-slate-400">Nm³/hr</span>
           </div>
         </div>
-        <span className="text-xs text-gray-400">08:43:41</span>
-      </div>
 
-      <div className="mb-3">
-        <div className="text-xs text-gray-500 mb-1">Flow Rate</div>
-        <div className="flex items-baseline space-x-2">
-          <span className="text-2xl font-bold text-gray-800" data-testid={`${title.toLowerCase().replace(/\s+/g, '-')}-flow-rate`}>{flowRate}</span>
-          <span className="text-sm text-gray-600">Nm³/hr</span>
+        <div className="h-12 mb-3">
+          <ResponsiveContainer width="100%" height="100%">
+            <LineChart data={sparklineData}>
+              <Line 
+                type="monotone" 
+                dataKey="value" 
+                stroke={colorClasses.stroke}
+                strokeWidth={2}
+                dot={false}
+                animationDuration={300}
+              />
+            </LineChart>
+          </ResponsiveContainer>
         </div>
-      </div>
 
-      <div className="mb-3">
-        <ResponsiveContainer width="100%" height={40}>
-          <LineChart data={sparklineData}>
-            <Line 
-              type="monotone" 
-              dataKey="value" 
-              stroke={color.includes('blue') ? '#3b82f6' : color.includes('green') ? '#10b981' : color.includes('purple') ? '#8b5cf6' : '#f59e0b'} 
-              strokeWidth={2}
-              dot={false}
-            />
-          </LineChart>
-        </ResponsiveContainer>
-      </div>
-
-      <div className="bg-gray-50 rounded-lg p-3 border border-gray-100 mb-3">
-        <div className="text-xs text-gray-500 mb-1">Totalizer</div>
-        <div className="flex items-baseline space-x-1">
-          <span className="text-lg font-bold text-gray-700">{totalizer}</span>
-          <span className="text-xs text-gray-500">m³</span>
+        <div className={`${colorClasses.light} rounded-md p-3 border ${colorClasses.border} mb-3`}>
+          <div className="text-xs text-slate-500 mb-1">Totalizer</div>
+          <div className="flex items-baseline space-x-1">
+            <span className="text-xl font-bold font-mono text-slate-900">{totalizer}</span>
+            <span className="text-xs text-slate-500">m³</span>
+          </div>
         </div>
-      </div>
 
-      <div className="relative pt-1">
-        <div className="flex items-center justify-between mb-2">
-          <span className="text-xs font-semibold text-gray-600">Capacity</span>
-          <span className="text-xs font-semibold text-gray-600">{percentage}%</span>
-        </div>
-        <div className="overflow-hidden h-2 text-xs flex rounded-full bg-gray-200">
-          <div
-            style={{ width: `${percentage}%` }}
-            className={`shadow-none flex flex-col text-center whitespace-nowrap text-white justify-center ${color}`}
-          ></div>
+        <div>
+          <div className="flex items-center justify-between mb-1.5">
+            <span className="text-xs font-medium text-slate-500">Capacity Utilization</span>
+            <span className="text-xs font-bold font-mono text-slate-900">{percentage}%</span>
+          </div>
+          <div className="overflow-hidden h-2 text-xs flex rounded-full bg-slate-100">
+            <div
+              style={{ width: `${percentage}%` }}
+              className={`shadow-none flex flex-col text-center whitespace-nowrap text-white justify-center ${colorClasses.bg} transition-all duration-300`}
+            ></div>
+          </div>
         </div>
       </div>
     </div>
@@ -78,35 +93,35 @@ const WaterFlowMeters = () => {
       flowRate: '45.8',
       totalizer: '1,523.6',
       percentage: 31,
-      color: 'bg-blue-500'
+      color: 'emerald'
     },
     {
       title: 'Feed FM – I',
       flowRate: '125.3',
       totalizer: '4,856.2',
       percentage: 84,
-      color: 'bg-green-500'
+      color: 'violet'
     },
     {
       title: 'Recycle Water FM',
       flowRate: '68.7',
       totalizer: '2,342.1',
       percentage: 46,
-      color: 'bg-purple-500'
+      color: 'cyan'
     },
     {
       title: 'Feed FM – II',
       flowRate: '132.5',
       totalizer: '5,127.8',
       percentage: 88,
-      color: 'bg-amber-500'
+      color: 'amber'
     }
   ];
 
   return (
-    <div className="mb-8" data-testid="water-flow-meters-section">
-      <h2 className="text-2xl font-bold text-gray-800 mb-4">Water Flow Meters</h2>
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-5">
+    <div className="mb-6" data-testid="water-flow-meters-section">
+      <h2 className="text-xl font-semibold tracking-tight text-slate-800 mb-4">Water Flow Meters</h2>
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
         {flowMetersData.map((meter, index) => (
           <FlowMeterCard key={index} {...meter} />
         ))}
