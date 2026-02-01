@@ -16,80 +16,48 @@ const ReportsPage = () => {
       label: 'Production Report',
       icon: FileText,
       color: 'bg-emerald-600',
-      description: 'Complete biogas production metrics and performance',
-      includes: [
-        'Raw Biogas Flow (Totalizer)',
-        'Purified Gas Flow (Totalizer)',
-        'Product Gas Flow (Totalizer)',
-        'CH₄ Concentration (Average)',
-        'O₂ Concentration (Average)',
-        'System Efficiency (%)',
-        'Daily Production Summary'
-      ]
+      description: 'Complete biogas production metrics and performance'
     },
     {
       id: 'quality',
       label: 'Quality Report',
       icon: FileText,
       color: 'bg-violet-700',
-      description: 'Gas quality parameters and composition analysis',
-      includes: [
-        'CH₄ Concentration (Min/Max/Avg)',
-        'CO₂ Levels',
-        'O₂ Concentration (Min/Max/Avg)',
-        'H₂S Content (ppm)',
-        'Dew Point Readings',
-        'Quality Compliance Status',
-        'Out-of-Spec Incidents'
-      ]
+      description: 'Gas quality parameters and composition analysis'
     },
     {
       id: 'performance',
       label: 'Performance Report',
       icon: FileText,
       color: 'bg-cyan-600',
-      description: 'Equipment performance and operational efficiency',
-      includes: [
-        'Digester 1 & 2 Temperatures',
-        'Digester 1 & 2 Pressures',
-        'Digester 1 & 2 Gas Levels',
-        'Tank Levels (Buffer & Lagoon)',
-        'Water Flow Meters (All 4)',
-        'Equipment Uptime',
-        'Performance Trends'
-      ]
+      description: 'Equipment performance and operational efficiency'
     },
     {
       id: 'compliance',
       label: 'Compliance Report',
       icon: FileText,
       color: 'bg-amber-600',
-      description: 'Regulatory compliance and safety metrics',
-      includes: [
-        'All Gas Composition Parameters',
-        'Safety Threshold Breaches',
-        'Environmental Parameters',
-        'H₂S Limits Compliance',
-        'Operating Hours Log',
-        'Alarm/Alert History',
-        'Regulatory Standards Met'
-      ]
+      description: 'Regulatory compliance and safety metrics'
     },
     {
       id: 'custom',
       label: 'Custom Report',
       icon: Settings,
       color: 'bg-slate-700',
-      description: 'Build your own report with selected parameters',
-      includes: [
-        'Select any parameters',
-        'Choose date range',
-        'Pick export format',
-        'Add custom notes',
-        'Save as template'
-      ]
+      description: 'Build your own report with selected parameters'
     }
   ];
+
+  const getReportIncludes = (id) => {
+    const includes = {
+      production: ['Raw Biogas Flow', 'Purified Gas Flow', 'Product Gas Flow', 'CH₄ Average', 'Efficiency', 'Production Summary'],
+      quality: ['CH₄ Min/Max/Avg', 'CO₂ Levels', 'O₂ Min/Max/Avg', 'H₂S Content', 'Dew Point', 'Compliance Status'],
+      performance: ['Digester Temps', 'Pressures', 'Gas Levels', 'Tank Levels', 'Flow Meters', 'Uptime', 'Trends'],
+      compliance: ['Gas Composition', 'Threshold Breaches', 'H₂S Compliance', 'Operating Hours', 'Alarm History'],
+      custom: ['Select Parameters', 'Choose Date Range', 'Pick Format', 'Add Notes', 'Save Template']
+    };
+    return includes[id] || [];
+  };
 
   const recentReports = [
     { name: 'Daily Production Report - Feb 01, 2026', date: '2026-02-01', size: '2.4 MB', format: 'PDF', status: 'Ready' },
@@ -154,15 +122,15 @@ const ReportsPage = () => {
                   <div className="bg-slate-50 rounded-md p-3 border border-slate-100">
                     <div className="text-xs font-semibold text-slate-600 mb-2">Includes:</div>
                     <ul className="space-y-1">
-                      {template.includes.slice(0, 4).map((item, idx) => (
+                      {getReportIncludes(template.id).slice(0, 4).map((item, idx) => (
                         <li key={idx} className="flex items-start space-x-2 text-xs text-slate-600">
                           <Check className="w-3 h-3 text-emerald-600 mt-0.5 flex-shrink-0" />
                           <span>{item}</span>
                         </li>
                       ))}
-                      {template.includes.length > 4 && (
+                      {getReportIncludes(template.id).length > 4 && (
                         <li className="text-xs text-slate-500 italic">
-                          +{template.includes.length - 4} more parameters...
+                          +{getReportIncludes(template.id).length - 4} more...
                         </li>
                       )}
                     </ul>
