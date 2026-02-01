@@ -88,6 +88,13 @@ const Header = ({ currentPage, onNavigate, onLogout }) => {
                 <LogOut className="w-4 h-4" />
               </button>
             )}
+            <div className="h-8 w-px bg-slate-200"></div>
+            <img 
+              src="https://customer-assets.emergentagent.com/job_4acfe114-4f71-44b3-ba66-02b58d5e96c3/artifacts/rp3d3dho_elan_logo.jpg" 
+              alt="ELAN Logo" 
+              className="h-10 w-auto object-contain"
+              title="Powered by ELAN"
+            />
           </div>
         </div>
       </div>
