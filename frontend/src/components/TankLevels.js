@@ -55,7 +55,7 @@ const TankCard = ({ title, currentVolume, totalCapacity, unit, status, color }) 
 
   return (
     <div className="bg-white border border-slate-200 shadow-sm rounded-lg overflow-hidden" data-testid={`tank-${title.toLowerCase().replace(/\s+/g, '-')}`}>
-      <div className="px-4 py-3 border-b border-slate-100 bg-slate-50/50 flex justify-between items-center">
+      <div className="px-4 py-3 border-b border-slate-100 bg-gradient-to-r from-cyan-50 to-violet-50 flex justify-between items-center">
         <div className="flex items-center space-x-2">
           <Droplet className={`w-4 h-4 ${color}`} />
           <span className="text-xs font-semibold uppercase tracking-wider text-slate-500">{title}</span>
@@ -63,7 +63,7 @@ const TankCard = ({ title, currentVolume, totalCapacity, unit, status, color }) 
         <span className="text-xs text-slate-400 font-mono">08:43:41</span>
       </div>
 
-      <div className="p-5">
+      <div className="p-5 bg-gradient-to-br from-slate-50/30 to-white">
         <div className="flex items-center justify-between mb-4">
           <div>
             <div className="flex items-baseline space-x-2 mb-1">

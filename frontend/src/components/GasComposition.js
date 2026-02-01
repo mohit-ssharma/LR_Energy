@@ -30,7 +30,7 @@ const GasComposition = () => {
       <h2 className="text-xl font-semibold tracking-tight text-slate-800 mb-4">Gas Composition (Detailed)</h2>
       <div className="bg-white border border-slate-200 shadow-sm rounded-lg overflow-hidden">
         <div className="grid grid-cols-1 lg:grid-cols-5 divide-y lg:divide-y-0 lg:divide-x divide-slate-100">
-          <div className="lg:col-span-2 p-5">
+          <div className="lg:col-span-2 p-5 bg-gradient-to-br from-slate-50/30 to-white">
             <div className="flex items-center space-x-2 mb-4">
               <Activity className="w-4 h-4 text-emerald-600" />
               <h3 className="text-sm font-semibold uppercase tracking-wider text-slate-500">Distribution</h3>
@@ -74,13 +74,13 @@ const GasComposition = () => {
             </div>
           </div>
           
-          <div className="lg:col-span-3 p-5">
+          <div className="lg:col-span-3 p-5 bg-gradient-to-br from-emerald-50/20 to-white">
             <div className="flex items-center space-x-2 mb-4">
-              <span className="text-sm font-semibold uppercase tracking-wider text-slate-500">Detailed Parameters</span>
+              <span className="text-sm font-semibold uppercase tracking-wider text-slate-600">Detailed Parameters</span>
             </div>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
               {detailedData.map((item, index) => (
-                <div key={index} className="bg-slate-50 rounded-lg p-3 border border-slate-100" data-testid={`gas-param-${item.label.toLowerCase()}`}>
+                <div key={index} className="bg-gradient-to-br from-white to-slate-50 rounded-lg p-3 border border-slate-200" data-testid={`gas-param-${item.label.toLowerCase()}`}>
                   <div className="flex items-center justify-between mb-2">
                     <div className="flex items-center space-x-2">
                       <div className={`w-2 h-2 rounded-full bg-${item.color}-500`}></div>

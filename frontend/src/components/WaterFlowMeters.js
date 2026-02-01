@@ -25,7 +25,7 @@ const FlowMeterCard = ({ title, flowRate, totalizer, percentage, color }) => {
 
   return (
     <div className="bg-white border border-slate-200 shadow-sm rounded-lg overflow-hidden" data-testid={`flow-meter-${title.toLowerCase().replace(/\s+/g, '-')}`}>
-      <div className="px-4 py-3 border-b border-slate-100 bg-slate-50/50 flex justify-between items-center">
+      <div className="px-4 py-3 border-b border-slate-100 bg-gradient-to-br from-slate-50 to-slate-100/50 flex justify-between items-center">
         <div className="flex items-center space-x-2">
           <div className={`p-1.5 rounded-md ${colorClasses.bg}`}>
             <Waves className="w-3.5 h-3.5 text-white" />
@@ -35,7 +35,7 @@ const FlowMeterCard = ({ title, flowRate, totalizer, percentage, color }) => {
         <span className="text-xs text-slate-400 font-mono">08:43:41</span>
       </div>
 
-      <div className="p-4">
+      <div className="p-4 bg-gradient-to-br from-slate-50/20 to-white">
         <div className="mb-3">
           <div className="text-xs text-slate-500 mb-1">Flow Rate</div>
           <div className="flex items-baseline space-x-2">

@@ -21,7 +21,7 @@ const DewPointMeter = () => {
       <h2 className="text-xl font-semibold tracking-tight text-slate-800 mb-4">Dew Point Meter</h2>
       <div className="bg-white border border-slate-200 shadow-sm rounded-lg overflow-hidden">
         <div className="grid grid-cols-1 lg:grid-cols-12 divide-y lg:divide-y-0 lg:divide-x divide-slate-100">
-          <div className="lg:col-span-4 p-5">
+          <div className="lg:col-span-4 p-5 bg-gradient-to-br from-cyan-50/30 to-white">
             <div className="flex items-center space-x-2 mb-4">
               <Droplets className="w-5 h-5 text-cyan-600" />
               <h3 className="text-lg font-medium text-slate-700">Dew Point Status</h3>
@@ -91,7 +91,7 @@ const DewPointMeter = () => {
             </div>
           </div>
           
-          <div className="lg:col-span-8 p-5">
+          <div className="lg:col-span-8 p-5 bg-gradient-to-br from-slate-50/30 to-white">
             <div className="flex items-center justify-between mb-4">
               <h3 className="text-lg font-medium text-slate-700">24-Hour Trend Analysis</h3>
               <div className="flex items-center space-x-4 text-xs">
