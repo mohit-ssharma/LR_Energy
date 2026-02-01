@@ -1,81 +1,122 @@
 import React from 'react';
-import { Droplet, AlertTriangle } from 'lucide-react';
+import { Droplet, AlertTriangle, CheckCircle2 } from 'lucide-react';
 
 const TankCard = ({ title, currentVolume, totalCapacity, unit, status, color }) => {
   const percentage = (currentVolume / totalCapacity) * 100;
   const available = totalCapacity - currentVolume;
 
-  const getStatusColor = (status) => {
+  const getStatusConfig = (status) => {
     switch(status.toLowerCase()) {
-      case 'normal': return 'bg-green-100 text-green-700 border-green-300';
-      case 'moderate': return 'bg-yellow-100 text-yellow-700 border-yellow-300';
-      case 'high': return 'bg-orange-100 text-orange-700 border-orange-300';
-      case 'critical': return 'bg-red-100 text-red-700 border-red-300';
-      default: return 'bg-gray-100 text-gray-700 border-gray-300';
+      case 'normal': 
+        return { 
+          bg: 'bg-emerald-50', 
+          text: 'text-emerald-700', 
+          border: 'border-emerald-200',
+          icon: CheckCircle2,
+          liquidColor: 'bg-emerald-500'
+        };
+      case 'moderate': 
+        return { 
+          bg: 'bg-amber-50', 
+          text: 'text-amber-700', 
+          border: 'border-amber-200',
+          icon: AlertTriangle,
+          liquidColor: 'bg-amber-500'
+        };
+      case 'high': 
+        return { 
+          bg: 'bg-orange-50', 
+          text: 'text-orange-700', 
+          border: 'border-orange-200',
+          icon: AlertTriangle,
+          liquidColor: 'bg-orange-500'
+        };
+      case 'critical': 
+        return { 
+          bg: 'bg-rose-50', 
+          text: 'text-rose-700', 
+          border: 'border-rose-200',
+          icon: AlertTriangle,
+          liquidColor: 'bg-rose-500'
+        };
+      default: 
+        return { 
+          bg: 'bg-slate-50', 
+          text: 'text-slate-700', 
+          border: 'border-slate-200',
+          icon: CheckCircle2,
+          liquidColor: 'bg-slate-500'
+        };
     }
   };
 
+  const statusConfig = getStatusConfig(status);
+  const StatusIcon = statusConfig.icon;
+
   return (
-    <div className="bg-white rounded-xl border border-gray-200 p-6 hover:shadow-lg transition-all duration-300" data-testid={`tank-${title.toLowerCase().replace(/\s+/g, '-')}`}>
-      <div className="flex items-center justify-between mb-4">
+    <div className="bg-white border border-slate-200 shadow-sm rounded-lg overflow-hidden" data-testid={`tank-${title.toLowerCase().replace(/\s+/g, '-')}`}>
+      <div className="px-4 py-3 border-b border-slate-100 bg-slate-50/50 flex justify-between items-center">
         <div className="flex items-center space-x-2">
-          <Droplet className={`w-5 h-5 ${color}`} />
-          <h3 className="text-lg font-semibold text-gray-700">{title}</h3>
+          <Droplet className={`w-4 h-4 ${color}`} />
+          <span className="text-xs font-semibold uppercase tracking-wider text-slate-500">{title}</span>
         </div>
-        <span className="text-xs text-gray-400">08:43:41</span>
+        <span className="text-xs text-slate-400 font-mono">08:43:41</span>
       </div>
 
-      <div className="mb-4">
-        <div className="flex items-baseline space-x-2 mb-1">
-          <span className="text-4xl font-bold text-gray-800" data-testid={`${title.toLowerCase().replace(/\s+/g, '-')}-volume`}>{currentVolume}</span>
-          <span className="text-lg text-gray-600">{unit}</span>
-        </div>
-        <div className="text-sm text-gray-500">{percentage.toFixed(0)}% Full</div>
-      </div>
-
-      <div className="relative h-32 bg-gray-100 rounded-lg overflow-hidden mb-4 border-2 border-gray-200">
-        <div 
-          className={`absolute bottom-0 w-full ${color.replace('text', 'bg')} opacity-20 transition-all duration-500`}
-          style={{ height: `${percentage}%` }}
-        ></div>
-        <div 
-          className={`absolute bottom-0 w-full ${color.replace('text', 'bg')} transition-all duration-500`}
-          style={{ 
-            height: `${percentage}%`,
-            background: `linear-gradient(to top, ${color.includes('teal') ? '#14b8a6' : '#3b82f6'}, transparent)`
-          }}
-        >
-          <div className="absolute top-2 left-0 right-0 text-center text-white text-sm font-bold drop-shadow-md">
-            {percentage.toFixed(0)}%
+      <div className="p-5">
+        <div className="flex items-center justify-between mb-4">
+          <div>
+            <div className="flex items-baseline space-x-2 mb-1">
+              <span className="text-4xl font-bold font-mono tracking-tighter text-slate-900" data-testid={`${title.toLowerCase().replace(/\s+/g, '-')}-volume`}>
+                {currentVolume}
+              </span>
+              <span className="text-lg font-medium text-slate-400">{unit}</span>
+            </div>
+            <div className="text-sm font-medium text-slate-500">{percentage.toFixed(0)}% Full</div>
+          </div>
+          
+          <div className="relative w-24 h-40 bg-slate-100 border-2 border-slate-300 rounded-lg overflow-hidden">
+            <div 
+              className={`absolute bottom-0 left-0 w-full ${statusConfig.liquidColor} opacity-80 transition-all duration-1000 ease-in-out`}
+              style={{ height: `${percentage}%` }}
+            >
+              <div className="absolute inset-0 bg-gradient-to-t from-transparent to-white opacity-30"></div>
+            </div>
+            <div className="absolute inset-0 flex flex-col justify-between p-2 text-xs text-slate-500 font-mono">
+              <div className="text-right">100%</div>
+              <div className="text-right">75%</div>
+              <div className="text-right">50%</div>
+              <div className="text-right">25%</div>
+              <div className="text-right">0%</div>
+            </div>
+            <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 text-center">
+              <div className="text-xl font-bold font-mono text-white drop-shadow-lg">{percentage.toFixed(0)}%</div>
+            </div>
           </div>
         </div>
-        <div className="absolute inset-0 flex flex-col justify-between p-2 text-xs text-gray-500">
-          <div className="text-right">100%</div>
-          <div className="text-right">75%</div>
-          <div className="text-right">50%</div>
-          <div className="text-right">25%</div>
-          <div className="text-right">0%</div>
-        </div>
-      </div>
 
-      <div className="grid grid-cols-3 gap-3 mb-4">
-        <div className="bg-blue-50 rounded-lg p-3 border border-blue-100">
-          <div className="text-xs text-gray-600 mb-1">Current Volume</div>
-          <div className="text-sm font-bold text-gray-800">{currentVolume} {unit}</div>
+        <div className="grid grid-cols-3 gap-2 mb-4">
+          <div className="bg-cyan-50 rounded-md p-2 border border-cyan-100">
+            <div className="text-xs text-slate-500 mb-0.5">Current</div>
+            <div className="text-sm font-bold font-mono text-slate-900">{currentVolume}</div>
+            <div className="text-xs text-slate-400">{unit}</div>
+          </div>
+          <div className="bg-slate-50 rounded-md p-2 border border-slate-100">
+            <div className="text-xs text-slate-500 mb-0.5">Capacity</div>
+            <div className="text-sm font-bold font-mono text-slate-900">{totalCapacity}</div>
+            <div className="text-xs text-slate-400">{unit}</div>
+          </div>
+          <div className="bg-emerald-50 rounded-md p-2 border border-emerald-100">
+            <div className="text-xs text-slate-500 mb-0.5">Available</div>
+            <div className="text-sm font-bold font-mono text-slate-900">{available.toFixed(1)}</div>
+            <div className="text-xs text-slate-400">{unit}</div>
+          </div>
         </div>
-        <div className="bg-gray-50 rounded-lg p-3 border border-gray-200">
-          <div className="text-xs text-gray-600 mb-1">Total Capacity</div>
-          <div className="text-sm font-bold text-gray-800">{totalCapacity} {unit}</div>
-        </div>
-        <div className="bg-green-50 rounded-lg p-3 border border-green-100">
-          <div className="text-xs text-gray-600 mb-1">Available</div>
-          <div className="text-sm font-bold text-gray-800">{available.toFixed(1)} {unit}</div>
-        </div>
-      </div>
 
-      <div className={`flex items-center justify-center space-x-2 p-2 rounded-lg border ${getStatusColor(status)}`}>
-        {status.toLowerCase() !== 'normal' && <AlertTriangle className="w-4 h-4" />}
-        <span className="text-sm font-semibold">{status}</span>
+        <div className={`flex items-center justify-center space-x-2 p-2 rounded-lg border ${statusConfig.border} ${statusConfig.bg}`}>
+          <StatusIcon className={`w-4 h-4 ${statusConfig.text}`} />
+          <span className={`text-sm font-semibold ${statusConfig.text}`}>{status}</span>
+        </div>
       </div>
     </div>
   );
@@ -89,7 +130,7 @@ const TankLevels = () => {
       totalCapacity: 250,
       unit: 'm³',
       status: 'Moderate',
-      color: 'text-teal-600'
+      color: 'text-cyan-600'
     },
     {
       title: 'Lagoon Tank Water Level',
@@ -97,13 +138,13 @@ const TankLevels = () => {
       totalCapacity: 500,
       unit: 'm³',
       status: 'Moderate',
-      color: 'text-blue-600'
+      color: 'text-violet-600'
     }
   ];
 
   return (
-    <div className="mb-8" data-testid="tank-levels-section">
-      <h2 className="text-2xl font-bold text-gray-800 mb-4">Tank Level Monitoring</h2>
+    <div className="mb-6" data-testid="tank-levels-section">
+      <h2 className="text-xl font-semibold tracking-tight text-slate-800 mb-4">Tank Level Monitoring</h2>
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {tanksData.map((tank, index) => (
           <TankCard key={index} {...tank} />
