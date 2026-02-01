@@ -1,89 +1,118 @@
 import React from 'react';
-import { PieChart, Pie, Cell, ResponsiveContainer, Legend, Tooltip } from 'recharts';
-import { Activity } from 'lucide-react';
+import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip } from 'recharts';
+import { Activity, AlertTriangle } from 'lucide-react';
 
 const GasComposition = () => {
   const compositionData = [
-    { name: 'CH₄', value: 96.8, color: '#3b82f6', unit: '%' },
-    { name: 'CO₂', value: 2.85, color: '#10b981', unit: '%' },
+    { name: 'CH₄', value: 96.8, color: '#10b981', unit: '%' },
+    { name: 'CO₂', value: 2.85, color: '#8b5cf6', unit: '%' },
     { name: 'O₂', value: 0.42, color: '#f59e0b', unit: '%' },
   ];
 
   const detailedData = [
-    { label: 'CH₄', value: '96.8', unit: '%', current: 100, color: 'bg-blue-500' },
-    { label: 'CO₂', value: '2.85', unit: '%', current: 100, color: 'bg-green-500' },
-    { label: 'O₂', value: '0.42', unit: '%', current: 100, color: 'bg-amber-500' },
-    { label: 'H₂S', value: '12.5', unit: 'ppm', current: 12.5, limit: 100, color: 'bg-red-500' },
+    { label: 'CH₄', value: '96.8', unit: '%', current: 96.8, target: 100, status: 'normal', color: 'emerald' },
+    { label: 'CO₂', value: '2.85', unit: '%', current: 2.85, target: 100, status: 'normal', color: 'violet' },
+    { label: 'O₂', value: '0.42', unit: '%', current: 0.42, target: 100, status: 'normal', color: 'amber' },
+    { label: 'H₂S', value: '12.5', unit: 'ppm', current: 12.5, limit: 100, status: 'warning', color: 'rose' },
   ];
 
+  const getStatusStyle = (status) => {
+    switch(status) {
+      case 'normal': return 'bg-emerald-100 text-emerald-700 border-emerald-200';
+      case 'warning': return 'bg-amber-100 text-amber-700 border-amber-200';
+      case 'critical': return 'bg-rose-100 text-rose-700 border-rose-200';
+      default: return 'bg-slate-100 text-slate-700 border-slate-200';
+    }
+  };
+
   return (
-    <div className="mb-8" data-testid="gas-composition-section">
-      <h2 className="text-2xl font-bold text-gray-800 mb-4">Gas Composition (Detailed)</h2>
-      <div className="bg-white rounded-xl border border-gray-200 p-6 hover:shadow-lg transition-all duration-300">
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          <div>
-            <h3 className="text-lg font-semibold text-gray-700 mb-4 flex items-center space-x-2">
-              <Activity className="w-5 h-5 text-blue-600" />
-              <span>Composition Distribution</span>
-            </h3>
-            <ResponsiveContainer width="100%" height={250}>
+    <div className="mb-6" data-testid="gas-composition-section">
+      <h2 className="text-xl font-semibold tracking-tight text-slate-800 mb-4">Gas Composition (Detailed)</h2>
+      <div className="bg-white border border-slate-200 shadow-sm rounded-lg overflow-hidden">
+        <div className="grid grid-cols-1 lg:grid-cols-5 divide-y lg:divide-y-0 lg:divide-x divide-slate-100">
+          <div className="lg:col-span-2 p-5">
+            <div className="flex items-center space-x-2 mb-4">
+              <Activity className="w-4 h-4 text-emerald-600" />
+              <h3 className="text-sm font-semibold uppercase tracking-wider text-slate-500">Distribution</h3>
+            </div>
+            <ResponsiveContainer width="100%" height={200}>
               <PieChart>
                 <Pie
                   data={compositionData}
                   cx="50%"
                   cy="50%"
-                  labelLine={false}
-                  label={({ name, value }) => `${name}: ${value}%`}
-                  outerRadius={80}
+                  innerRadius={60}
+                  outerRadius={85}
                   fill="#8884d8"
                   dataKey="value"
+                  paddingAngle={2}
                 >
                   {compositionData.map((entry, index) => (
                     <Cell key={`cell-${index}`} fill={entry.color} />
                   ))}
                 </Pie>
-                <Tooltip />
+                <Tooltip 
+                  contentStyle={{
+                    backgroundColor: '#fff',
+                    border: '1px solid #e2e8f0',
+                    borderRadius: '6px',
+                    boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)'
+                  }}
+                />
               </PieChart>
             </ResponsiveContainer>
+            <div className="grid grid-cols-3 gap-2 mt-4">
+              {compositionData.map((item, index) => (
+                <div key={index} className="text-center">
+                  <div className="flex items-center justify-center space-x-1 mb-1">
+                    <div className="w-2 h-2 rounded-full" style={{ backgroundColor: item.color }}></div>
+                    <span className="text-xs font-medium text-slate-600">{item.name}</span>
+                  </div>
+                  <div className="text-lg font-bold font-mono text-slate-900">{item.value}%</div>
+                </div>
+              ))}
+            </div>
           </div>
-          <div>
-            <h3 className="text-lg font-semibold text-gray-700 mb-4">Detailed Parameters</h3>
-            <div className="space-y-4">
+          
+          <div className="lg:col-span-3 p-5">
+            <div className="flex items-center space-x-2 mb-4">
+              <span className="text-sm font-semibold uppercase tracking-wider text-slate-500">Detailed Parameters</span>
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
               {detailedData.map((item, index) => (
-                <div key={index} className="bg-gray-50 rounded-lg p-4 border border-gray-100" data-testid={`gas-param-${item.label.toLowerCase()}`}>
+                <div key={index} className="bg-slate-50 rounded-lg p-3 border border-slate-100" data-testid={`gas-param-${item.label.toLowerCase()}`}>
                   <div className="flex items-center justify-between mb-2">
                     <div className="flex items-center space-x-2">
-                      <div className={`w-3 h-3 rounded-full ${item.color}`}></div>
-                      <span className="text-sm font-semibold text-gray-700">{item.label}</span>
+                      <div className={`w-2 h-2 rounded-full bg-${item.color}-500`}></div>
+                      <span className="text-xs font-semibold text-slate-700">{item.label}</span>
                     </div>
-                    <span className="text-xs text-gray-400">08:43:41</span>
+                    <span className={`text-xs px-2 py-0.5 rounded-full border ${getStatusStyle(item.status)}`}>
+                      {item.status}
+                    </span>
                   </div>
                   <div className="flex items-baseline space-x-2 mb-2">
-                    <span className="text-2xl font-bold text-gray-800">{item.value}</span>
-                    <span className="text-sm text-gray-500">{item.unit}</span>
+                    <span className="text-2xl font-bold font-mono text-slate-900">{item.value}</span>
+                    <span className="text-sm font-medium text-slate-400">{item.unit}</span>
                   </div>
                   <div className="relative pt-1">
-                    <div className="flex mb-2 items-center justify-between">
-                      <div>
-                        <span className="text-xs font-semibold inline-block text-gray-600">
-                          Current: {item.current}{item.unit}
-                        </span>
-                      </div>
-                      {item.limit && (
-                        <div className="text-right">
-                          <span className="text-xs font-semibold inline-block text-gray-600">
-                            Limit: {item.limit}{item.unit}
-                          </span>
-                        </div>
-                      )}
+                    <div className="flex mb-1 items-center justify-between">
+                      <span className="text-xs font-medium text-slate-500">
+                        {item.limit ? `${item.current}/${item.limit}` : `${item.current}%`}
+                      </span>
                     </div>
-                    <div className="overflow-hidden h-2 text-xs flex rounded-full bg-gray-200">
+                    <div className="overflow-hidden h-1.5 text-xs flex rounded-full bg-slate-200">
                       <div
-                        style={{ width: `${item.limit ? (item.current / item.limit) * 100 : 100}%` }}
-                        className={`shadow-none flex flex-col text-center whitespace-nowrap text-white justify-center ${item.color}`}
+                        style={{ width: `${item.limit ? (item.current / item.limit) * 100 : item.current}%` }}
+                        className={`shadow-none flex flex-col text-center whitespace-nowrap text-white justify-center bg-${item.color}-500 transition-all duration-300`}
                       ></div>
                     </div>
                   </div>
+                  {item.status === 'warning' && (
+                    <div className="flex items-center space-x-1 mt-2 text-xs text-amber-600">
+                      <AlertTriangle className="w-3 h-3" />
+                      <span>Approaching limit</span>
+                    </div>
+                  )}
                 </div>
               ))}
             </div>
