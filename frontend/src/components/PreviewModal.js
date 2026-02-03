@@ -4,35 +4,76 @@ import { X, Download, Check } from 'lucide-react';
 const PreviewModal = ({ show, onClose, reportType, dateRange, reportTemplates }) => {
   if (!show) return null;
 
-  const mockData = {
-    summary: { 
-      totalProduction: '12,450.8 Nm³', 
-      avgFlowRate: '342.5 Nm³/hr', 
-      efficiency: '92.9%', 
-      uptime: '23.5 hrs' 
-    }
-  };
-
   const template = reportTemplates.find(r => r.id === reportType) || reportTemplates[0];
   
+  // Different summary data for each report type
+  const getSummaryData = () => {
+    const summaries = {
+      production: {
+        'Total Production': '12,450.8 Nm³',
+        'Avg Flow Rate': '342.5 Nm³/hr',
+        'Efficiency': '92.9%',
+        'Uptime': '23.5 hrs'
+      },
+      quality: {
+        'Avg CH₄': '96.8%',
+        'Avg CO₂': '2.85%',
+        'Avg O₂': '0.42%',
+        'H₂S Level': '12.5 ppm'
+      },
+      performance: {
+        'Digester 1 Temp': '38.5°C',
+        'Digester 2 Temp': '37.8°C',
+        'Tank Utilization': '78.5%',
+        'Flow Efficiency': '94.2%'
+      },
+      compliance: {
+        'Compliance Rate': '99.2%',
+        'Threshold Breaches': '0',
+        'Operating Hours': '720 hrs',
+        'Alarms': '3'
+      },
+      custom: {
+        'Parameters': 'Custom',
+        'Date Range': 'Custom',
+        'Format': 'Custom',
+        'Status': 'Pending'
+      }
+    };
+    return summaries[reportType] || summaries.production;
+  };
+
+  // Different parameters for each report type
   const getIncludes = () => {
     const includes = {
-      production: ['Raw Biogas Flow', 'Purified Gas Flow', 'Product Gas Flow', 'CH₄ Average', 'O₂ Average', 'Efficiency', 'Production Summary'],
-      quality: ['CH₄ Min/Max/Avg', 'CO₂ Levels', 'O₂ Min/Max/Avg', 'H₂S Content', 'Dew Point', 'Compliance Status', 'Out-of-Spec Incidents'],
-      performance: ['Digester 1&2 Temps', 'Digester 1&2 Pressures', 'Digester 1&2 Gas Levels', 'Tank Levels', 'Flow Meters (All 4)', 'Equipment Uptime', 'Performance Trends'],
-      compliance: ['All Gas Composition', 'Safety Threshold Breaches', 'Environmental Parameters', 'H₂S Compliance', 'Operating Hours Log', 'Alarm History', 'Regulatory Standards'],
-      custom: ['Select Parameters', 'Choose Date Range', 'Pick Format', 'Add Notes', 'Save Template']
+      production: ['Raw Biogas Flow', 'Purified Gas Flow', 'Product Gas Flow', 'CH₄ Average', 'Efficiency Metrics', 'Production Summary'],
+      quality: ['CH₄ Min/Max/Avg', 'CO₂ Levels', 'O₂ Min/Max/Avg', 'H₂S Content', 'Dew Point', 'Compliance Status'],
+      performance: ['Digester 1 & 2 Temps', 'Gas Pressures', 'Gas Levels', 'Tank Levels', 'Water Flow Meters', 'Equipment Uptime'],
+      compliance: ['Gas Composition', 'Safety Thresholds', 'Environmental Parameters', 'H₂S Compliance', 'Operating Hours', 'Alarm History'],
+      custom: ['Selected Parameters', 'Custom Date Range', 'Export Format', 'Notes', 'Template Settings']
     };
     return includes[reportType] || includes.production;
+  };
+
+  // Get header color based on report type
+  const getHeaderColor = () => {
+    const colors = {
+      production: 'from-emerald-600 to-teal-600',
+      quality: 'from-violet-600 to-purple-600',
+      performance: 'from-cyan-600 to-blue-600',
+      compliance: 'from-amber-500 to-orange-500',
+      custom: 'from-slate-600 to-slate-700'
+    };
+    return colors[reportType] || colors.production;
   };
 
   return (
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
       <div className="bg-white rounded-xl shadow-2xl w-full max-w-4xl max-h-[85vh] overflow-hidden">
-        <div className="bg-gradient-to-r from-emerald-600 to-cyan-600 text-white p-6 flex justify-between items-center">
+        <div className={`bg-gradient-to-r ${getHeaderColor()} text-white p-6 flex justify-between items-center`}>
           <div>
             <h2 className="text-2xl font-bold">Report Preview</h2>
-            <p className="text-emerald-100 text-sm mt-1">{template.label} - {dateRange}</p>
+            <p className="text-white/80 text-sm mt-1">{template.label} - {dateRange}</p>
           </div>
           <button onClick={onClose} className="p-2 hover:bg-white/20 rounded-lg transition-colors">
             <X className="w-6 h-6" />
@@ -53,16 +94,16 @@ const PreviewModal = ({ show, onClose, reportType, dateRange, reportTemplates })
               </div>
             </div>
             <div className="border-t border-slate-300 pt-4">
-              <h3 className="text-2xl font-bold text-slate-900 mb-2">{template.label}</h3>
+              <h3 className="text-2xl font-bold text-slate-900 mb-2">{template.label.toUpperCase()}</h3>
               <p className="text-slate-600">LR Energy Biogas Plant - SCADA Monitoring System</p>
             </div>
           </div>
 
           <div className="grid grid-cols-4 gap-4 mb-6">
-            {Object.entries(mockData.summary).map(([key, value]) => (
+            {Object.entries(getSummaryData()).map(([key, value]) => (
               <div key={key} className="bg-white rounded-lg p-4 border border-slate-200">
                 <div className="text-xs text-slate-500 uppercase tracking-wider mb-1">
-                  {key.replace(/([A-Z])/g, ' $1').trim()}
+                  {key}
                 </div>
                 <div className="text-2xl font-bold font-mono text-slate-900">{value}</div>
               </div>
