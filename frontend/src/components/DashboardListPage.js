@@ -88,9 +88,10 @@ const DashboardListPage = ({ onSelectDashboard, onLogout, user }) => {
             return (
               <button
                 key={dashboard.id}
-                onClick={() => onSelectDashboard(dashboard.id)}
-                className="bg-white rounded-xl border-2 border-slate-200 hover:border-emerald-400 hover:shadow-xl transition-all duration-200 overflow-hidden text-left group"
+                onClick={() => dashboard.isActive && onSelectDashboard(dashboard.id)}
+                className={`bg-white rounded-xl border-2 ${dashboard.isActive ? 'border-slate-200 hover:border-emerald-400 hover:shadow-xl cursor-pointer' : 'border-slate-200 cursor-not-allowed opacity-80'} transition-all duration-200 overflow-hidden text-left group`}
                 data-testid={`dashboard-${dashboard.id}`}
+                disabled={!dashboard.isActive}
               >
                 {/* Header with gradient */}
                 <div className={`bg-gradient-to-r ${dashboard.color} p-6 text-white relative overflow-hidden`}>
@@ -101,7 +102,7 @@ const DashboardListPage = ({ onSelectDashboard, onLogout, user }) => {
                         <Icon className="w-8 h-8" />
                       </div>
                       <div className="flex items-center space-x-2">
-                        <div className={`w-2 h-2 rounded-full ${dashboard.statusColor} animate-pulse`}></div>
+                        <div className={`w-2 h-2 rounded-full ${dashboard.statusColor} ${dashboard.isActive ? 'animate-pulse' : ''}`}></div>
                         <span className="text-sm font-semibold">{dashboard.status}</span>
                       </div>
                     </div>
@@ -132,8 +133,17 @@ const DashboardListPage = ({ onSelectDashboard, onLogout, user }) => {
                   </div>
 
                   <div className="flex items-center justify-between pt-4 border-t border-slate-200">
-                    <span className="text-sm font-medium text-slate-600">Open Dashboard</span>
-                    <ArrowRight className="w-5 h-5 text-emerald-600 group-hover:translate-x-1 transition-transform" />
+                    {dashboard.isActive ? (
+                      <>
+                        <span className="text-sm font-medium text-slate-600">Open Dashboard</span>
+                        <ArrowRight className="w-5 h-5 text-emerald-600 group-hover:translate-x-1 transition-transform" />
+                      </>
+                    ) : (
+                      <>
+                        <span className="text-sm font-medium text-slate-400">Coming Soon</span>
+                        <Clock className="w-5 h-5 text-slate-400" />
+                      </>
+                    )}
                   </div>
                 </div>
               </button>
@@ -143,10 +153,10 @@ const DashboardListPage = ({ onSelectDashboard, onLogout, user }) => {
 
         {/* Info Box */}
         <div className="mt-8 bg-gradient-to-r from-emerald-50 to-cyan-50 rounded-xl p-6 border border-emerald-200">
-          <h3 className="text-lg font-semibold text-slate-800 mb-2">Need Help?</h3>
+          <h3 className="text-lg font-semibold text-slate-800 mb-2">LR Energy SCADA Monitoring</h3>
           <p className="text-slate-600 text-sm">
-            Select any dashboard above to start monitoring. Currently, only <strong>LR Energy Biogas Plant</strong> is fully configured. 
-            Other dashboards will show a coming soon message.
+            <strong>Karnal Plant:</strong> Fully operational with real-time monitoring of 35 parameters including gas composition, digesters, tank levels, and flow meters.<br/>
+            <strong>Sonipat Plant:</strong> Dashboard under development. Will be available soon.
           </p>
         </div>
       </div>
