@@ -1,5 +1,6 @@
 import { useState } from "react";
 import "@/App.css";
+import { AuthProvider, useAuth, ROLES } from "./context/AuthContext";
 import LoginPage from "./components/LoginPage";
 import DashboardListPage from "./components/DashboardListPage";
 import Header from "./components/Header";
@@ -12,6 +13,9 @@ import TankLevels from "./components/TankLevels";
 import WaterFlowMeters from "./components/WaterFlowMeters";
 import TrendsPage from "./components/TrendsPage";
 import ReportsPage from "./components/ReportsPage";
+import MNREDashboard from "./components/MNREDashboard";
+import MNRETrendsPage from "./components/MNRETrendsPage";
+import MNREHeader from "./components/MNREHeader";
 
 const LREnergyDashboard = () => {
   return (
