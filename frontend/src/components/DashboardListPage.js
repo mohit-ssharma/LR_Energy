@@ -1,5 +1,5 @@
 import React from 'react';
-import { Droplet, LogOut, ArrowRight, Clock } from 'lucide-react';
+import { Droplet, LogOut, ArrowRight, Clock, Shield } from 'lucide-react';
 
 const DashboardListPage = ({ onSelectDashboard, onLogout, user }) => {
   const dashboards = [
@@ -34,6 +34,22 @@ const DashboardListPage = ({ onSelectDashboard, onLogout, user }) => {
       lastUpdate: 'Coming Soon',
       description: 'Biogas plant monitoring system under development. Dashboard will be available soon.',
       isActive: false
+    },
+    {
+      id: 'mnre-dashboard',
+      name: 'MNRE Dashboard',
+      industry: 'Regulatory View',
+      location: 'Karnal',
+      icon: Shield,
+      color: 'from-amber-500 to-orange-500',
+      bgColor: 'from-amber-50 to-orange-50',
+      borderColor: 'border-amber-200',
+      status: 'Online',
+      statusColor: 'bg-emerald-500',
+      parameters: '4 Parameters',
+      lastUpdate: '1 min ago',
+      description: 'MNRE restricted view showing only Gas Flow and Gas Composition parameters for regulatory compliance',
+      isActive: true
     }
   ];
 
