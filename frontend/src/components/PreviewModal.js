@@ -228,13 +228,17 @@ const PreviewModal = ({ show, onClose, reportType, dateRange, reportTemplates })
                   </tr>
                 </thead>
                 <tbody>
-                  {tableConfig.data.map((row, idx) => (
-                    <tr key={idx} className="border-b border-slate-100 hover:bg-slate-50">
-                      {row.map((cell, i) => (
-                        <td key={i} className="py-2 px-3 font-mono text-slate-700">{cell}</td>
-                      ))}
-                    </tr>
-                  ))}
+                  {tableConfig.data.map((row, idx) => {
+                    return (
+                      <tr key={idx} className="border-b border-slate-100 hover:bg-slate-50">
+                        <td className="py-2 px-3 font-mono text-slate-700">{row[0]}</td>
+                        <td className="py-2 px-3 font-mono text-slate-700">{row[1]}</td>
+                        <td className="py-2 px-3 font-mono text-slate-700">{row[2]}</td>
+                        <td className="py-2 px-3 font-mono text-slate-700">{row[3]}</td>
+                        {row[4] && <td className="py-2 px-3 font-mono text-slate-700">{row[4]}</td>}
+                      </tr>
+                    );
+                  })}
                 </tbody>
               </table>
             </div>
