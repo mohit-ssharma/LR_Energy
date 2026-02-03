@@ -107,6 +107,8 @@ const PreviewModal = ({ show, onClose, reportType, dateRange, reportTemplates })
   const chartConfig = getChartConfig();
   const tableConfig = getTableConfig();
   const stats = calculateStats(monthlyData, chartConfig.dataKey);
+  const summaryEntries = Object.entries(getSummaryData());
+  const includesList = getIncludes();
 
   // Download handlers
   const handleDownloadCSV = () => {
