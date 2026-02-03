@@ -1,0 +1,63 @@
+Type,#,Field Name,Unit,Description,Formula/Logic,Source Field
+RAW,1,raw_biogas_flow,Nm³/hr,Raw biogas flow rate,,
+RAW,2,raw_biogas_totalizer,Nm³,Raw biogas total volume,,
+RAW,3,purified_gas_flow,Nm³/hr,Purified gas flow rate,,
+RAW,4,purified_gas_totalizer,Nm³,Purified gas total volume,,
+RAW,5,product_gas_flow,Kg/hr,Product gas flow rate,,
+RAW,6,product_gas_totalizer,Kg,Product gas total,,
+RAW,7,ch4_concentration,%,Methane concentration,,
+RAW,8,co2_concentration,%,Carbon dioxide concentration,,
+RAW,9,o2_concentration,%,Oxygen concentration,,
+RAW,10,h2s_concentration,ppm,Hydrogen sulfide,,
+RAW,11,dew_point_moisture,mg/m³,Moisture content,,
+RAW,12,d1_temp_bottom,°C,Digester 1 - Bottom temperature,,
+RAW,13,d1_temp_top,°C,Digester 1 - Top temperature,,
+RAW,14,d1_pressure_gas,mmWC,Digester 1 - Balloon gas pressure,,
+RAW,15,d1_pressure_air,mmWC,Digester 1 - Balloon air pressure,,
+RAW,16,d1_gas_level,%,Digester 1 - Gas level,,
+RAW,17,d1_air_level,mmWC,Digester 1 - Balloon air level,,
+RAW,18,d1_slurry_height,Meter,Digester 1 - Slurry height,,
+RAW,19,d2_temp_bottom,°C,Digester 2 - Bottom temperature,,
+RAW,20,d2_temp_top,°C,Digester 2 - Top temperature,,
+RAW,21,d2_pressure_gas,mmWC,Digester 2 - Balloon gas pressure,,
+RAW,22,d2_pressure_air,mmWC,Digester 2 - Balloon air pressure,,
+RAW,23,d2_gas_level,%,Digester 2 - Gas level,,
+RAW,24,d2_air_level,mmWC,Digester 2 - Balloon air level,,
+RAW,25,d2_slurry_height,Meter,Digester 2 - Slurry height,,
+RAW,26,buffer_tank_level,m³,Buffer tank slurry level,,
+RAW,27,lagoon_tank_level,m³,Lagoon tank water level,,
+RAW,28,feed_fm1_flow,Nm³/hr,Feed FM-I flow rate,,
+RAW,29,feed_fm1_totalizer,m³,Feed FM-I total,,
+RAW,30,feed_fm2_flow,Nm³/hr,Feed FM-II flow rate,,
+RAW,31,feed_fm2_totalizer,m³,Feed FM-II total,,
+RAW,32,fresh_water_flow,Nm³/hr,Fresh water flow rate,,
+RAW,33,fresh_water_totalizer,m³,Fresh water total,,
+RAW,34,recycle_water_flow,Nm³/hr,Recycle water flow rate,,
+RAW,35,recycle_water_totalizer,m³,Recycle water total,,
+CALCULATED,1,raw_biogas_change,%,Raw biogas flow change,((current - previous) / previous) × 100,raw_biogas_flow
+CALCULATED,2,purified_gas_change,%,Purified gas flow change,((current - previous) / previous) × 100,purified_gas_flow
+CALCULATED,3,product_gas_change,%,Product gas flow change,((current - previous) / previous) × 100,product_gas_flow
+CALCULATED,4,ch4_change,%,CH4 concentration change,((current - previous) / previous) × 100,ch4_concentration
+CALCULATED,5,o2_change,%,O2 concentration change,((current - previous) / previous) × 100,o2_concentration
+CALCULATED,6,dew_point_change,%,Dew point moisture change,((current - previous) / previous) × 100,dew_point_moisture
+CALCULATED,7,ch4_status,text,CH4 status,If ≥95% → Optimal; else Normal,ch4_concentration
+CALCULATED,8,o2_status,text,O2 status,If <1% → Normal; else Warning,o2_concentration
+CALCULATED,9,dew_point_status,text,Dew point status,If <4 → Within Limits; else Warning,dew_point_moisture
+CALCULATED,10,h2s_status,text,H2S status,If <50ppm → Normal; 50-80 → Warning; >80 → Critical,h2s_concentration
+CALCULATED,11,buffer_tank_status,text,Buffer tank status,0-50% Normal; 50-75% Moderate; 75-90% High; 90%+ Critical,buffer_tank_level
+CALCULATED,12,lagoon_tank_status,text,Lagoon tank status,0-50% Normal; 50-75% Moderate; 75-90% High; 90%+ Critical,lagoon_tank_level
+CALCULATED,13,buffer_tank_percentage,%,Buffer tank fill percentage,(buffer_tank_level / 250) × 100,buffer_tank_level
+CALCULATED,14,buffer_tank_available,m³,Buffer tank available capacity,250 - buffer_tank_level,buffer_tank_level
+CALCULATED,15,lagoon_tank_percentage,%,Lagoon tank fill percentage,(lagoon_tank_level / 500) × 100,lagoon_tank_level
+CALCULATED,16,lagoon_tank_available,m³,Lagoon tank available capacity,500 - lagoon_tank_level,lagoon_tank_level
+CALCULATED,17,feed_fm1_utilization,%,Feed FM-I capacity utilization,(feed_fm1_flow / max_capacity) × 100,feed_fm1_flow
+CALCULATED,18,feed_fm2_utilization,%,Feed FM-II capacity utilization,(feed_fm2_flow / max_capacity) × 100,feed_fm2_flow
+CALCULATED,19,fresh_water_utilization,%,Fresh water capacity utilization,(fresh_water_flow / max_capacity) × 100,fresh_water_flow
+CALCULATED,20,recycle_water_utilization,%,Recycle water capacity utilization,(recycle_water_flow / max_capacity) × 100,recycle_water_flow
+CALCULATED,21,dew_point_average,mg/m³,24-hour average dew point,Average of last 24 hours,dew_point_moisture (historical)
+CALCULATED,22,dew_point_min,mg/m³,24-hour minimum dew point,Minimum of last 24 hours,dew_point_moisture (historical)
+CALCULATED,23,dew_point_max,mg/m³,24-hour maximum dew point,Maximum of last 24 hours,dew_point_moisture (historical)
+CALCULATED,24,d1_gas_pressure_pct,%,Digester 1 gas pressure percentage,(d1_pressure_gas / 200) × 100,d1_pressure_gas
+CALCULATED,25,d1_air_pressure_pct,%,Digester 1 air pressure percentage,(d1_pressure_air / 150) × 100,d1_pressure_air
+CALCULATED,26,d2_gas_pressure_pct,%,Digester 2 gas pressure percentage,(d2_pressure_gas / 200) × 100,d2_pressure_gas
+CALCULATED,27,d2_air_pressure_pct,%,Digester 2 air pressure percentage,(d2_pressure_air / 150) × 100,d2_pressure_air
