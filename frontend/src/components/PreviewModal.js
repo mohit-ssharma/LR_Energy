@@ -244,7 +244,7 @@ const PreviewModal = ({ show, onClose, reportType, dateRange, reportTemplates })
           <div className="bg-blue-50 rounded-lg p-4 border border-blue-200">
             <h4 className="font-semibold text-blue-900 mb-3">Parameters Included in Report</h4>
             <div className="grid grid-cols-3 gap-2">
-              {getIncludes().map((param, idx) => (
+              {includesList.map((param, idx) => (
                 <div key={idx} className="flex items-center space-x-2 text-sm text-blue-800">
                   <Check className="w-4 h-4 text-blue-600 flex-shrink-0" />
                   <span>{param}</span>
