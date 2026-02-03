@@ -53,7 +53,7 @@ const ComingSoonPage = ({ plantName, onBack }) => {
 };
 
 // MNRE User App - Restricted View
-const MNREApp = ({ onLogout }) => {
+const MNREApp = ({ onLogout, showBackButton = false, onBack }) => {
   const [currentPage, setCurrentPage] = useState('dashboard');
 
   const renderPage = () => {
@@ -67,7 +67,13 @@ const MNREApp = ({ onLogout }) => {
 
   return (
     <div className="App min-h-screen bg-slate-50 flex flex-col">
-      <MNREHeader currentPage={currentPage} onNavigate={setCurrentPage} onLogout={onLogout} />
+      <MNREHeader 
+        currentPage={currentPage} 
+        onNavigate={setCurrentPage} 
+        onLogout={onLogout} 
+        showBackButton={showBackButton}
+        onBack={onBack}
+      />
       <div className="flex-1">
         {renderPage()}
       </div>
