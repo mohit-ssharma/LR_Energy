@@ -1,7 +1,7 @@
 import React from 'react';
-import { LayoutDashboard, TrendingUp, LogOut, Shield } from 'lucide-react';
+import { LayoutDashboard, TrendingUp, LogOut, Shield, ArrowLeft } from 'lucide-react';
 
-const MNREHeader = ({ currentPage, onNavigate, onLogout }) => {
+const MNREHeader = ({ currentPage, onNavigate, onLogout, showBackButton = false, onBack }) => {
   const navItems = [
     { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard },
     { id: 'trends', label: 'Trends', icon: TrendingUp }
@@ -13,6 +13,16 @@ const MNREHeader = ({ currentPage, onNavigate, onLogout }) => {
         <div className="flex items-center justify-between h-16">
           {/* Left - Logos and Title */}
           <div className="flex items-center space-x-4">
+            {showBackButton && (
+              <button
+                onClick={onBack}
+                className="flex items-center space-x-2 px-3 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-lg transition-colors mr-2"
+                data-testid="mnre-back-button"
+              >
+                <ArrowLeft className="w-4 h-4" />
+                <span className="text-sm font-medium hidden sm:inline">Back</span>
+              </button>
+            )}
             <img 
               src="https://customer-assets.emergentagent.com/job_4acfe114-4f71-44b3-ba66-02b58d5e96c3/artifacts/aywrj4co_LR%20Energy%20Logo.jpeg" 
               alt="LR Energy Logo" 
