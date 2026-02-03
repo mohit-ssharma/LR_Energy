@@ -158,17 +158,16 @@ function AppContent() {
   }
 
   // Show coming soon for Sonipat (work in progress)
-  if (selectedDashboard !== 'lr-energy-karnal') {
-    const plantNames = {
-      'lr-energy-sonipat': 'LR Energy Biogas Plant - Sonipat',
-      'solar-plant': 'Solar Power Station',
-      'wind-farm': 'Wind Farm Station',
-      'manufacturing': 'Manufacturing Unit'
-    };
-    return <ComingSoonPage plantName={plantNames[selectedDashboard] || 'Selected Plant'} onBack={handleBackToDashboardList} />;
+  if (selectedDashboard === 'lr-energy-sonipat') {
+    return <ComingSoonPage plantName="LR Energy Biogas Plant - Sonipat" onBack={handleBackToDashboardList} />;
   }
 
-  // Show Head Office SCADA dashboard
+  // Head Office accessing MNRE Dashboard view
+  if (selectedDashboard === 'mnre-dashboard') {
+    return <MNREApp onLogout={handleLogout} showBackButton={true} onBack={handleBackToDashboardList} />;
+  }
+
+  // Show Head Office SCADA dashboard for Karnal
   return <HeadOfficeApp onLogout={handleLogout} onBackToDashboardList={handleBackToDashboardList} />;
 }
 
