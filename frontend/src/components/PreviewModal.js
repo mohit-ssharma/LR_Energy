@@ -1,5 +1,5 @@
 import React from 'react';
-import { X, Download, Check, TrendingUp, TrendingDown, Minus } from 'lucide-react';
+import { X, Download, Check, TrendingUp, TrendingDown, Minus, FileText, FileSpreadsheet } from 'lucide-react';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, BarChart, Bar } from 'recharts';
 
 const PreviewModal = ({ show, onClose, reportType, dateRange, reportTemplates }) => {
@@ -16,6 +16,7 @@ const PreviewModal = ({ show, onClose, reportType, dateRange, reportTemplates })
       date.setDate(date.getDate() + i);
       data.push({
         date: date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' }),
+        fullDate: date.toISOString().split('T')[0],
         day: i + 1,
         rawBiogas: 320 + Math.random() * 50,
         purifiedGas: 300 + Math.random() * 40,
@@ -44,6 +45,86 @@ const PreviewModal = ({ show, onClose, reportType, dateRange, reportTemplates })
       avg: (values.reduce((a, b) => a + b, 0) / values.length).toFixed(2),
       total: values.reduce((a, b) => a + b, 0).toFixed(2)
     };
+  };
+
+  // Download as CSV
+  const downloadCSV = () => {
+    let headers = [];
+    let csvData = [];
+
+    switch(reportType) {
+      case 'quality':
+        headers = ['Date', 'CH4 (%)', 'CO2 (%)', 'O2 (%)', 'H2S (ppm)'];
+        csvData = monthlyData.map(d => [d.fullDate, d.ch4.toFixed(2), d.co2.toFixed(2), d.o2.toFixed(2), d.h2s.toFixed(2)]);
+        break;
+      case 'performance':
+        headers = ['Date', 'Digester 1 Temp (°C)', 'Digester 2 Temp (°C)', 'Tank Level (%)', 'Efficiency (%)'];
+        csvData = monthlyData.map(d => [d.fullDate, d.d1Temp.toFixed(2), d.d2Temp.toFixed(2), d.tankLevel.toFixed(2), d.efficiency.toFixed(2)]);
+        break;
+      case 'compliance':
+        headers = ['Date', 'CH4 (%)', 'H2S (ppm)', 'Status', 'Incidents'];
+        csvData = monthlyData.map(d => [d.fullDate, d.ch4.toFixed(2), d.h2s.toFixed(2), d.h2s > 15 ? 'Warning' : 'Normal', d.h2s > 15 ? 1 : 0]);
+        break;
+      default: // production
+        headers = ['Date', 'Raw Biogas (Nm³/hr)', 'Purified Gas (Nm³/hr)', 'Product Gas (Kg/hr)', 'Efficiency (%)'];
+        csvData = monthlyData.map(d => [d.fullDate, d.rawBiogas.toFixed(2), d.purifiedGas.toFixed(2), d.productGas.toFixed(2), d.efficiency.toFixed(2)]);
+    }
+
+    const csvContent = [
+      `LR Energy Biogas Plant - ${template.label}`,
+      `Report Period: January 01-30, 2026`,
+      `Generated: ${new Date().toLocaleString()}`,
+      '',
+      headers.join(','),
+      ...csvData.map(row => row.join(','))
+    ].join('\n');
+
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const link = document.createElement('a');
+    link.href = URL.createObjectURL(blob);
+    link.download = `LREnergy_${reportType}_report_Jan2026.csv`;
+    link.click();
+  };
+
+  // Download as JSON
+  const downloadJSON = () => {
+    const reportData = {
+      reportInfo: {
+        title: template.label,
+        plant: 'LR Energy Biogas Plant - Karnal',
+        period: 'January 01-30, 2026',
+        generatedAt: new Date().toISOString(),
+        totalDays: 30
+      },
+      summary: getSummaryData(),
+      statistics: {
+        rawBiogas: calculateStats(monthlyData, 'rawBiogas'),
+        purifiedGas: calculateStats(monthlyData, 'purifiedGas'),
+        productGas: calculateStats(monthlyData, 'productGas'),
+        ch4: calculateStats(monthlyData, 'ch4'),
+        efficiency: calculateStats(monthlyData, 'efficiency')
+      },
+      dailyData: monthlyData.map(d => ({
+        date: d.fullDate,
+        rawBiogas: parseFloat(d.rawBiogas.toFixed(2)),
+        purifiedGas: parseFloat(d.purifiedGas.toFixed(2)),
+        productGas: parseFloat(d.productGas.toFixed(2)),
+        ch4: parseFloat(d.ch4.toFixed(2)),
+        co2: parseFloat(d.co2.toFixed(2)),
+        o2: parseFloat(d.o2.toFixed(2)),
+        h2s: parseFloat(d.h2s.toFixed(2)),
+        efficiency: parseFloat(d.efficiency.toFixed(2)),
+        d1Temp: parseFloat(d.d1Temp.toFixed(2)),
+        d2Temp: parseFloat(d.d2Temp.toFixed(2)),
+        tankLevel: parseFloat(d.tankLevel.toFixed(2))
+      }))
+    };
+
+    const blob = new Blob([JSON.stringify(reportData, null, 2)], { type: 'application/json' });
+    const link = document.createElement('a');
+    link.href = URL.createObjectURL(blob);
+    link.download = `LREnergy_${reportType}_report_Jan2026.json`;
+    link.click();
   };
 
   // Different summary data for each report type
@@ -301,19 +382,32 @@ const PreviewModal = ({ show, onClose, reportType, dateRange, reportTemplates })
           </div>
         </div>
 
-        <div className="bg-slate-50 p-6 border-t border-slate-200 flex justify-end space-x-3">
-          <button 
-            onClick={onClose} 
-            className="px-6 py-2 bg-white border border-slate-300 text-slate-700 rounded-lg font-semibold hover:bg-slate-100 transition-colors"
-          >
-            Close
-          </button>
-          <button 
-            className="px-6 py-2 bg-emerald-600 text-white rounded-lg font-semibold hover:bg-emerald-700 transition-colors flex items-center space-x-2 shadow-md"
-          >
-            <Download className="w-4 h-4" />
-            <span>Download Report</span>
-          </button>
+        <div className="bg-slate-50 p-6 border-t border-slate-200 flex justify-between items-center">
+          <div className="text-sm text-slate-500">
+            Report generated with dummy data for demonstration
+          </div>
+          <div className="flex space-x-3">
+            <button 
+              onClick={onClose} 
+              className="px-6 py-2 bg-white border border-slate-300 text-slate-700 rounded-lg font-semibold hover:bg-slate-100 transition-colors"
+            >
+              Close
+            </button>
+            <button 
+              onClick={downloadCSV}
+              className="px-5 py-2 bg-cyan-600 text-white rounded-lg font-semibold hover:bg-cyan-700 transition-colors flex items-center space-x-2 shadow-md"
+            >
+              <FileSpreadsheet className="w-4 h-4" />
+              <span>Download CSV</span>
+            </button>
+            <button 
+              onClick={downloadJSON}
+              className="px-5 py-2 bg-violet-600 text-white rounded-lg font-semibold hover:bg-violet-700 transition-colors flex items-center space-x-2 shadow-md"
+            >
+              <FileText className="w-4 h-4" />
+              <span>Download JSON</span>
+            </button>
+          </div>
         </div>
       </div>
     </div>
