@@ -1,194 +1,19 @@
 import React from 'react';
 import { X, Download, Check, TrendingUp, TrendingDown, Minus, FileText, FileSpreadsheet } from 'lucide-react';
-import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, BarChart, Bar } from 'recharts';
+import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
+import { generatePDFReport, generateCSVDownload, generateMonthlyData, calculateStats } from '../utils/pdfUtils';
 
 const PreviewModal = ({ show, onClose, reportType, dateRange, reportTemplates }) => {
   if (!show) return null;
 
   const template = reportTemplates.find(r => r.id === reportType) || reportTemplates[0];
-  
-  // Generate 30 days of dummy data
-  const generateMonthlyData = () => {
-    const data = [];
-    const baseDate = new Date('2026-01-01');
-    for (let i = 0; i < 30; i++) {
-      const date = new Date(baseDate);
-      date.setDate(date.getDate() + i);
-      data.push({
-        date: date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' }),
-        fullDate: date.toISOString().split('T')[0],
-        day: i + 1,
-        rawBiogas: 320 + Math.random() * 50,
-        purifiedGas: 300 + Math.random() * 40,
-        productGas: 230 + Math.random() * 35,
-        ch4: 95 + Math.random() * 3,
-        co2: 2.5 + Math.random() * 1,
-        o2: 0.3 + Math.random() * 0.3,
-        h2s: 8 + Math.random() * 10,
-        efficiency: 88 + Math.random() * 10,
-        d1Temp: 36 + Math.random() * 4,
-        d2Temp: 35 + Math.random() * 5,
-        tankLevel: 60 + Math.random() * 30
-      });
-    }
-    return data;
-  };
+  const monthlyData = generateMonthlyData(30);
 
-  const monthlyData = generateMonthlyData();
-
-  // Calculate statistics
-  const calculateStats = (data, key) => {
-    const values = data.map(d => d[key]);
-    return {
-      min: Math.min(...values).toFixed(2),
-      max: Math.max(...values).toFixed(2),
-      avg: (values.reduce((a, b) => a + b, 0) / values.length).toFixed(2),
-      total: values.reduce((a, b) => a + b, 0).toFixed(2)
-    };
-  };
-
-  // Download as CSV
-  const downloadCSV = () => {
-    let headers = [];
-    let csvData = [];
-
-    switch(reportType) {
-      case 'quality':
-        headers = ['Date', 'CH4 (%)', 'CO2 (%)', 'O2 (%)', 'H2S (ppm)'];
-        csvData = monthlyData.map(d => [d.fullDate, d.ch4.toFixed(2), d.co2.toFixed(2), d.o2.toFixed(2), d.h2s.toFixed(2)]);
-        break;
-      case 'performance':
-        headers = ['Date', 'Digester 1 Temp (°C)', 'Digester 2 Temp (°C)', 'Tank Level (%)', 'Efficiency (%)'];
-        csvData = monthlyData.map(d => [d.fullDate, d.d1Temp.toFixed(2), d.d2Temp.toFixed(2), d.tankLevel.toFixed(2), d.efficiency.toFixed(2)]);
-        break;
-      case 'compliance':
-        headers = ['Date', 'CH4 (%)', 'H2S (ppm)', 'Status', 'Incidents'];
-        csvData = monthlyData.map(d => [d.fullDate, d.ch4.toFixed(2), d.h2s.toFixed(2), d.h2s > 15 ? 'Warning' : 'Normal', d.h2s > 15 ? 1 : 0]);
-        break;
-      default: // production
-        headers = ['Date', 'Raw Biogas (Nm³/hr)', 'Purified Gas (Nm³/hr)', 'Product Gas (Kg/hr)', 'Efficiency (%)'];
-        csvData = monthlyData.map(d => [d.fullDate, d.rawBiogas.toFixed(2), d.purifiedGas.toFixed(2), d.productGas.toFixed(2), d.efficiency.toFixed(2)]);
-    }
-
-    const csvContent = [
-      `LR Energy Biogas Plant - ${template.label}`,
-      `Report Period: January 01-30, 2026`,
-      `Generated: ${new Date().toLocaleString()}`,
-      '',
-      headers.join(','),
-      ...csvData.map(row => row.join(','))
-    ].join('\n');
-
-    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
-    const link = document.createElement('a');
-    link.href = URL.createObjectURL(blob);
-    link.download = `LREnergy_${reportType}_report_Jan2026.csv`;
-    link.click();
-  };
-
-  // Download as PDF (opens print dialog)
-  const downloadPDF = () => {
-    const printContent = `
-      <!DOCTYPE html>
-      <html>
-      <head>
-        <title>LR Energy - ${template.label}</title>
-        <style>
-          body { font-family: Arial, sans-serif; padding: 40px; color: #333; }
-          .header { display: flex; justify-content: space-between; border-bottom: 2px solid #10b981; padding-bottom: 20px; margin-bottom: 20px; }
-          .logo { font-size: 24px; font-weight: bold; color: #10b981; }
-          .title { font-size: 28px; font-weight: bold; margin-bottom: 10px; }
-          .subtitle { color: #666; margin-bottom: 20px; }
-          .summary { display: grid; grid-template-columns: repeat(4, 1fr); gap: 15px; margin-bottom: 30px; }
-          .summary-card { background: #f8fafc; border: 1px solid #e2e8f0; padding: 15px; border-radius: 8px; }
-          .summary-label { font-size: 12px; color: #64748b; text-transform: uppercase; }
-          .summary-value { font-size: 24px; font-weight: bold; margin-top: 5px; }
-          .stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 15px; margin-bottom: 30px; }
-          .stat-card { padding: 15px; border-radius: 8px; }
-          .stat-max { background: #ecfdf5; border: 1px solid #a7f3d0; }
-          .stat-avg { background: #eff6ff; border: 1px solid #bfdbfe; }
-          .stat-min { background: #fffbeb; border: 1px solid #fde68a; }
-          table { width: 100%; border-collapse: collapse; margin-top: 20px; }
-          th { background: #f1f5f9; padding: 10px; text-align: left; border: 1px solid #e2e8f0; }
-          td { padding: 8px 10px; border: 1px solid #e2e8f0; }
-          tr:nth-child(even) { background: #f8fafc; }
-          .footer { margin-top: 30px; padding-top: 20px; border-top: 1px solid #e2e8f0; font-size: 12px; color: #64748b; }
-          @media print { body { padding: 20px; } }
-        </style>
-      </head>
-      <body>
-        <div class="header">
-          <div class="logo">LR Energy</div>
-          <div style="text-align: right;">
-            <div style="font-size: 14px; color: #666;">Report Period</div>
-            <div style="font-size: 18px; font-weight: bold;">Jan 01 - Jan 30, 2026</div>
-          </div>
-        </div>
-        
-        <div class="title">${template.label.toUpperCase()}</div>
-        <div class="subtitle">LR Energy Biogas Plant - Karnal | SCADA Monitoring System</div>
-        
-        <div class="summary">
-          ${Object.entries(getSummaryData()).map(([key, value]) => `
-            <div class="summary-card">
-              <div class="summary-label">${key}</div>
-              <div class="summary-value">${value}</div>
-            </div>
-          `).join('')}
-        </div>
-        
-        <div class="stats">
-          <div class="stat-card stat-max">
-            <div style="font-size: 14px; font-weight: bold; color: #047857;">Maximum</div>
-            <div style="font-size: 28px; font-weight: bold; color: #065f46;">${calculateStats(monthlyData, getChartConfig().dataKey).max}</div>
-          </div>
-          <div class="stat-card stat-avg">
-            <div style="font-size: 14px; font-weight: bold; color: #1d4ed8;">Average</div>
-            <div style="font-size: 28px; font-weight: bold; color: #1e40af;">${calculateStats(monthlyData, getChartConfig().dataKey).avg}</div>
-          </div>
-          <div class="stat-card stat-min">
-            <div style="font-size: 14px; font-weight: bold; color: #b45309;">Minimum</div>
-            <div style="font-size: 28px; font-weight: bold; color: #92400e;">${calculateStats(monthlyData, getChartConfig().dataKey).min}</div>
-          </div>
-        </div>
-        
-        <h3>Daily Breakdown (30 Days)</h3>
-        <table>
-          <thead>
-            <tr>
-              ${Object.keys(getDailyBreakdown()[0] || {}).map(key => `<th>${key.replace(/([A-Z])/g, ' $1').trim()}</th>`).join('')}
-            </tr>
-          </thead>
-          <tbody>
-            ${getDailyBreakdown().map(row => `
-              <tr>
-                ${Object.values(row).map(value => `<td>${value}</td>`).join('')}
-              </tr>
-            `).join('')}
-          </tbody>
-        </table>
-        
-        <div class="footer">
-          <p>Generated on ${new Date().toLocaleString()} | LR Energy Biogas Plant - SCADA Monitoring System</p>
-          <p>This report contains data for demonstration purposes.</p>
-        </div>
-      </body>
-      </html>
-    `;
-
-    const printWindow = window.open('', '_blank');
-    printWindow.document.write(printContent);
-    printWindow.document.close();
-    printWindow.onload = () => {
-      printWindow.print();
-    };
-  };
-
-  // Different summary data for each report type
+  // Get summary data based on report type
   const getSummaryData = () => {
     const summaries = {
       production: {
-        'Total Production': `${(parseFloat(calculateStats(monthlyData, 'rawBiogas').total)).toLocaleString()} Nm³`,
+        'Total Production': `${parseFloat(calculateStats(monthlyData, 'rawBiogas').total).toLocaleString()} Nm³`,
         'Avg Daily Flow': `${calculateStats(monthlyData, 'rawBiogas').avg} Nm³/hr`,
         'Avg Efficiency': `${calculateStats(monthlyData, 'efficiency').avg}%`,
         'Operating Days': '30 days'
@@ -221,61 +46,42 @@ const PreviewModal = ({ show, onClose, reportType, dateRange, reportTemplates })
     return summaries[reportType] || summaries.production;
   };
 
-  // Get daily breakdown table data based on report type
-  const getDailyBreakdown = () => {
+  // Get table data based on report type
+  const getTableConfig = () => {
     switch(reportType) {
       case 'quality':
-        return monthlyData.map(d => ({
-          date: d.date,
-          ch4: d.ch4.toFixed(2) + '%',
-          co2: d.co2.toFixed(2) + '%',
-          o2: d.o2.toFixed(2) + '%',
-          h2s: d.h2s.toFixed(1) + ' ppm'
-        }));
+        return {
+          headers: ['Date', 'CH₄ (%)', 'CO₂ (%)', 'O₂ (%)', 'H₂S (ppm)'],
+          data: monthlyData.map(d => [d.date, d.ch4.toFixed(2), d.co2.toFixed(2), d.o2.toFixed(2), d.h2s.toFixed(2)])
+        };
       case 'performance':
-        return monthlyData.map(d => ({
-          date: d.date,
-          d1Temp: d.d1Temp.toFixed(1) + '°C',
-          d2Temp: d.d2Temp.toFixed(1) + '°C',
-          tankLevel: d.tankLevel.toFixed(1) + '%',
-          efficiency: d.efficiency.toFixed(1) + '%'
-        }));
+        return {
+          headers: ['Date', 'D1 Temp (°C)', 'D2 Temp (°C)', 'Tank Level (%)', 'Efficiency (%)'],
+          data: monthlyData.map(d => [d.date, d.d1Temp.toFixed(1), d.d2Temp.toFixed(1), d.tankLevel.toFixed(1), d.efficiency.toFixed(1)])
+        };
       case 'compliance':
-        return monthlyData.map(d => ({
-          date: d.date,
-          status: d.h2s > 15 ? 'Warning' : 'Normal',
-          h2s: d.h2s.toFixed(1) + ' ppm',
-          ch4: d.ch4.toFixed(2) + '%',
-          incidents: d.h2s > 15 ? 1 : 0
-        }));
-      default: // production
-        return monthlyData.map(d => ({
-          date: d.date,
-          rawBiogas: d.rawBiogas.toFixed(2),
-          purifiedGas: d.purifiedGas.toFixed(2),
-          productGas: d.productGas.toFixed(2),
-          efficiency: d.efficiency.toFixed(1) + '%'
-        }));
+        return {
+          headers: ['Date', 'CH₄ (%)', 'H₂S (ppm)', 'Status'],
+          data: monthlyData.map(d => [d.date, d.ch4.toFixed(2), d.h2s.toFixed(2), d.h2s > 15 ? 'Warning' : 'Normal'])
+        };
+      default:
+        return {
+          headers: ['Date', 'Raw Biogas', 'Purified Gas', 'Product Gas', 'Efficiency'],
+          data: monthlyData.map(d => [d.date, d.rawBiogas.toFixed(2), d.purifiedGas.toFixed(2), d.productGas.toFixed(2), d.efficiency.toFixed(1) + '%'])
+        };
     }
   };
 
-  // Get chart data based on report type
+  // Get chart config based on report type
   const getChartConfig = () => {
     switch(reportType) {
-      case 'quality':
-        return { dataKey: 'ch4', color: '#8b5cf6', label: 'CH₄ Concentration (%)' };
-      case 'performance':
-        return { dataKey: 'd1Temp', color: '#06b6d4', label: 'Digester 1 Temperature (°C)' };
-      case 'compliance':
-        return { dataKey: 'h2s', color: '#f59e0b', label: 'H₂S Levels (ppm)' };
-      default:
-        return { dataKey: 'rawBiogas', color: '#10b981', label: 'Raw Biogas Flow (Nm³/hr)' };
+      case 'quality': return { dataKey: 'ch4', color: '#8b5cf6', label: 'CH₄ Concentration (%)' };
+      case 'performance': return { dataKey: 'd1Temp', color: '#06b6d4', label: 'Digester 1 Temperature (°C)' };
+      case 'compliance': return { dataKey: 'h2s', color: '#f59e0b', label: 'H₂S Levels (ppm)' };
+      default: return { dataKey: 'rawBiogas', color: '#10b981', label: 'Raw Biogas Flow (Nm³/hr)' };
     }
   };
 
-  const chartConfig = getChartConfig();
-
-  // Get header color based on report type
   const getHeaderColor = () => {
     const colors = {
       production: 'from-emerald-600 to-teal-600',
@@ -287,7 +93,6 @@ const PreviewModal = ({ show, onClose, reportType, dateRange, reportTemplates })
     return colors[reportType] || colors.production;
   };
 
-  // Parameters included
   const getIncludes = () => {
     const includes = {
       production: ['Raw Biogas Flow', 'Purified Gas Flow', 'Product Gas Flow', 'Efficiency Metrics', 'Daily Totals', 'Monthly Summary'],
@@ -299,7 +104,30 @@ const PreviewModal = ({ show, onClose, reportType, dateRange, reportTemplates })
     return includes[reportType] || includes.production;
   };
 
-  const dailyData = getDailyBreakdown();
+  const chartConfig = getChartConfig();
+  const tableConfig = getTableConfig();
+  const stats = calculateStats(monthlyData, chartConfig.dataKey);
+
+  // Download handlers
+  const handleDownloadCSV = () => {
+    generateCSVDownload({
+      title: template.label,
+      headers: tableConfig.headers,
+      data: tableConfig.data
+    });
+  };
+
+  const handleDownloadPDF = async () => {
+    await generatePDFReport({
+      title: template.label,
+      subtitle: 'LR Energy Biogas Plant - Karnal | SCADA Monitoring System',
+      period: 'January 01 - January 30, 2026',
+      summaryData: getSummaryData(),
+      statistics: stats,
+      tableHeaders: tableConfig.headers,
+      tableData: tableConfig.data.slice(0, 15) // First 15 rows for PDF
+    });
+  };
 
   return (
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
@@ -352,14 +180,7 @@ const PreviewModal = ({ show, onClose, reportType, dateRange, reportTemplates })
                 <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
                 <XAxis dataKey="date" tick={{ fontSize: 10 }} interval={4} />
                 <YAxis tick={{ fontSize: 10 }} />
-                <Tooltip 
-                  contentStyle={{ 
-                    backgroundColor: 'white', 
-                    border: '1px solid #e2e8f0',
-                    borderRadius: '8px',
-                    fontSize: '12px'
-                  }} 
-                />
+                <Tooltip contentStyle={{ backgroundColor: 'white', border: '1px solid #e2e8f0', borderRadius: '8px', fontSize: '12px' }} />
                 <Line type="monotone" dataKey={chartConfig.dataKey} stroke={chartConfig.color} strokeWidth={2} dot={false} />
               </LineChart>
             </ResponsiveContainer>
@@ -372,27 +193,21 @@ const PreviewModal = ({ show, onClose, reportType, dateRange, reportTemplates })
                 <TrendingUp className="w-5 h-5 text-emerald-600" />
                 <span className="text-sm font-semibold text-emerald-800">Maximum</span>
               </div>
-              <div className="text-2xl font-bold font-mono text-emerald-700">
-                {calculateStats(monthlyData, chartConfig.dataKey).max}
-              </div>
+              <div className="text-2xl font-bold font-mono text-emerald-700">{stats.max}</div>
             </div>
             <div className="bg-blue-50 rounded-lg p-4 border border-blue-200">
               <div className="flex items-center space-x-2 mb-2">
                 <Minus className="w-5 h-5 text-blue-600" />
                 <span className="text-sm font-semibold text-blue-800">Average</span>
               </div>
-              <div className="text-2xl font-bold font-mono text-blue-700">
-                {calculateStats(monthlyData, chartConfig.dataKey).avg}
-              </div>
+              <div className="text-2xl font-bold font-mono text-blue-700">{stats.avg}</div>
             </div>
             <div className="bg-amber-50 rounded-lg p-4 border border-amber-200">
               <div className="flex items-center space-x-2 mb-2">
                 <TrendingDown className="w-5 h-5 text-amber-600" />
                 <span className="text-sm font-semibold text-amber-800">Minimum</span>
               </div>
-              <div className="text-2xl font-bold font-mono text-amber-700">
-                {calculateStats(monthlyData, chartConfig.dataKey).min}
-              </div>
+              <div className="text-2xl font-bold font-mono text-amber-700">{stats.min}</div>
             </div>
           </div>
 
@@ -405,18 +220,16 @@ const PreviewModal = ({ show, onClose, reportType, dateRange, reportTemplates })
               <table className="w-full text-sm">
                 <thead className="bg-slate-100 sticky top-0">
                   <tr>
-                    {Object.keys(dailyData[0] || {}).map((key) => (
-                      <th key={key} className="text-left py-2 px-3 font-semibold text-slate-700 capitalize">
-                        {key.replace(/([A-Z])/g, ' $1').trim()}
-                      </th>
+                    {tableConfig.headers.map((header, idx) => (
+                      <th key={idx} className="text-left py-2 px-3 font-semibold text-slate-700">{header}</th>
                     ))}
                   </tr>
                 </thead>
                 <tbody>
-                  {dailyData.map((row, idx) => (
+                  {tableConfig.data.map((row, idx) => (
                     <tr key={idx} className="border-b border-slate-100 hover:bg-slate-50">
-                      {Object.values(row).map((value, i) => (
-                        <td key={i} className="py-2 px-3 font-mono text-slate-700">{value}</td>
+                      {row.map((cell, i) => (
+                        <td key={i} className="py-2 px-3 font-mono text-slate-700">{cell}</td>
                       ))}
                     </tr>
                   ))}
@@ -440,27 +253,16 @@ const PreviewModal = ({ show, onClose, reportType, dateRange, reportTemplates })
         </div>
 
         <div className="bg-slate-50 p-6 border-t border-slate-200 flex justify-between items-center">
-          <div className="text-sm text-slate-500">
-            Download report as CSV or PDF
-          </div>
+          <div className="text-sm text-slate-500">Download report as CSV or PDF</div>
           <div className="flex space-x-3">
-            <button 
-              onClick={onClose} 
-              className="px-6 py-2 bg-white border border-slate-300 text-slate-700 rounded-lg font-semibold hover:bg-slate-100 transition-colors"
-            >
+            <button onClick={onClose} className="px-6 py-2 bg-white border border-slate-300 text-slate-700 rounded-lg font-semibold hover:bg-slate-100 transition-colors">
               Close
             </button>
-            <button 
-              onClick={downloadCSV}
-              className="px-5 py-2 bg-cyan-600 text-white rounded-lg font-semibold hover:bg-cyan-700 transition-colors flex items-center space-x-2 shadow-md"
-            >
+            <button onClick={handleDownloadCSV} className="px-5 py-2 bg-cyan-600 text-white rounded-lg font-semibold hover:bg-cyan-700 transition-colors flex items-center space-x-2 shadow-md">
               <FileSpreadsheet className="w-4 h-4" />
               <span>Download CSV</span>
             </button>
-            <button 
-              onClick={downloadPDF}
-              className="px-5 py-2 bg-rose-600 text-white rounded-lg font-semibold hover:bg-rose-700 transition-colors flex items-center space-x-2 shadow-md"
-            >
+            <button onClick={handleDownloadPDF} className="px-5 py-2 bg-rose-600 text-white rounded-lg font-semibold hover:bg-rose-700 transition-colors flex items-center space-x-2 shadow-md">
               <FileText className="w-4 h-4" />
               <span>Download PDF</span>
             </button>
