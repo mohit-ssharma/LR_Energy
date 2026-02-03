@@ -86,45 +86,102 @@ const PreviewModal = ({ show, onClose, reportType, dateRange, reportTemplates })
     link.click();
   };
 
-  // Download as JSON
-  const downloadJSON = () => {
-    const reportData = {
-      reportInfo: {
-        title: template.label,
-        plant: 'LR Energy Biogas Plant - Karnal',
-        period: 'January 01-30, 2026',
-        generatedAt: new Date().toISOString(),
-        totalDays: 30
-      },
-      summary: getSummaryData(),
-      statistics: {
-        rawBiogas: calculateStats(monthlyData, 'rawBiogas'),
-        purifiedGas: calculateStats(monthlyData, 'purifiedGas'),
-        productGas: calculateStats(monthlyData, 'productGas'),
-        ch4: calculateStats(monthlyData, 'ch4'),
-        efficiency: calculateStats(monthlyData, 'efficiency')
-      },
-      dailyData: monthlyData.map(d => ({
-        date: d.fullDate,
-        rawBiogas: parseFloat(d.rawBiogas.toFixed(2)),
-        purifiedGas: parseFloat(d.purifiedGas.toFixed(2)),
-        productGas: parseFloat(d.productGas.toFixed(2)),
-        ch4: parseFloat(d.ch4.toFixed(2)),
-        co2: parseFloat(d.co2.toFixed(2)),
-        o2: parseFloat(d.o2.toFixed(2)),
-        h2s: parseFloat(d.h2s.toFixed(2)),
-        efficiency: parseFloat(d.efficiency.toFixed(2)),
-        d1Temp: parseFloat(d.d1Temp.toFixed(2)),
-        d2Temp: parseFloat(d.d2Temp.toFixed(2)),
-        tankLevel: parseFloat(d.tankLevel.toFixed(2))
-      }))
-    };
+  // Download as PDF (opens print dialog)
+  const downloadPDF = () => {
+    const printContent = `
+      <!DOCTYPE html>
+      <html>
+      <head>
+        <title>LR Energy - ${template.label}</title>
+        <style>
+          body { font-family: Arial, sans-serif; padding: 40px; color: #333; }
+          .header { display: flex; justify-content: space-between; border-bottom: 2px solid #10b981; padding-bottom: 20px; margin-bottom: 20px; }
+          .logo { font-size: 24px; font-weight: bold; color: #10b981; }
+          .title { font-size: 28px; font-weight: bold; margin-bottom: 10px; }
+          .subtitle { color: #666; margin-bottom: 20px; }
+          .summary { display: grid; grid-template-columns: repeat(4, 1fr); gap: 15px; margin-bottom: 30px; }
+          .summary-card { background: #f8fafc; border: 1px solid #e2e8f0; padding: 15px; border-radius: 8px; }
+          .summary-label { font-size: 12px; color: #64748b; text-transform: uppercase; }
+          .summary-value { font-size: 24px; font-weight: bold; margin-top: 5px; }
+          .stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 15px; margin-bottom: 30px; }
+          .stat-card { padding: 15px; border-radius: 8px; }
+          .stat-max { background: #ecfdf5; border: 1px solid #a7f3d0; }
+          .stat-avg { background: #eff6ff; border: 1px solid #bfdbfe; }
+          .stat-min { background: #fffbeb; border: 1px solid #fde68a; }
+          table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+          th { background: #f1f5f9; padding: 10px; text-align: left; border: 1px solid #e2e8f0; }
+          td { padding: 8px 10px; border: 1px solid #e2e8f0; }
+          tr:nth-child(even) { background: #f8fafc; }
+          .footer { margin-top: 30px; padding-top: 20px; border-top: 1px solid #e2e8f0; font-size: 12px; color: #64748b; }
+          @media print { body { padding: 20px; } }
+        </style>
+      </head>
+      <body>
+        <div class="header">
+          <div class="logo">LR Energy</div>
+          <div style="text-align: right;">
+            <div style="font-size: 14px; color: #666;">Report Period</div>
+            <div style="font-size: 18px; font-weight: bold;">Jan 01 - Jan 30, 2026</div>
+          </div>
+        </div>
+        
+        <div class="title">${template.label.toUpperCase()}</div>
+        <div class="subtitle">LR Energy Biogas Plant - Karnal | SCADA Monitoring System</div>
+        
+        <div class="summary">
+          ${Object.entries(getSummaryData()).map(([key, value]) => `
+            <div class="summary-card">
+              <div class="summary-label">${key}</div>
+              <div class="summary-value">${value}</div>
+            </div>
+          `).join('')}
+        </div>
+        
+        <div class="stats">
+          <div class="stat-card stat-max">
+            <div style="font-size: 14px; font-weight: bold; color: #047857;">Maximum</div>
+            <div style="font-size: 28px; font-weight: bold; color: #065f46;">${calculateStats(monthlyData, getChartConfig().dataKey).max}</div>
+          </div>
+          <div class="stat-card stat-avg">
+            <div style="font-size: 14px; font-weight: bold; color: #1d4ed8;">Average</div>
+            <div style="font-size: 28px; font-weight: bold; color: #1e40af;">${calculateStats(monthlyData, getChartConfig().dataKey).avg}</div>
+          </div>
+          <div class="stat-card stat-min">
+            <div style="font-size: 14px; font-weight: bold; color: #b45309;">Minimum</div>
+            <div style="font-size: 28px; font-weight: bold; color: #92400e;">${calculateStats(monthlyData, getChartConfig().dataKey).min}</div>
+          </div>
+        </div>
+        
+        <h3>Daily Breakdown (30 Days)</h3>
+        <table>
+          <thead>
+            <tr>
+              ${Object.keys(getDailyBreakdown()[0] || {}).map(key => `<th>${key.replace(/([A-Z])/g, ' $1').trim()}</th>`).join('')}
+            </tr>
+          </thead>
+          <tbody>
+            ${getDailyBreakdown().map(row => `
+              <tr>
+                ${Object.values(row).map(value => `<td>${value}</td>`).join('')}
+              </tr>
+            `).join('')}
+          </tbody>
+        </table>
+        
+        <div class="footer">
+          <p>Generated on ${new Date().toLocaleString()} | LR Energy Biogas Plant - SCADA Monitoring System</p>
+          <p>This report contains data for demonstration purposes.</p>
+        </div>
+      </body>
+      </html>
+    `;
 
-    const blob = new Blob([JSON.stringify(reportData, null, 2)], { type: 'application/json' });
-    const link = document.createElement('a');
-    link.href = URL.createObjectURL(blob);
-    link.download = `LREnergy_${reportType}_report_Jan2026.json`;
-    link.click();
+    const printWindow = window.open('', '_blank');
+    printWindow.document.write(printContent);
+    printWindow.document.close();
+    printWindow.onload = () => {
+      printWindow.print();
+    };
   };
 
   // Different summary data for each report type
