@@ -432,7 +432,7 @@ const ReportsPage = () => {
                     </span>
                   </td>
                   <td className="py-3 px-4">
-                    <div className="flex items-center space-x-2">
+                    <div className="flex items-center space-x-2 relative">
                       <button 
                         onClick={() => setShowPreview(true)}
                         className="text-cyan-600 hover:text-cyan-700 flex items-center space-x-1 text-sm font-medium"
@@ -440,13 +440,35 @@ const ReportsPage = () => {
                         <Eye className="w-4 h-4" />
                         <span>View</span>
                       </button>
-                      <button 
-                        className="text-emerald-600 hover:text-emerald-700 flex items-center space-x-1 text-sm font-medium"
-                        data-testid={`download-report-${index}`}
-                      >
-                        <Download className="w-4 h-4" />
-                        <span>Download</span>
-                      </button>
+                      <div className="relative">
+                        <button 
+                          onClick={() => setShowDownloadMenu(showDownloadMenu === `recent-${index}` ? null : `recent-${index}`)}
+                          className="text-emerald-600 hover:text-emerald-700 flex items-center space-x-1 text-sm font-medium"
+                          data-testid={`download-report-${index}`}
+                        >
+                          <Download className="w-4 h-4" />
+                          <span>Download</span>
+                          <ChevronDown className="w-3 h-3" />
+                        </button>
+                        {showDownloadMenu === `recent-${index}` && (
+                          <div className="absolute top-full right-0 mt-1 bg-white border border-slate-200 rounded-lg shadow-lg z-10 min-w-[150px]">
+                            <button 
+                              onClick={() => downloadCSV(report.name)}
+                              className="w-full px-3 py-2 text-left hover:bg-slate-50 flex items-center space-x-2 text-sm text-slate-700"
+                            >
+                              <FileSpreadsheet className="w-4 h-4 text-cyan-600" />
+                              <span>CSV</span>
+                            </button>
+                            <button 
+                              onClick={() => downloadPDF(report.name)}
+                              className="w-full px-3 py-2 text-left hover:bg-slate-50 flex items-center space-x-2 text-sm text-slate-700 border-t border-slate-100"
+                            >
+                              <FileText className="w-4 h-4 text-rose-600" />
+                              <span>PDF</span>
+                            </button>
+                          </div>
+                        )}
+                      </div>
                     </div>
                   </td>
                 </tr>
