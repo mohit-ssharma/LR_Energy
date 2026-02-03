@@ -147,18 +147,28 @@ const LoginPage = ({ onLogin }) => {
 
               <button
                 type="submit"
-                className="w-full bg-gradient-to-r from-emerald-600 to-cyan-600 text-white py-3 rounded-lg font-semibold hover:from-emerald-700 hover:to-cyan-700 transition-all shadow-lg hover:shadow-xl transform hover:scale-[1.02]"
+                disabled={isLoading}
+                className={`w-full bg-gradient-to-r from-emerald-600 to-cyan-600 text-white py-3 rounded-lg font-semibold transition-all shadow-lg transform ${
+                  isLoading 
+                    ? 'opacity-70 cursor-not-allowed' 
+                    : 'hover:from-emerald-700 hover:to-cyan-700 hover:shadow-xl hover:scale-[1.02]'
+                }`}
                 data-testid="login-submit"
               >
-                Sign In to Dashboard
+                {isLoading ? 'Signing In...' : 'Sign In to Dashboard'}
               </button>
             </div>
 
             <div className="mt-6 text-center">
-              <div className="flex items-center justify-center space-x-2 text-sm text-slate-500">
+              <div className="flex items-center justify-center space-x-2 text-sm text-slate-500 mb-3">
                 <div className="h-px w-12 bg-slate-200"></div>
-                <p>Demo: Use any email and password</p>
+                <p>Login Credentials</p>
                 <div className="h-px w-12 bg-slate-200"></div>
+              </div>
+              <div className="text-xs text-slate-500 space-y-1">
+                <p><strong>Head Office:</strong> it@lrenergy.in</p>
+                <p><strong>MNRE:</strong> it1@lrenergy.in</p>
+                <p className="text-slate-400">Password: qwerty</p>
               </div>
             </div>
           </form>
