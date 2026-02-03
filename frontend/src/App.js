@@ -92,14 +92,15 @@ function App() {
     );
   }
 
-  // Show coming soon for other dashboards
-  if (selectedDashboard !== 'lr-energy') {
+  // Show coming soon for other dashboards (including Sonipat which is work in progress)
+  if (selectedDashboard !== 'lr-energy-karnal') {
     const plantNames = {
+      'lr-energy-sonipat': 'LR Energy Biogas Plant - Sonipat',
       'solar-plant': 'Solar Power Station',
       'wind-farm': 'Wind Farm Station',
       'manufacturing': 'Manufacturing Unit'
     };
-    return <ComingSoonPage plantName={plantNames[selectedDashboard]} onBack={handleBackToDashboardList} />;
+    return <ComingSoonPage plantName={plantNames[selectedDashboard] || 'Selected Plant'} onBack={handleBackToDashboardList} />;
   }
 
   // Show LR Energy SCADA dashboard
