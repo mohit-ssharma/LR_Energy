@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { FileText, Download, Calendar, FileSpreadsheet, FileJson, Eye, Check, Settings } from 'lucide-react';
+import { FileText, Download, Calendar, FileSpreadsheet, FileJson, Eye, Check, Settings, ChevronDown } from 'lucide-react';
 import PreviewModal from './PreviewModal';
 import CustomBuilderModal from './CustomBuilderModal';
 
@@ -11,8 +11,105 @@ const ReportsPage = () => {
   const [showCustomBuilder, setShowCustomBuilder] = useState(false);
   const [customStartDate, setCustomStartDate] = useState('');
   const [customEndDate, setCustomEndDate] = useState('');
+  const [showDownloadMenu, setShowDownloadMenu] = useState(null);
 
-  const reportTemplates = [
+  // Generate dummy data for downloads
+  const generateMonthlyData = () => {
+    const data = [];
+    const baseDate = new Date('2026-01-01');
+    for (let i = 0; i < 30; i++) {
+      const date = new Date(baseDate);
+      date.setDate(date.getDate() + i);
+      data.push({
+        date: date.toISOString().split('T')[0],
+        rawBiogas: (320 + Math.random() * 50).toFixed(2),
+        purifiedGas: (300 + Math.random() * 40).toFixed(2),
+        productGas: (230 + Math.random() * 35).toFixed(2),
+        ch4: (95 + Math.random() * 3).toFixed(2),
+        co2: (2.5 + Math.random() * 1).toFixed(2),
+        o2: (0.3 + Math.random() * 0.3).toFixed(2),
+        h2s: (8 + Math.random() * 10).toFixed(2),
+        efficiency: (88 + Math.random() * 10).toFixed(2)
+      });
+    }
+    return data;
+  };
+
+  // Download CSV function
+  const downloadCSV = (reportName = 'production') => {
+    const data = generateMonthlyData();
+    const headers = ['Date', 'Raw Biogas (Nm³/hr)', 'Purified Gas (Nm³/hr)', 'Product Gas (Kg/hr)', 'CH4 (%)', 'Efficiency (%)'];
+    const csvData = data.map(d => [d.date, d.rawBiogas, d.purifiedGas, d.productGas, d.ch4, d.efficiency]);
+    
+    const csvContent = [
+      `LR Energy Biogas Plant - ${reportName}`,
+      `Generated: ${new Date().toLocaleString()}`,
+      '',
+      headers.join(','),
+      ...csvData.map(row => row.join(','))
+    ].join('\n');
+
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const link = document.createElement('a');
+    link.href = URL.createObjectURL(blob);
+    link.download = `LREnergy_${reportName.replace(/\s+/g, '_')}.csv`;
+    link.click();
+    setShowDownloadMenu(null);
+  };
+
+  // Download PDF function
+  const downloadPDF = (reportName = 'Production Report') => {
+    const data = generateMonthlyData();
+    const printContent = `
+      <!DOCTYPE html>
+      <html>
+      <head>
+        <title>LR Energy - ${reportName}</title>
+        <style>
+          body { font-family: Arial, sans-serif; padding: 40px; color: #333; }
+          .header { display: flex; justify-content: space-between; border-bottom: 2px solid #10b981; padding-bottom: 20px; margin-bottom: 20px; }
+          .logo { font-size: 24px; font-weight: bold; color: #10b981; }
+          .title { font-size: 28px; font-weight: bold; margin-bottom: 10px; }
+          .subtitle { color: #666; margin-bottom: 20px; }
+          table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+          th { background: #f1f5f9; padding: 10px; text-align: left; border: 1px solid #e2e8f0; }
+          td { padding: 8px 10px; border: 1px solid #e2e8f0; }
+          tr:nth-child(even) { background: #f8fafc; }
+          .footer { margin-top: 30px; padding-top: 20px; border-top: 1px solid #e2e8f0; font-size: 12px; color: #64748b; }
+        </style>
+      </head>
+      <body>
+        <div class="header">
+          <div class="logo">LR Energy</div>
+          <div style="text-align: right;">
+            <div style="font-size: 14px; color: #666;">Generated</div>
+            <div style="font-size: 16px; font-weight: bold;">${new Date().toLocaleDateString()}</div>
+          </div>
+        </div>
+        <div class="title">${reportName.toUpperCase()}</div>
+        <div class="subtitle">LR Energy Biogas Plant - Karnal | SCADA Monitoring System</div>
+        <table>
+          <thead>
+            <tr>
+              <th>Date</th><th>Raw Biogas</th><th>Purified Gas</th><th>Product Gas</th><th>CH₄</th><th>Efficiency</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${data.map(d => `<tr><td>${d.date}</td><td>${d.rawBiogas}</td><td>${d.purifiedGas}</td><td>${d.productGas}</td><td>${d.ch4}%</td><td>${d.efficiency}%</td></tr>`).join('')}
+          </tbody>
+        </table>
+        <div class="footer">
+          <p>Generated on ${new Date().toLocaleString()} | LR Energy Biogas Plant - SCADA Monitoring System</p>
+        </div>
+      </body>
+      </html>
+    `;
+    const printWindow = window.open('', '_blank');
+    printWindow.document.write(printContent);
+    printWindow.document.close();
+    printWindow.onload = () => printWindow.print();
+    setShowDownloadMenu(null);
+  };
     {
       id: 'production',
       label: 'Production Report',
