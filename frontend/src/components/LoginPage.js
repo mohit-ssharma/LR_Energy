@@ -94,7 +94,7 @@ const LoginPage = ({ onLogin }) => {
           <form onSubmit={handleSubmit} className="p-8 bg-gradient-to-b from-white to-slate-50">
             {error && (
               <div className="mb-6 p-3 bg-rose-50 border border-rose-200 rounded-lg text-rose-700 text-sm flex items-center space-x-2">
-                <span className="w-2 h-2 bg-rose-500 rounded-full"></span>
+                <AlertCircle className="w-4 h-4 flex-shrink-0" />
                 <span>{error}</span>
               </div>
             )}
