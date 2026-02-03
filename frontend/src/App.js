@@ -52,62 +52,34 @@ const ComingSoonPage = ({ plantName, onBack }) => {
   );
 };
 
-function App() {
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
-  const [user, setUser] = useState(null);
-  const [selectedDashboard, setSelectedDashboard] = useState(null);
+// MNRE User App - Restricted View
+const MNREApp = ({ onLogout }) => {
   const [currentPage, setCurrentPage] = useState('dashboard');
 
-  const handleLogin = (userData) => {
-    setUser(userData);
-    setIsAuthenticated(true);
+  const renderPage = () => {
+    switch(currentPage) {
+      case 'trends':
+        return <MNRETrendsPage />;
+      default:
+        return <MNREDashboard />;
+    }
   };
 
-  const handleLogout = () => {
-    setUser(null);
-    setIsAuthenticated(false);
-    setSelectedDashboard(null);
-    setCurrentPage('dashboard');
-  };
+  return (
+    <div className="App min-h-screen bg-slate-50 flex flex-col">
+      <MNREHeader currentPage={currentPage} onNavigate={setCurrentPage} onLogout={onLogout} />
+      <div className="flex-1">
+        {renderPage()}
+      </div>
+      <Footer />
+    </div>
+  );
+};
 
-  const handleSelectDashboard = (dashboardId) => {
-    setSelectedDashboard(dashboardId);
-    setCurrentPage('dashboard');
-  };
+// Head Office App - Full Access
+const HeadOfficeApp = ({ onLogout, onBackToDashboardList }) => {
+  const [currentPage, setCurrentPage] = useState('dashboard');
 
-  const handleBackToDashboardList = () => {
-    setSelectedDashboard(null);
-    setCurrentPage('dashboard');
-  };
-
-  // Show login page if not authenticated
-  if (!isAuthenticated) {
-    return <LoginPage onLogin={handleLogin} />;
-  }
-
-  // Show dashboard list if no dashboard selected
-  if (!selectedDashboard) {
-    return (
-      <DashboardListPage 
-        onSelectDashboard={handleSelectDashboard} 
-        onLogout={handleLogout}
-        user={user}
-      />
-    );
-  }
-
-  // Show coming soon for other dashboards (including Sonipat which is work in progress)
-  if (selectedDashboard !== 'lr-energy-karnal') {
-    const plantNames = {
-      'lr-energy-sonipat': 'LR Energy Biogas Plant - Sonipat',
-      'solar-plant': 'Solar Power Station',
-      'wind-farm': 'Wind Farm Station',
-      'manufacturing': 'Manufacturing Unit'
-    };
-    return <ComingSoonPage plantName={plantNames[selectedDashboard] || 'Selected Plant'} onBack={handleBackToDashboardList} />;
-  }
-
-  // Show LR Energy SCADA dashboard
   const renderPage = () => {
     switch(currentPage) {
       case 'trends':
@@ -121,13 +93,83 @@ function App() {
 
   return (
     <div className="App min-h-screen bg-slate-50 flex flex-col">
-      <Header currentPage={currentPage} onNavigate={setCurrentPage} onLogout={handleLogout} />
+      <Header currentPage={currentPage} onNavigate={setCurrentPage} onLogout={onLogout} />
       <div className="flex-1">
         {renderPage()}
       </div>
       <Footer />
     </div>
   );
+};
+
+// Main App Content with Auth Logic
+function AppContent() {
+  const { user, isAuthenticated, isLoading, logout, isMNRE } = useAuth();
+  const [selectedDashboard, setSelectedDashboard] = useState(null);
+
+  const handleLogin = (userData) => {
+    // Login is handled by AuthContext, just need to trigger re-render
+  };
+
+  const handleLogout = () => {
+    logout();
+    setSelectedDashboard(null);
+  };
+
+  const handleSelectDashboard = (dashboardId) => {
+    setSelectedDashboard(dashboardId);
+  };
+
+  const handleBackToDashboardList = () => {
+    setSelectedDashboard(null);
+  };
+
+  // Show loading state
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-slate-50 flex items-center justify-center">
+        <div className="text-center">
+          <div className="w-16 h-16 border-4 border-emerald-600 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+          <p className="text-slate-600">Loading...</p>
+        </div>
+      </div>
+    );
+  }
+
+  // Show login page if not authenticated
+  if (!isAuthenticated) {
+    return <LoginPage onLogin={handleLogin} />;
+  }
+
+  // MNRE users go directly to their restricted dashboard
+  if (isMNRE()) {
+    return <MNREApp onLogout={handleLogout} />;
+  }
+
+  // HEAD_OFFICE users - show dashboard list first
+  if (!selectedDashboard) {
+    return (
+      <DashboardListPage 
+        onSelectDashboard={handleSelectDashboard} 
+        onLogout={handleLogout}
+        user={user}
+      />
+    );
+  }
+
+  // Show coming soon for Sonipat (work in progress)
+  if (selectedDashboard !== 'lr-energy-karnal') {
+    const plantNames = {
+      'lr-energy-sonipat': 'LR Energy Biogas Plant - Sonipat',
+      'solar-plant': 'Solar Power Station',
+      'wind-farm': 'Wind Farm Station',
+      'manufacturing': 'Manufacturing Unit'
+    };
+    return <ComingSoonPage plantName={plantNames[selectedDashboard] || 'Selected Plant'} onBack={handleBackToDashboardList} />;
+  }
+
+  // Show Head Office SCADA dashboard
+  return <HeadOfficeApp onLogout={handleLogout} onBackToDashboardList={handleBackToDashboardList} />;
 }
 
 export default App;
