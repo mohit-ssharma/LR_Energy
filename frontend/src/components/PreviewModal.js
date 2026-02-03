@@ -241,7 +241,7 @@ const PreviewModal = ({ show, onClose, reportType, dateRange, reportTemplates })
           efficiency: d.efficiency.toFixed(1) + '%'
         }));
       case 'compliance':
-        return monthlyData.slice(0, 10).map((d, i) => ({
+        return monthlyData.map(d => ({
           date: d.date,
           status: d.h2s > 15 ? 'Warning' : 'Normal',
           h2s: d.h2s.toFixed(1) + ' ppm',
