@@ -166,10 +166,10 @@ const PreviewModal = ({ show, onClose, reportType, dateRange, reportTemplates })
 
           {/* Summary Cards */}
           <div className="grid grid-cols-4 gap-4 mb-6">
-            {Object.entries(getSummaryData()).map(([key, value]) => (
-              <div key={key} className="bg-white rounded-lg p-4 border border-slate-200 shadow-sm">
-                <div className="text-xs text-slate-500 uppercase tracking-wider mb-1">{key}</div>
-                <div className="text-2xl font-bold font-mono text-slate-900">{value}</div>
+            {summaryEntries.map((entry) => (
+              <div key={entry[0]} className="bg-white rounded-lg p-4 border border-slate-200 shadow-sm">
+                <div className="text-xs text-slate-500 uppercase tracking-wider mb-1">{entry[0]}</div>
+                <div className="text-2xl font-bold font-mono text-slate-900">{entry[1]}</div>
               </div>
             ))}
           </div>
