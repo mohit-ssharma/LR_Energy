@@ -344,13 +344,35 @@ const ReportsPage = () => {
                 <Eye className="w-5 h-5" />
                 <span>Preview Report</span>
               </button>
-              <button 
-                className="w-full bg-emerald-600 text-white py-3 rounded-lg font-semibold hover:bg-emerald-700 transition-colors flex items-center justify-center space-x-2 shadow-md"
-                data-testid="generate-report-button"
-              >
-                <Download className="w-5 h-5" />
-                <span>Generate & Download</span>
-              </button>
+              <div className="relative">
+                <button 
+                  onClick={() => setShowDownloadMenu(showDownloadMenu === 'generate' ? null : 'generate')}
+                  className="w-full bg-emerald-600 text-white py-3 rounded-lg font-semibold hover:bg-emerald-700 transition-colors flex items-center justify-center space-x-2 shadow-md"
+                  data-testid="generate-report-button"
+                >
+                  <Download className="w-5 h-5" />
+                  <span>Generate & Download</span>
+                  <ChevronDown className="w-4 h-4" />
+                </button>
+                {showDownloadMenu === 'generate' && (
+                  <div className="absolute top-full left-0 right-0 mt-2 bg-white border border-slate-200 rounded-lg shadow-lg z-10">
+                    <button 
+                      onClick={() => downloadCSV(reportTemplates.find(r => r.id === reportType)?.label || 'Report')}
+                      className="w-full px-4 py-3 text-left hover:bg-slate-50 flex items-center space-x-2 text-slate-700"
+                    >
+                      <FileSpreadsheet className="w-4 h-4 text-cyan-600" />
+                      <span>Download as CSV</span>
+                    </button>
+                    <button 
+                      onClick={() => downloadPDF(reportTemplates.find(r => r.id === reportType)?.label || 'Report')}
+                      className="w-full px-4 py-3 text-left hover:bg-slate-50 flex items-center space-x-2 text-slate-700 border-t border-slate-100"
+                    >
+                      <FileText className="w-4 h-4 text-rose-600" />
+                      <span>Download as PDF</span>
+                    </button>
+                  </div>
+                )}
+              </div>
             </div>
           </div>
 
