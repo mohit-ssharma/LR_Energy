@@ -458,11 +458,11 @@ const PreviewModal = ({ show, onClose, reportType, dateRange, reportTemplates })
               <span>Download CSV</span>
             </button>
             <button 
-              onClick={downloadJSON}
-              className="px-5 py-2 bg-violet-600 text-white rounded-lg font-semibold hover:bg-violet-700 transition-colors flex items-center space-x-2 shadow-md"
+              onClick={downloadPDF}
+              className="px-5 py-2 bg-rose-600 text-white rounded-lg font-semibold hover:bg-rose-700 transition-colors flex items-center space-x-2 shadow-md"
             >
               <FileText className="w-4 h-4" />
-              <span>Download JSON</span>
+              <span>Download PDF</span>
             </button>
           </div>
         </div>
