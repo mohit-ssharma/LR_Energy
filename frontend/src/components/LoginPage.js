@@ -1,24 +1,37 @@
 import React, { useState } from 'react';
-import { Lock, User, Eye, EyeOff } from 'lucide-react';
+import { Lock, User, Eye, EyeOff, AlertCircle } from 'lucide-react';
+import { useAuth } from '../context/AuthContext';
 
 const LoginPage = ({ onLogin }) => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
+  const { login } = useAuth();
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     setError('');
+    setIsLoading(true);
 
-    // Simple validation
+    // Validation
     if (!email || !password) {
       setError('Please enter both email and password');
+      setIsLoading(false);
       return;
     }
 
-    // Demo login - accept any credentials
-    onLogin({ email, name: 'Admin User' });
+    // Authenticate using AuthContext
+    const result = login(email, password);
+    
+    if (result.success) {
+      onLogin(result.user);
+    } else {
+      setError(result.error || 'Invalid credentials');
+    }
+    
+    setIsLoading(false);
   };
 
   return (
