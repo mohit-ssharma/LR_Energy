@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { LineChart, Line, AreaChart, Area, ResponsiveContainer, XAxis, YAxis, CartesianGrid, Tooltip, Legend } from 'recharts';
-import { TrendingUp, Calendar, BarChart3, Eye, EyeOff } from 'lucide-react';
+import { TrendingUp, Calendar, BarChart3, Eye, EyeOff, Download, FileText, FileSpreadsheet } from 'lucide-react';
+import { generatePDFReport, generateCSVDownload } from '../utils/pdfUtils';
 
 const TrendsPage = () => {
   const [timeRange, setTimeRange] = useState('24h');
