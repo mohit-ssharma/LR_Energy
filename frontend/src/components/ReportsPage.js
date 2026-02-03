@@ -110,6 +110,8 @@ const ReportsPage = () => {
     printWindow.onload = () => printWindow.print();
     setShowDownloadMenu(null);
   };
+
+  const reportTemplates = [
     {
       id: 'production',
       label: 'Production Report',
