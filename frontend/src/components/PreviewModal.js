@@ -1,33 +1,77 @@
 import React from 'react';
-import { X, Download, Check, TrendingUp, TrendingDown, Minus, FileText, FileSpreadsheet } from 'lucide-react';
+import { X, Check, TrendingUp, TrendingDown, Minus, FileText, FileSpreadsheet } from 'lucide-react';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 import { generatePDFReport, generateCSVDownload, generateMonthlyData, calculateStats } from '../utils/pdfUtils';
 
-const PreviewModal = ({ show, onClose, reportType, dateRange, reportTemplates }) => {
+// Helper component for table row
+function TableRow({ rowData, rowIndex }) {
+  return (
+    <tr className={rowIndex % 2 === 0 ? "border-b border-slate-100" : "border-b border-slate-100 bg-slate-50"}>
+      <td className="py-2 px-3 font-mono text-slate-700">{rowData[0]}</td>
+      <td className="py-2 px-3 font-mono text-slate-700">{rowData[1]}</td>
+      <td className="py-2 px-3 font-mono text-slate-700">{rowData[2]}</td>
+      <td className="py-2 px-3 font-mono text-slate-700">{rowData[3]}</td>
+      {rowData[4] !== undefined && <td className="py-2 px-3 font-mono text-slate-700">{rowData[4]}</td>}
+    </tr>
+  );
+}
+
+// Helper component for summary card
+function SummaryCard({ label, value }) {
+  return (
+    <div className="bg-white rounded-lg p-4 border border-slate-200 shadow-sm">
+      <div className="text-xs text-slate-500 uppercase tracking-wider mb-1">{label}</div>
+      <div className="text-2xl font-bold font-mono text-slate-900">{value}</div>
+    </div>
+  );
+}
+
+// Helper component for parameter item
+function ParameterItem({ text }) {
+  return (
+    <div className="flex items-center space-x-2 text-sm text-blue-800">
+      <Check className="w-4 h-4 text-blue-600 flex-shrink-0" />
+      <span>{text}</span>
+    </div>
+  );
+}
+
+function PreviewModal({ show, onClose, reportType, dateRange, reportTemplates }) {
   if (!show) return null;
 
-  const template = reportTemplates.find(r => r.id === reportType) || reportTemplates[0];
+  const template = reportTemplates.find(function(r) { return r.id === reportType; }) || reportTemplates[0];
   const monthlyData = generateMonthlyData(30);
 
+  // Precompute statistics to avoid repeated calls
+  const rawBiogasStats = calculateStats(monthlyData, 'rawBiogas');
+  const efficiencyStats = calculateStats(monthlyData, 'efficiency');
+  const ch4Stats = calculateStats(monthlyData, 'ch4');
+  const co2Stats = calculateStats(monthlyData, 'co2');
+  const o2Stats = calculateStats(monthlyData, 'o2');
+  const h2sStats = calculateStats(monthlyData, 'h2s');
+  const d1TempStats = calculateStats(monthlyData, 'd1Temp');
+  const d2TempStats = calculateStats(monthlyData, 'd2Temp');
+  const tankLevelStats = calculateStats(monthlyData, 'tankLevel');
+
   // Get summary data based on report type
-  const getSummaryData = () => {
+  function getSummaryData() {
     const summaries = {
       production: {
-        'Total Production': `${parseFloat(calculateStats(monthlyData, 'rawBiogas').total).toLocaleString()} Nm³`,
-        'Avg Daily Flow': `${calculateStats(monthlyData, 'rawBiogas').avg} Nm³/hr`,
-        'Avg Efficiency': `${calculateStats(monthlyData, 'efficiency').avg}%`,
+        'Total Production': parseFloat(rawBiogasStats.total).toLocaleString() + ' Nm³',
+        'Avg Daily Flow': rawBiogasStats.avg + ' Nm³/hr',
+        'Avg Efficiency': efficiencyStats.avg + '%',
         'Operating Days': '30 days'
       },
       quality: {
-        'Avg CH₄': `${calculateStats(monthlyData, 'ch4').avg}%`,
-        'Avg CO₂': `${calculateStats(monthlyData, 'co2').avg}%`,
-        'Avg O₂': `${calculateStats(monthlyData, 'o2').avg}%`,
-        'Avg H₂S': `${calculateStats(monthlyData, 'h2s').avg} ppm`
+        'Avg CH₄': ch4Stats.avg + '%',
+        'Avg CO₂': co2Stats.avg + '%',
+        'Avg O₂': o2Stats.avg + '%',
+        'Avg H₂S': h2sStats.avg + ' ppm'
       },
       performance: {
-        'Avg D1 Temp': `${calculateStats(monthlyData, 'd1Temp').avg}°C`,
-        'Avg D2 Temp': `${calculateStats(monthlyData, 'd2Temp').avg}°C`,
-        'Avg Tank Level': `${calculateStats(monthlyData, 'tankLevel').avg}%`,
+        'Avg D1 Temp': d1TempStats.avg + '°C',
+        'Avg D2 Temp': d2TempStats.avg + '°C',
+        'Avg Tank Level': tankLevelStats.avg + '%',
         'Uptime': '99.2%'
       },
       compliance: {
@@ -44,45 +88,61 @@ const PreviewModal = ({ show, onClose, reportType, dateRange, reportTemplates })
       }
     };
     return summaries[reportType] || summaries.production;
-  };
+  }
 
-  // Get table data based on report type
-  const getTableConfig = () => {
-    switch(reportType) {
-      case 'quality':
-        return {
-          headers: ['Date', 'CH₄ (%)', 'CO₂ (%)', 'O₂ (%)', 'H₂S (ppm)'],
-          data: monthlyData.map(d => [d.date, d.ch4.toFixed(2), d.co2.toFixed(2), d.o2.toFixed(2), d.h2s.toFixed(2)])
-        };
-      case 'performance':
-        return {
-          headers: ['Date', 'D1 Temp (°C)', 'D2 Temp (°C)', 'Tank Level (%)', 'Efficiency (%)'],
-          data: monthlyData.map(d => [d.date, d.d1Temp.toFixed(1), d.d2Temp.toFixed(1), d.tankLevel.toFixed(1), d.efficiency.toFixed(1)])
-        };
-      case 'compliance':
-        return {
-          headers: ['Date', 'CH₄ (%)', 'H₂S (ppm)', 'Status'],
-          data: monthlyData.map(d => [d.date, d.ch4.toFixed(2), d.h2s.toFixed(2), d.h2s > 15 ? 'Warning' : 'Normal'])
-        };
-      default:
-        return {
-          headers: ['Date', 'Raw Biogas', 'Purified Gas', 'Product Gas', 'Efficiency'],
-          data: monthlyData.map(d => [d.date, d.rawBiogas.toFixed(2), d.purifiedGas.toFixed(2), d.productGas.toFixed(2), d.efficiency.toFixed(1) + '%'])
-        };
+  // Build table data
+  function buildTableData() {
+    const result = [];
+    for (let i = 0; i < monthlyData.length; i++) {
+      const d = monthlyData[i];
+      if (reportType === 'quality') {
+        result.push([d.date, d.ch4.toFixed(2), d.co2.toFixed(2), d.o2.toFixed(2), d.h2s.toFixed(2)]);
+      } else if (reportType === 'performance') {
+        result.push([d.date, d.d1Temp.toFixed(1), d.d2Temp.toFixed(1), d.tankLevel.toFixed(1), d.efficiency.toFixed(1)]);
+      } else if (reportType === 'compliance') {
+        result.push([d.date, d.ch4.toFixed(2), d.h2s.toFixed(2), d.h2s > 15 ? 'Warning' : 'Normal']);
+      } else {
+        result.push([d.date, d.rawBiogas.toFixed(2), d.purifiedGas.toFixed(2), d.productGas.toFixed(2), d.efficiency.toFixed(1) + '%']);
+      }
     }
-  };
+    return result;
+  }
+
+  // Get table config based on report type
+  function getTableConfig() {
+    if (reportType === 'quality') {
+      return {
+        headers: ['Date', 'CH₄ (%)', 'CO₂ (%)', 'O₂ (%)', 'H₂S (ppm)'],
+        data: buildTableData()
+      };
+    }
+    if (reportType === 'performance') {
+      return {
+        headers: ['Date', 'D1 Temp (°C)', 'D2 Temp (°C)', 'Tank Level (%)', 'Efficiency (%)'],
+        data: buildTableData()
+      };
+    }
+    if (reportType === 'compliance') {
+      return {
+        headers: ['Date', 'CH₄ (%)', 'H₂S (ppm)', 'Status'],
+        data: buildTableData()
+      };
+    }
+    return {
+      headers: ['Date', 'Raw Biogas', 'Purified Gas', 'Product Gas', 'Efficiency'],
+      data: buildTableData()
+    };
+  }
 
   // Get chart config based on report type
-  const getChartConfig = () => {
-    switch(reportType) {
-      case 'quality': return { dataKey: 'ch4', color: '#8b5cf6', label: 'CH₄ Concentration (%)' };
-      case 'performance': return { dataKey: 'd1Temp', color: '#06b6d4', label: 'Digester 1 Temperature (°C)' };
-      case 'compliance': return { dataKey: 'h2s', color: '#f59e0b', label: 'H₂S Levels (ppm)' };
-      default: return { dataKey: 'rawBiogas', color: '#10b981', label: 'Raw Biogas Flow (Nm³/hr)' };
-    }
-  };
+  function getChartConfig() {
+    if (reportType === 'quality') return { dataKey: 'ch4', color: '#8b5cf6', label: 'CH₄ Concentration (%)' };
+    if (reportType === 'performance') return { dataKey: 'd1Temp', color: '#06b6d4', label: 'Digester 1 Temperature (°C)' };
+    if (reportType === 'compliance') return { dataKey: 'h2s', color: '#f59e0b', label: 'H₂S Levels (ppm)' };
+    return { dataKey: 'rawBiogas', color: '#10b981', label: 'Raw Biogas Flow (Nm³/hr)' };
+  }
 
-  const getHeaderColor = () => {
+  function getHeaderColor() {
     const colors = {
       production: 'from-emerald-600 to-teal-600',
       quality: 'from-violet-600 to-purple-600',
@@ -91,9 +151,9 @@ const PreviewModal = ({ show, onClose, reportType, dateRange, reportTemplates })
       custom: 'from-slate-600 to-slate-700'
     };
     return colors[reportType] || colors.production;
-  };
+  }
 
-  const getIncludes = () => {
+  function getIncludes() {
     const includes = {
       production: ['Raw Biogas Flow', 'Purified Gas Flow', 'Product Gas Flow', 'Efficiency Metrics', 'Daily Totals', 'Monthly Summary'],
       quality: ['CH₄ Concentration', 'CO₂ Levels', 'O₂ Levels', 'H₂S Content', 'Daily Averages', 'Compliance Status'],
@@ -102,39 +162,69 @@ const PreviewModal = ({ show, onClose, reportType, dateRange, reportTemplates })
       custom: ['Selected Parameters', 'Custom Date Range', 'Export Format', 'Notes', 'Template Settings']
     };
     return includes[reportType] || includes.production;
-  };
+  }
 
   const chartConfig = getChartConfig();
   const tableConfig = getTableConfig();
   const stats = calculateStats(monthlyData, chartConfig.dataKey);
-  const summaryEntries = Object.entries(getSummaryData());
+  const summaryData = getSummaryData();
+  const summaryKeys = Object.keys(summaryData);
   const includesList = getIncludes();
 
   // Download handlers
-  const handleDownloadCSV = () => {
+  function handleDownloadCSV() {
     generateCSVDownload({
       title: template.label,
       headers: tableConfig.headers,
       data: tableConfig.data
     });
-  };
+  }
 
-  const handleDownloadPDF = async () => {
+  async function handleDownloadPDF() {
     await generatePDFReport({
       title: template.label,
       subtitle: 'LR Energy Biogas Plant - Karnal | SCADA Monitoring System',
       period: 'January 01 - January 30, 2026',
-      summaryData: getSummaryData(),
+      summaryData: summaryData,
       statistics: stats,
       tableHeaders: tableConfig.headers,
-      tableData: tableConfig.data.slice(0, 15) // First 15 rows for PDF
+      tableData: tableConfig.data.slice(0, 15)
     });
-  };
+  }
+
+  // Build table rows
+  const tableRows = [];
+  for (let i = 0; i < tableConfig.data.length; i++) {
+    tableRows.push(<TableRow key={i} rowData={tableConfig.data[i]} rowIndex={i} />);
+  }
+
+  // Build header cells
+  const headerCells = [];
+  for (let i = 0; i < tableConfig.headers.length; i++) {
+    headerCells.push(
+      <th key={i} className="text-left py-2 px-3 font-semibold text-slate-700">
+        {tableConfig.headers[i]}
+      </th>
+    );
+  }
+
+  // Build summary cards
+  const summaryCards = [];
+  for (let i = 0; i < summaryKeys.length; i++) {
+    const key = summaryKeys[i];
+    summaryCards.push(<SummaryCard key={key} label={key} value={summaryData[key]} />);
+  }
+
+  // Build parameter items
+  const parameterItems = [];
+  for (let i = 0; i < includesList.length; i++) {
+    parameterItems.push(<ParameterItem key={i} text={includesList[i]} />);
+  }
 
   return (
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
       <div className="bg-white rounded-xl shadow-2xl w-full max-w-6xl max-h-[90vh] overflow-hidden">
-        <div className={`bg-gradient-to-r ${getHeaderColor()} text-white p-6 flex justify-between items-center`}>
+        <div className={'bg-gradient-to-r ' + getHeaderColor() + ' text-white p-6 flex justify-between items-center'}>
           <div>
             <h2 className="text-2xl font-bold">Monthly Report Preview</h2>
             <p className="text-white/80 text-sm mt-1">{template.label} - January 2026 (30 Days)</p>
@@ -166,12 +256,7 @@ const PreviewModal = ({ show, onClose, reportType, dateRange, reportTemplates })
 
           {/* Summary Cards */}
           <div className="grid grid-cols-4 gap-4 mb-6">
-            {summaryEntries.map((entry) => (
-              <div key={entry[0]} className="bg-white rounded-lg p-4 border border-slate-200 shadow-sm">
-                <div className="text-xs text-slate-500 uppercase tracking-wider mb-1">{entry[0]}</div>
-                <div className="text-2xl font-bold font-mono text-slate-900">{entry[1]}</div>
-              </div>
-            ))}
+            {summaryCards}
           </div>
 
           {/* Trend Chart */}
@@ -221,25 +306,9 @@ const PreviewModal = ({ show, onClose, reportType, dateRange, reportTemplates })
             <div className="overflow-x-auto max-h-64">
               <table className="w-full text-sm">
                 <thead className="bg-slate-100 sticky top-0">
-                  <tr>
-                    {tableConfig.headers.map((header, idx) => (
-                      <th key={idx} className="text-left py-2 px-3 font-semibold text-slate-700">{header}</th>
-                    ))}
-                  </tr>
+                  <tr>{headerCells}</tr>
                 </thead>
-                <tbody>
-                  {tableConfig.data.map((row, idx) => {
-                    return (
-                      <tr key={idx} className="border-b border-slate-100 hover:bg-slate-50">
-                        <td className="py-2 px-3 font-mono text-slate-700">{row[0]}</td>
-                        <td className="py-2 px-3 font-mono text-slate-700">{row[1]}</td>
-                        <td className="py-2 px-3 font-mono text-slate-700">{row[2]}</td>
-                        <td className="py-2 px-3 font-mono text-slate-700">{row[3]}</td>
-                        {row[4] && <td className="py-2 px-3 font-mono text-slate-700">{row[4]}</td>}
-                      </tr>
-                    );
-                  })}
-                </tbody>
+                <tbody>{tableRows}</tbody>
               </table>
             </div>
           </div>
@@ -248,12 +317,7 @@ const PreviewModal = ({ show, onClose, reportType, dateRange, reportTemplates })
           <div className="bg-blue-50 rounded-lg p-4 border border-blue-200">
             <h4 className="font-semibold text-blue-900 mb-3">Parameters Included in Report</h4>
             <div className="grid grid-cols-3 gap-2">
-              {includesList.map((param, idx) => (
-                <div key={idx} className="flex items-center space-x-2 text-sm text-blue-800">
-                  <Check className="w-4 h-4 text-blue-600 flex-shrink-0" />
-                  <span>{param}</span>
-                </div>
-              ))}
+              {parameterItems}
             </div>
           </div>
         </div>
@@ -277,6 +341,6 @@ const PreviewModal = ({ show, onClose, reportType, dateRange, reportTemplates })
       </div>
     </div>
   );
-};
+}
 
 export default PreviewModal;
