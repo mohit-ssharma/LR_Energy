@@ -441,7 +441,7 @@ const PreviewModal = ({ show, onClose, reportType, dateRange, reportTemplates })
 
         <div className="bg-slate-50 p-6 border-t border-slate-200 flex justify-between items-center">
           <div className="text-sm text-slate-500">
-            Report generated with dummy data for demonstration
+            Download report as CSV or PDF
           </div>
           <div className="flex space-x-3">
             <button 
