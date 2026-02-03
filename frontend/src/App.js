@@ -172,4 +172,13 @@ function AppContent() {
   return <HeadOfficeApp onLogout={handleLogout} onBackToDashboardList={handleBackToDashboardList} />;
 }
 
+// Main App wrapper with AuthProvider
+function App() {
+  return (
+    <AuthProvider>
+      <AppContent />
+    </AuthProvider>
+  );
+}
+
 export default App;
