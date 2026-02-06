@@ -2,7 +2,7 @@ import React from 'react';
 import { Droplets, Database, AlertTriangle } from 'lucide-react';
 
 const TankLevels = () => {
-  // Updated dummy data per requirements - Both tanks with same design
+  // Updated dummy data per requirements - Both tanks with same capacity and validation rules
   const tanks = [
     {
       id: 'buffer',
@@ -19,16 +19,23 @@ const TankLevels = () => {
     {
       id: 'lagoon',
       name: 'Lagoon Tank Water Level',
-      capacity: 2500,
+      capacity: 1078,
       capacityUnit: 'm³',
       currentLevel: 76,
-      volume: 1900,
+      volume: 819,
       volumeUnit: 'm³',
-      status: 'Normal',
-      color: 'emerald',
+      status: 'Warning',
+      color: 'amber',
       icon: Droplets
     }
   ];
+
+  // Status logic: <70% = Normal, 70-90% = Warning, >90% = Critical
+  const getStatus = (level) => {
+    if (level < 70) return { status: 'Normal', color: 'emerald' };
+    if (level <= 90) return { status: 'Warning', color: 'amber' };
+    return { status: 'Critical', color: 'rose' };
+  };
 
   const TankVisualization = ({ tank }) => {
     const gradientColors = {
