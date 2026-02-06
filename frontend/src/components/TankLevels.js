@@ -58,7 +58,7 @@ const TankLevels = () => {
       <div className="bg-white border border-slate-200 shadow-sm rounded-lg overflow-hidden" data-testid={`tank-${tank.id}`}>
         <div className="px-5 py-3 border-b border-slate-100 bg-gradient-to-r from-cyan-50 to-teal-50 flex justify-between items-center">
           <div className="flex items-center space-x-3">
-            <div className={`p-2 ${tank.status === 'Warning' ? 'bg-amber-500' : 'bg-cyan-600'} rounded-md`}>
+            <div className={`p-2 ${statusInfo.status === 'Warning' ? 'bg-amber-500' : statusInfo.status === 'Critical' ? 'bg-rose-500' : 'bg-cyan-600'} rounded-md`}>
               <tank.icon className="w-4 h-4 text-white" />
             </div>
             <div>
@@ -66,9 +66,9 @@ const TankLevels = () => {
               <span className="text-xs text-slate-500">Capacity: {tank.capacity.toLocaleString()} {tank.capacityUnit}</span>
             </div>
           </div>
-          <span className={`text-xs px-3 py-1 rounded-full border font-semibold ${statusStyles[tank.status]}`}>
-            {tank.status === 'Warning' && <AlertTriangle className="w-3 h-3 inline mr-1" />}
-            {tank.status}
+          <span className={`text-xs px-3 py-1 rounded-full border font-semibold ${statusStyles[statusInfo.status]}`}>
+            {(statusInfo.status === 'Warning' || statusInfo.status === 'Critical') && <AlertTriangle className="w-3 h-3 inline mr-1" />}
+            {statusInfo.status}
           </span>
         </div>
 
@@ -81,7 +81,7 @@ const TankLevels = () => {
                 className="absolute bottom-0 left-0 w-full transition-all duration-1000"
                 style={{ 
                   height: `${tank.currentLevel}%`,
-                  background: `linear-gradient(to top, ${gradientColors[tank.color].from}, ${gradientColors[tank.color].to})`
+                  background: `linear-gradient(to top, ${gradientColors[statusInfo.color].from}, ${gradientColors[statusInfo.color].to})`
                 }}
               >
                 {/* Animated wave effect */}
