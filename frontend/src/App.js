@@ -11,6 +11,7 @@ import DewPointMeter from "./components/DewPointMeter";
 import DigestersSection from "./components/Digester";
 import TankLevels from "./components/TankLevels";
 import WaterFlowMeters from "./components/WaterFlowMeters";
+import EquipmentStatus from "./components/EquipmentStatus";
 import TrendsPage from "./components/TrendsPage";
 import ReportsPage from "./components/ReportsPage";
 import MNREDashboard from "./components/MNREDashboard";
@@ -26,6 +27,7 @@ const LREnergyDashboard = () => {
       <DigestersSection />
       <TankLevels />
       <WaterFlowMeters />
+      <EquipmentStatus />
     </div>
   );
 };
