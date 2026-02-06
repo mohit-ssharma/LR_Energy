@@ -1,5 +1,5 @@
 import React from 'react';
-import { Thermometer, Gauge, Layers, Activity } from 'lucide-react';
+import { Thermometer, Gauge, Layers, Activity, Fuel } from 'lucide-react';
 
 const Digester = ({ unit, data }) => {
   const MetricCard = ({ label, value, unit, min, max, color, testId }) => {
@@ -31,29 +31,30 @@ const Digester = ({ unit, data }) => {
     );
   };
 
-  // Slurry Height Tank Visualization (matching Buffer Tank design)
-  const SlurryTank = ({ value, status }) => {
-    const maxHeight = 10; // meters
-    const percentage = (parseFloat(value) / maxHeight) * 100;
+  // Tank Visualization Component (for Slurry Height and Gas Level)
+  const TankVisualization = ({ label, value, maxValue, unit, status, color, testId }) => {
+    const percentage = (parseFloat(value) / maxValue) * 100;
     
     return (
       <div className="bg-gradient-to-br from-white to-slate-50 rounded-lg p-3 border border-slate-200">
-        <div className="text-xs font-semibold uppercase tracking-wider text-slate-600 mb-2">Slurry Height</div>
+        <div className="text-xs font-semibold uppercase tracking-wider text-slate-600 mb-2">{label}</div>
         <div className="flex items-center justify-between">
           <div>
             <div className="flex items-baseline space-x-1 mb-1">
-              <span className="text-2xl font-bold font-mono text-slate-900">{value}</span>
-              <span className="text-sm font-medium text-slate-500">m</span>
+              <span className="text-2xl font-bold font-mono text-slate-900" data-testid={testId}>{value}</span>
+              <span className="text-sm font-medium text-slate-500">{unit}</span>
             </div>
             <span className={`text-xs px-2 py-0.5 rounded-full border ${
-              status === 'Operational' ? 'bg-emerald-100 text-emerald-700 border-emerald-200' : 'bg-amber-100 text-amber-700 border-amber-200'
+              status === 'Operational' ? 'bg-emerald-100 text-emerald-700 border-emerald-200' : 
+              status === 'Warning' ? 'bg-amber-100 text-amber-700 border-amber-200' :
+              'bg-emerald-100 text-emerald-700 border-emerald-200'
             }`}>
               {status}
             </span>
           </div>
           <div className="relative w-16 h-24 bg-slate-100 border-2 border-slate-300 rounded-lg overflow-hidden">
             <div 
-              className="absolute bottom-0 left-0 w-full bg-cyan-500 opacity-80 transition-all duration-1000"
+              className={`absolute bottom-0 left-0 w-full ${color} opacity-80 transition-all duration-1000`}
               style={{ height: `${percentage}%` }}
             >
               <div className="absolute inset-0 bg-gradient-to-t from-transparent to-white opacity-30"></div>
@@ -86,23 +87,34 @@ const Digester = ({ unit, data }) => {
       </div>
 
       <div className="p-5 bg-gradient-to-br from-slate-50/30 to-white">
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
-          {/* Temperature Section */}
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-5">
+          {/* Temperature Section - Bottom & Top */}
           <div className="bg-gradient-to-br from-orange-50/50 to-red-50/30 rounded-lg p-4 border border-orange-100">
             <div className="flex items-center space-x-2 mb-3">
               <Thermometer className="w-4 h-4 text-orange-600" />
               <h4 className="text-sm font-semibold uppercase tracking-wider text-slate-700">Temperature</h4>
             </div>
             
-            <MetricCard
-              label="Temperature"
-              value={data.temperature}
-              unit="°C"
-              min={30}
-              max={40}
-              color="bg-gradient-to-r from-orange-400 to-red-500"
-              testId={`digester-${unit}-temp`}
-            />
+            <div className="space-y-3">
+              <MetricCard
+                label="Bottom Temperature"
+                value={data.tempBottom}
+                unit="°C"
+                min={30}
+                max={40}
+                color="bg-gradient-to-r from-orange-400 to-red-500"
+                testId={`digester-${unit}-temp-bottom`}
+              />
+              <MetricCard
+                label="Top Temperature"
+                value={data.tempTop}
+                unit="°C"
+                min={30}
+                max={40}
+                color="bg-gradient-to-r from-orange-400 to-red-500"
+                testId={`digester-${unit}-temp-top`}
+              />
+            </div>
           </div>
 
           {/* Pressure Section */}
@@ -135,16 +147,39 @@ const Digester = ({ unit, data }) => {
             </div>
           </div>
 
-          {/* Slurry Height Section */}
+          {/* Levels Section - Gas Level */}
+          <div className="bg-gradient-to-br from-amber-50/50 to-yellow-50/30 rounded-lg p-4 border border-amber-100">
+            <div className="flex items-center space-x-2 mb-3">
+              <Fuel className="w-4 h-4 text-amber-600" />
+              <h4 className="text-sm font-semibold uppercase tracking-wider text-slate-700">Gas Level</h4>
+            </div>
+            
+            <TankVisualization 
+              label="Balloon Gas Level"
+              value={data.gasLevel}
+              maxValue={100}
+              unit="%"
+              status="Operational"
+              color="bg-amber-500"
+              testId={`digester-${unit}-gas-level`}
+            />
+          </div>
+
+          {/* Slurry Height Section - Tank Design */}
           <div className="bg-gradient-to-br from-emerald-50/50 to-teal-50/30 rounded-lg p-4 border border-emerald-100">
             <div className="flex items-center space-x-2 mb-3">
               <Layers className="w-4 h-4 text-emerald-600" />
-              <h4 className="text-sm font-semibold uppercase tracking-wider text-slate-700">Levels</h4>
+              <h4 className="text-sm font-semibold uppercase tracking-wider text-slate-700">Slurry Level</h4>
             </div>
             
-            <SlurryTank 
-              value={data.slurryHeight} 
+            <TankVisualization 
+              label="Slurry Height"
+              value={data.slurryHeight}
+              maxValue={10}
+              unit="m"
               status="Operational"
+              color="bg-cyan-500"
+              testId={`digester-${unit}-slurry-height`}
             />
           </div>
         </div>
@@ -154,16 +189,20 @@ const Digester = ({ unit, data }) => {
 };
 
 const DigestersSection = () => {
-  // Updated dummy data per requirements
+  // Updated dummy data with Bottom and Top temperatures + Gas Level
   const digester1Data = {
-    temperature: '37',
+    tempBottom: '37',
+    tempTop: '36.5',
     pressure: { balloonGas: '32', balloonAir: '18' },
+    gasLevel: '75',
     slurryHeight: '7.6'
   };
 
   const digester2Data = {
-    temperature: '36.5',
+    tempBottom: '36.5',
+    tempTop: '36',
     pressure: { balloonGas: '30', balloonAir: '17' },
+    gasLevel: '72',
     slurryHeight: '7.3'
   };
 
