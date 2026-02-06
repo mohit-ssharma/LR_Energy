@@ -159,35 +159,4 @@ const LoginPage = ({ onLogin }) => {
               </button>
             </div>
 
-            <div className="mt-6 text-center">
-              <div className="flex items-center justify-center space-x-2 text-sm text-slate-500 mb-3">
-                <div className="h-px w-12 bg-slate-200"></div>
-                <p>Login Credentials</p>
-                <div className="h-px w-12 bg-slate-200"></div>
-              </div>
-              <div className="text-xs text-slate-500 space-y-1">
-                <p><strong>Head Office:</strong> it@lrenergy.in</p>
-                <p><strong>MNRE:</strong> it1@lrenergy.in</p>
-                <p className="text-slate-400">Password: qwerty</p>
-              </div>
-            </div>
-          </form>
-        </div>
-
-        {/* Footer */}
-        <div className="text-center mt-6">
-          <div className="bg-white/60 backdrop-blur-lg rounded-xl p-4 border border-white/50">
-            <p className="text-sm font-semibold text-slate-700">Secure SCADA Monitoring System</p>
-            <div className="flex items-center justify-center space-x-2 mt-2 text-xs text-slate-500">
-              <span>© 2026 LR Energy</span>
-              <span>•</span>
-              <span>Designed by Elan Energies</span>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-  );
-};
-
-export default LoginPage;
+              <button
