@@ -36,11 +36,11 @@ const Footer = () => {
             </div>
           </div>
 
-          {/* Right - Powered by */}
+          {/* Right - Designed by */}
           <div className="flex items-center justify-end space-x-3">
             <div className="text-right">
-              <div className="text-xs text-slate-400">Powered by</div>
-              <div className="text-sm font-semibold text-white">ELAN EPMC</div>
+              <div className="text-xs text-slate-400">Designed by</div>
+              <div className="text-sm font-semibold text-white">Elan Energies</div>
             </div>
             <img 
               src="https://customer-assets.emergentagent.com/job_4acfe114-4f71-44b3-ba66-02b58d5e96c3/artifacts/rp3d3dho_elan_logo.jpg" 
@@ -52,16 +52,10 @@ const Footer = () => {
 
         {/* Bottom - Additional Info */}
         <div className="mt-4 pt-4 border-t border-slate-700">
-          <div className="flex items-center justify-between text-xs text-slate-400">
+          <div className="flex items-center justify-center text-xs text-slate-400">
             <div className="flex items-center space-x-2">
               <Info className="w-3 h-3" />
               <span>SCADA Monitoring System v1.0 | Data refresh rate: Real-time</span>
-            </div>
-            <div>
-              <span>For support: </span>
-              <a href="mailto:support@lrenergy.com" className="text-emerald-400 hover:text-emerald-300">
-                support@lrenergy.com
-              </a>
             </div>
           </div>
         </div>
