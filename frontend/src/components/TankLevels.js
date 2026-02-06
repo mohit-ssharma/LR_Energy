@@ -38,6 +38,9 @@ const TankLevels = () => {
   };
 
   const TankVisualization = ({ tank }) => {
+    // Apply validation rule: <70% = Normal, 70-90% = Warning, >90% = Critical
+    const statusInfo = getStatus(tank.currentLevel);
+    
     const gradientColors = {
       emerald: { from: '#10b981', to: '#059669' },
       cyan: { from: '#06b6d4', to: '#0891b2' },
