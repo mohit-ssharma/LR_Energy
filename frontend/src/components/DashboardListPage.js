@@ -5,7 +5,7 @@ const DashboardListPage = ({ onSelectDashboard, onLogout, user }) => {
   const dashboards = [
     {
       id: 'lr-energy-karnal',
-      name: 'LR Energy Biogas Plant',
+      name: 'LR Energy Karnal Pvt. Ltd.',
       industry: 'Renewable Energy',
       location: 'Karnal',
       icon: Droplet,
@@ -21,7 +21,7 @@ const DashboardListPage = ({ onSelectDashboard, onLogout, user }) => {
     },
     {
       id: 'lr-energy-sonipat',
-      name: 'LR Energy Biogas Plant',
+      name: 'LR Energy Vrindavan Pvt. Ltd.',
       industry: 'Renewable Energy',
       location: 'Sonipat',
       icon: Droplet,
@@ -68,7 +68,7 @@ const DashboardListPage = ({ onSelectDashboard, onLogout, user }) => {
               <div className="h-8 w-px bg-slate-200"></div>
               <div>
                 <h1 className="text-2xl font-bold text-slate-800">SCADA Monitoring Systems</h1>
-                <p className="text-sm text-slate-600 mt-1">Select a plant to monitor</p>
+                <p className="text-sm text-slate-600 mt-1">Select a dashboard</p>
               </div>
             </div>
             <div className="flex items-center space-x-4">
@@ -89,7 +89,7 @@ const DashboardListPage = ({ onSelectDashboard, onLogout, user }) => {
                 src="https://customer-assets.emergentagent.com/job_4acfe114-4f71-44b3-ba66-02b58d5e96c3/artifacts/rp3d3dho_elan_logo.jpg" 
                 alt="ELAN Logo" 
                 className="h-10 w-auto object-contain"
-                title="Powered by ELAN"
+                title="Designed by Elan Energies"
               />
             </div>
           </div>
@@ -171,8 +171,8 @@ const DashboardListPage = ({ onSelectDashboard, onLogout, user }) => {
         <div className="mt-8 bg-gradient-to-r from-emerald-50 to-cyan-50 rounded-xl p-6 border border-emerald-200">
           <h3 className="text-lg font-semibold text-slate-800 mb-2">LR Energy SCADA Monitoring</h3>
           <p className="text-slate-600 text-sm">
-            <strong>Karnal Plant:</strong> Fully operational with real-time monitoring of 35 parameters including gas composition, digesters, tank levels, and flow meters.<br/>
-            <strong>Sonipat Plant:</strong> Dashboard under development. Will be available soon.
+            <strong>LR Energy Karnal Pvt. Ltd.:</strong> Fully operational with real-time monitoring of 35 parameters including gas composition, digesters, tank levels, and flow meters.<br/>
+            <strong>LR Energy Vrindavan Pvt. Ltd.:</strong> Dashboard under development. Will be available soon.
           </p>
         </div>
       </div>
