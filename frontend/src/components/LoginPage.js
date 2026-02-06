@@ -15,14 +15,12 @@ const LoginPage = ({ onLogin }) => {
     setError('');
     setIsLoading(true);
 
-    // Validation
     if (!email || !password) {
       setError('Please enter both email and password');
       setIsLoading(false);
       return;
     }
 
-    // Authenticate using AuthContext
     const result = login(email, password);
     
     if (result.success) {
@@ -36,12 +34,11 @@ const LoginPage = ({ onLogin }) => {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-emerald-50 via-cyan-50 to-violet-50 flex items-center justify-center p-4 relative overflow-hidden">
-      {/* Background decorative elements */}
       <div className="absolute top-0 left-0 w-96 h-96 bg-emerald-400 rounded-full filter blur-3xl opacity-20 -translate-x-1/2 -translate-y-1/2"></div>
       <div className="absolute bottom-0 right-0 w-96 h-96 bg-cyan-400 rounded-full filter blur-3xl opacity-20 translate-x-1/2 translate-y-1/2"></div>
       
       <div className="w-full max-w-md relative z-10">
-        {/* Top Logo Bar - Creative Design */}
+        {/* Top Logo Bar */}
         <div className="mb-6 flex items-center justify-between bg-white/80 backdrop-blur-lg rounded-2xl p-4 shadow-lg border border-white/50">
           <div className="flex items-center space-x-3">
             <div className="relative">
@@ -158,5 +155,23 @@ const LoginPage = ({ onLogin }) => {
                 {isLoading ? 'Signing In...' : 'Sign In to Dashboard'}
               </button>
             </div>
+          </form>
+        </div>
 
-              <button
+        {/* Footer */}
+        <div className="text-center mt-6">
+          <div className="bg-white/60 backdrop-blur-lg rounded-xl p-4 border border-white/50">
+            <p className="text-sm font-semibold text-slate-700">Secure SCADA Monitoring System</p>
+            <div className="flex items-center justify-center space-x-2 mt-2 text-xs text-slate-500">
+              <span>© 2026 LR Energy</span>
+              <span>•</span>
+              <span>Designed by Elan Energies</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+export default LoginPage;
