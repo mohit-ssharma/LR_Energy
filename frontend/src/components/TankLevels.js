@@ -2,7 +2,7 @@ import React from 'react';
 import { Droplets, Database, AlertTriangle } from 'lucide-react';
 
 const TankLevels = () => {
-  // Updated dummy data per requirements
+  // Updated dummy data per requirements - Both tanks with same design
   const tanks = [
     {
       id: 'buffer',
@@ -19,11 +19,11 @@ const TankLevels = () => {
     {
       id: 'lagoon',
       name: 'Lagoon Tank Water Level',
-      capacity: null,
-      capacityUnit: null,
+      capacity: 2500,
+      capacityUnit: 'm³',
       currentLevel: 76,
-      volume: null,
-      volumeUnit: null,
+      volume: 1900,
+      volumeUnit: 'm³',
       status: 'Normal',
       color: 'emerald',
       icon: Droplets
@@ -53,9 +53,7 @@ const TankLevels = () => {
             </div>
             <div>
               <h3 className="text-sm font-semibold text-slate-800">{tank.name}</h3>
-              {tank.capacity && (
-                <span className="text-xs text-slate-500">Capacity: {tank.capacity.toLocaleString()} {tank.capacityUnit}</span>
-              )}
+              <span className="text-xs text-slate-500">Capacity: {tank.capacity.toLocaleString()} {tank.capacityUnit}</span>
             </div>
           </div>
           <span className={`text-xs px-3 py-1 rounded-full border font-semibold ${statusStyles[tank.status]}`}>
@@ -113,25 +111,21 @@ const TankLevels = () => {
                 </div>
               </div>
 
-              {tank.volume !== null && (
-                <div className="bg-gradient-to-r from-slate-50 to-white rounded-lg p-4 border border-slate-200">
-                  <div className="text-xs font-semibold uppercase tracking-wider text-slate-500 mb-1">Volume</div>
-                  <div className="flex items-baseline space-x-1">
-                    <span className="text-2xl font-bold font-mono text-slate-900" data-testid={`${tank.id}-volume`}>{tank.volume.toLocaleString()}</span>
-                    <span className="text-sm font-medium text-slate-500">{tank.volumeUnit}</span>
-                  </div>
+              <div className="bg-gradient-to-r from-slate-50 to-white rounded-lg p-4 border border-slate-200">
+                <div className="text-xs font-semibold uppercase tracking-wider text-slate-500 mb-1">Volume</div>
+                <div className="flex items-baseline space-x-1">
+                  <span className="text-2xl font-bold font-mono text-slate-900" data-testid={`${tank.id}-volume`}>{tank.volume.toLocaleString()}</span>
+                  <span className="text-sm font-medium text-slate-500">{tank.volumeUnit}</span>
                 </div>
-              )}
+              </div>
 
-              {tank.capacity && (
-                <div className="bg-gradient-to-r from-slate-50 to-white rounded-lg p-4 border border-slate-200">
-                  <div className="text-xs font-semibold uppercase tracking-wider text-slate-500 mb-1">Capacity</div>
-                  <div className="flex items-baseline space-x-1">
-                    <span className="text-2xl font-bold font-mono text-slate-900">{tank.capacity.toLocaleString()}</span>
-                    <span className="text-sm font-medium text-slate-500">{tank.capacityUnit}</span>
-                  </div>
+              <div className="bg-gradient-to-r from-slate-50 to-white rounded-lg p-4 border border-slate-200">
+                <div className="text-xs font-semibold uppercase tracking-wider text-slate-500 mb-1">Capacity</div>
+                <div className="flex items-baseline space-x-1">
+                  <span className="text-2xl font-bold font-mono text-slate-900">{tank.capacity.toLocaleString()}</span>
+                  <span className="text-sm font-medium text-slate-500">{tank.capacityUnit}</span>
                 </div>
-              )}
+              </div>
 
               <div className="flex items-center text-xs text-slate-400 font-mono">
                 <span>Last Updated: 08:43:41</span>
