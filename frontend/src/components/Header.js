@@ -93,7 +93,7 @@ const Header = ({ currentPage, onNavigate, onLogout }) => {
               src="https://customer-assets.emergentagent.com/job_4acfe114-4f71-44b3-ba66-02b58d5e96c3/artifacts/rp3d3dho_elan_logo.jpg" 
               alt="ELAN Logo" 
               className="h-10 w-auto object-contain"
-              title="Powered by ELAN"
+              title="Designed by Elan Energies"
             />
           </div>
         </div>
