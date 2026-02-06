@@ -483,6 +483,10 @@ function ReportsPage() {
             <h3 className="text-sm font-semibold text-slate-700 mb-3">Quick Stats</h3>
             <div className="space-y-2">
               <div className="flex justify-between text-sm">
+                <span className="text-slate-600">Total Production (24Hr)</span>
+                <span className="font-bold font-mono text-slate-900">27,600 Nm³</span>
+              </div>
+              <div className="flex justify-between text-sm">
                 <span className="text-slate-600">Today's Production</span>
                 <span className="font-bold font-mono text-slate-900">12,450 Nm³</span>
               </div>
