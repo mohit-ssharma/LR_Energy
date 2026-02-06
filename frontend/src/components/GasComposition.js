@@ -1,23 +1,45 @@
 import React from 'react';
 import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip } from 'recharts';
-import { Activity, AlertTriangle } from 'lucide-react';
+import { Activity } from 'lucide-react';
 
 const GasComposition = () => {
   const compositionData = [
     { name: 'CH₄', value: 96.8, color: '#10b981', unit: '%' },
-    { name: 'CO₂', value: 2.85, color: '#8b5cf6', unit: '%' },
-    { name: 'O₂', value: 0.42, color: '#f59e0b', unit: '%' },
+    { name: 'CO₂', value: 2.9, color: '#8b5cf6', unit: '%' },
+    { name: 'O₂', value: 0.3, color: '#f59e0b', unit: '%' },
   ];
 
+  // Status logic based on requirements:
+  // CH₄ ≥ 96% → Accepted
+  // O₂ < 0.5% → Normal
+  // CO₂ < 5% → Normal
+  // Else → Warning
+  const getStatus = (label, value) => {
+    if (label === 'CH₄') {
+      return value >= 96 ? 'Accepted' : 'Warning';
+    }
+    if (label === 'O₂') {
+      return value < 0.5 ? 'Normal' : 'Warning';
+    }
+    if (label === 'CO₂') {
+      return value < 5 ? 'Normal' : 'Warning';
+    }
+    if (label === 'H₂S') {
+      return 'Normal';
+    }
+    return 'Normal';
+  };
+
   const detailedData = [
-    { label: 'CH₄', value: '96.8', unit: '%', current: 96.8, target: 100, status: 'normal', color: 'emerald' },
-    { label: 'CO₂', value: '2.85', unit: '%', current: 2.85, target: 100, status: 'normal', color: 'violet' },
-    { label: 'O₂', value: '0.42', unit: '%', current: 0.42, target: 100, status: 'normal', color: 'amber' },
-    { label: 'H₂S', value: '12.5', unit: 'ppm', current: 12.5, limit: 100, status: 'warning', color: 'rose' },
+    { label: 'CH₄', value: '96.8', unit: '%', current: 96.8, target: 100, status: getStatus('CH₄', 96.8), color: 'emerald' },
+    { label: 'CO₂', value: '2.9', unit: '%', current: 2.9, target: 100, status: getStatus('CO₂', 2.9), color: 'violet' },
+    { label: 'O₂', value: '0.3', unit: '%', current: 0.3, target: 100, status: getStatus('O₂', 0.3), color: 'amber' },
+    { label: 'H₂S', value: '180', unit: 'ppm', current: 180, limit: 500, status: getStatus('H₂S', 180), color: 'rose' },
   ];
 
   const getStatusStyle = (status) => {
-    switch(status) {
+    switch(status.toLowerCase()) {
+      case 'accepted': return 'bg-emerald-100 text-emerald-700 border-emerald-200';
       case 'normal': return 'bg-emerald-100 text-emerald-700 border-emerald-200';
       case 'warning': return 'bg-amber-100 text-amber-700 border-amber-200';
       case 'critical': return 'bg-rose-100 text-rose-700 border-rose-200';
@@ -80,7 +102,7 @@ const GasComposition = () => {
             </div>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
               {detailedData.map((item, index) => (
-                <div key={index} className="bg-gradient-to-br from-white to-slate-50 rounded-lg p-3 border border-slate-200" data-testid={`gas-param-${item.label.toLowerCase()}`}>
+                <div key={index} className="bg-gradient-to-br from-white to-slate-50 rounded-lg p-3 border border-slate-200" data-testid={`gas-param-${item.label.toLowerCase().replace(/[₄₂]/g, '')}`}>
                   <div className="flex items-center justify-between mb-2">
                     <div className="flex items-center space-x-2">
                       <div className={`w-2 h-2 rounded-full bg-${item.color}-500`}></div>
@@ -107,12 +129,6 @@ const GasComposition = () => {
                       ></div>
                     </div>
                   </div>
-                  {item.status === 'warning' && (
-                    <div className="flex items-center space-x-1 mt-2 text-xs text-amber-600">
-                      <AlertTriangle className="w-3 h-3" />
-                      <span>Approaching limit</span>
-                    </div>
-                  )}
                 </div>
               ))}
             </div>
