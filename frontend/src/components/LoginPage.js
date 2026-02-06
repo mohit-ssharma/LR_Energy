@@ -60,8 +60,8 @@ const LoginPage = ({ onLogin }) => {
           </div>
           <div className="flex items-center space-x-3">
             <div className="text-right">
-              <div className="text-xs text-slate-500">Powered by</div>
-              <div className="text-sm font-bold text-slate-800">ELAN EPMC</div>
+              <div className="text-xs text-slate-500">Designed by</div>
+              <div className="text-sm font-bold text-slate-800">Elan Energies</div>
             </div>
             <div className="h-10 w-px bg-gradient-to-b from-transparent via-slate-300 to-transparent"></div>
             <div className="relative">
@@ -181,7 +181,7 @@ const LoginPage = ({ onLogin }) => {
             <div className="flex items-center justify-center space-x-2 mt-2 text-xs text-slate-500">
               <span>© 2026 LR Energy</span>
               <span>•</span>
-              <span>Technology by ELAN EPMC</span>
+              <span>Designed by Elan Energies</span>
             </div>
           </div>
         </div>
