@@ -1,131 +1,143 @@
 import React from 'react';
-import { Waves } from 'lucide-react';
-import { LineChart, Line, ResponsiveContainer } from 'recharts';
+import { Droplet, Activity } from 'lucide-react';
+import { LineChart, Line, ResponsiveContainer, Tooltip } from 'recharts';
 
-const FlowMeterCard = ({ title, flowRate, totalizer, percentage, color }) => {
-  const generateSparklineData = () => {
-    return Array.from({ length: 15 }, (_, i) => ({
-      value: parseFloat(flowRate) + Math.random() * 20 - 10
+const WaterFlowMeters = () => {
+  // Updated dummy data per requirements (Capacity Utilization removed)
+  const flowMeters = [
+    { id: 'feed-fm1', name: 'Feed FM-I', value: 42, unit: 'm³/hr', color: 'emerald' },
+    { id: 'feed-fm2', name: 'Feed FM-II', value: 38, unit: 'm³/hr', color: 'cyan' },
+    { id: 'fresh-water', name: 'Fresh Water FM', value: 12, unit: 'm³/hr', color: 'violet' },
+    { id: 'recycle', name: 'Recycle Water FM', value: 26, unit: 'm³/hr', color: 'amber' }
+  ];
+
+  const generateTrendData = (baseValue) => {
+    return Array.from({ length: 12 }, (_, i) => ({
+      time: i,
+      value: baseValue + (Math.random() * 5 - 2.5)
     }));
   };
 
-  const sparklineData = generateSparklineData();
-  
-  const getColorClasses = (color) => {
-    const colors = {
-      'emerald': { bg: 'bg-emerald-600', light: 'bg-emerald-50', border: 'border-emerald-200', text: 'text-emerald-600', stroke: '#10b981' },
-      'violet': { bg: 'bg-violet-700', light: 'bg-violet-50', border: 'border-violet-200', text: 'text-violet-700', stroke: '#8b5cf6' },
-      'cyan': { bg: 'bg-cyan-600', light: 'bg-cyan-50', border: 'border-cyan-200', text: 'text-cyan-600', stroke: '#06b6d4' },
-      'amber': { bg: 'bg-amber-600', light: 'bg-amber-50', border: 'border-amber-200', text: 'text-amber-600', stroke: '#f59e0b' }
-    };
-    return colors[color] || colors.emerald;
+  const colorClasses = {
+    emerald: { bg: 'bg-emerald-600', light: 'bg-emerald-50', border: 'border-emerald-200', text: 'text-emerald-600', stroke: '#10b981' },
+    cyan: { bg: 'bg-cyan-600', light: 'bg-cyan-50', border: 'border-cyan-200', text: 'text-cyan-600', stroke: '#06b6d4' },
+    violet: { bg: 'bg-violet-700', light: 'bg-violet-50', border: 'border-violet-200', text: 'text-violet-700', stroke: '#7c3aed' },
+    amber: { bg: 'bg-amber-600', light: 'bg-amber-50', border: 'border-amber-200', text: 'text-amber-600', stroke: '#f59e0b' }
   };
 
-  const colorClasses = getColorClasses(color);
-
   return (
-    <div className="bg-white border border-slate-200 shadow-sm rounded-lg overflow-hidden" data-testid={`flow-meter-${title.toLowerCase().replace(/\s+/g, '-')}`}>
-      <div className="px-4 py-3 border-b border-slate-100 bg-gradient-to-br from-slate-50 to-slate-100/50 flex justify-between items-center">
-        <div className="flex items-center space-x-2">
-          <div className={`p-1.5 rounded-md ${colorClasses.bg}`}>
-            <Waves className="w-3.5 h-3.5 text-white" />
-          </div>
-          <span className="text-xs font-semibold uppercase tracking-wider text-slate-600">{title}</span>
-        </div>
-        <span className="text-xs text-slate-400 font-mono">08:43:41</span>
-      </div>
-
-      <div className="p-4 bg-gradient-to-br from-slate-50/20 to-white">
-        <div className="mb-3">
-          <div className="text-xs text-slate-500 mb-1">Flow Rate</div>
-          <div className="flex items-baseline space-x-2">
-            <span className="text-3xl font-bold font-mono tracking-tighter text-slate-900" data-testid={`${title.toLowerCase().replace(/\s+/g, '-')}-flow-rate`}>
-              {flowRate}
-            </span>
-            <span className="text-sm font-medium text-slate-400">Nm³/hr</span>
-          </div>
-        </div>
-
-        <div className="h-12 mb-3">
-          <ResponsiveContainer width="100%" height="100%">
-            <LineChart data={sparklineData}>
-              <Line 
-                type="monotone" 
-                dataKey="value" 
-                stroke={colorClasses.stroke}
-                strokeWidth={2}
-                dot={false}
-                animationDuration={300}
-              />
-            </LineChart>
-          </ResponsiveContainer>
-        </div>
-
-        {/* Fixed height box for uniform appearance */}
-        <div className={`${colorClasses.light} rounded-md p-3 border ${colorClasses.border} mb-3 min-h-[76px] flex flex-col justify-center`}>
-          <div className="text-xs text-slate-500 mb-1">Totalizer</div>
-          <div className="flex items-baseline space-x-1">
-            <span className="text-xl font-bold font-mono text-slate-900">{totalizer}</span>
-            <span className="text-xs text-slate-500">m³</span>
-          </div>
-        </div>
-
-        <div>
-          <div className="flex items-center justify-between mb-1.5">
-            <span className="text-xs font-medium text-slate-500">Capacity Utilization</span>
-            <span className="text-xs font-bold font-mono text-slate-900">{percentage}%</span>
-          </div>
-          <div className="overflow-hidden h-2 text-xs flex rounded-full bg-slate-100">
-            <div
-              style={{ width: `${percentage}%` }}
-              className={`shadow-none flex flex-col text-center whitespace-nowrap text-white justify-center ${colorClasses.bg} transition-all duration-300`}
-            ></div>
-          </div>
-        </div>
-      </div>
-    </div>
-  );
-};
-
-const WaterFlowMeters = () => {
-  const flowMetersData = [
-    {
-      title: 'Feed FM – I',
-      flowRate: '125.3',
-      totalizer: '4,856.2',
-      percentage: 84,
-      color: 'violet'
-    },
-    {
-      title: 'Feed FM – II',
-      flowRate: '132.5',
-      totalizer: '5,127.8',
-      percentage: 88,
-      color: 'amber'
-    },
-    {
-      title: 'Fresh Water FM',
-      flowRate: '45.8',
-      totalizer: '1,523.6',
-      percentage: 31,
-      color: 'emerald'
-    },
-    {
-      title: 'Recycle Water FM',
-      flowRate: '68.7',
-      totalizer: '2,342.1',
-      percentage: 46,
-      color: 'cyan'
-    }
-  ];
-
-  return (
-    <div className="mb-6" data-testid="water-flow-meters-section">
+    <div className="mb-6" data-testid="water-flow-section">
       <h2 className="text-xl font-semibold tracking-tight text-slate-800 mb-4">Water Flow Meters</h2>
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-        {flowMetersData.map((meter, index) => (
-          <FlowMeterCard key={index} {...meter} />
-        ))}
+      <div className="bg-white border border-slate-200 shadow-sm rounded-lg overflow-hidden">
+        <div className="px-5 py-3 border-b border-slate-100 bg-gradient-to-r from-blue-50 to-cyan-50 flex justify-between items-center">
+          <div className="flex items-center space-x-3">
+            <div className="p-2 bg-cyan-600 rounded-md">
+              <Activity className="w-4 h-4 text-white" />
+            </div>
+            <div>
+              <h3 className="text-lg font-medium text-slate-800">Flow Meter Status</h3>
+              <span className="text-xs text-slate-500">Real-time flow measurements</span>
+            </div>
+          </div>
+          <span className="text-xs px-3 py-1 bg-emerald-100 text-emerald-700 rounded-full border border-emerald-200 font-semibold">
+            All Online
+          </span>
+        </div>
+
+        <div className="p-5 bg-gradient-to-br from-slate-50/30 to-white">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+            {flowMeters.map((meter) => {
+              const colors = colorClasses[meter.color];
+              const trendData = generateTrendData(meter.value);
+              
+              return (
+                <div 
+                  key={meter.id} 
+                  className={`${colors.light} rounded-lg p-4 border ${colors.border}`}
+                  data-testid={`flow-meter-${meter.id}`}
+                >
+                  <div className="flex items-center justify-between mb-3">
+                    <div className="flex items-center space-x-2">
+                      <div className={`p-1.5 ${colors.bg} rounded-md`}>
+                        <Droplet className="w-3.5 h-3.5 text-white" />
+                      </div>
+                      <span className="text-xs font-semibold uppercase tracking-wider text-slate-600">{meter.name}</span>
+                    </div>
+                  </div>
+                  
+                  <div className="mb-3">
+                    <div className="flex items-baseline space-x-1 mb-1">
+                      <span className={`text-3xl font-bold font-mono ${colors.text}`}>{meter.value}</span>
+                      <span className="text-sm font-medium text-slate-500">{meter.unit}</span>
+                    </div>
+                  </div>
+
+                  <div className="h-12 mb-3">
+                    <ResponsiveContainer width="100%" height="100%">
+                      <LineChart data={trendData}>
+                        <Tooltip 
+                          contentStyle={{ 
+                            backgroundColor: 'white', 
+                            border: '1px solid #e2e8f0',
+                            borderRadius: '4px',
+                            fontSize: '11px'
+                          }}
+                          formatter={(value) => [`${value.toFixed(1)} m³/hr`, 'Flow']}
+                        />
+                        <Line 
+                          type="monotone" 
+                          dataKey="value" 
+                          stroke={colors.stroke}
+                          strokeWidth={2}
+                          dot={false}
+                        />
+                      </LineChart>
+                    </ResponsiveContainer>
+                  </div>
+
+                  <div className="flex items-center justify-between text-xs text-slate-500">
+                    <span>Status: Online</span>
+                    <span className="font-mono">08:43:41</span>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+
+          {/* Summary */}
+          <div className="mt-4 pt-4 border-t border-slate-200">
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+              <div className="bg-slate-50 rounded-lg p-3 border border-slate-200">
+                <div className="text-xs font-semibold uppercase tracking-wider text-slate-500 mb-1">Total Feed Flow</div>
+                <div className="flex items-baseline space-x-1">
+                  <span className="text-xl font-bold font-mono text-slate-900">80</span>
+                  <span className="text-sm text-slate-500">m³/hr</span>
+                </div>
+              </div>
+              <div className="bg-slate-50 rounded-lg p-3 border border-slate-200">
+                <div className="text-xs font-semibold uppercase tracking-wider text-slate-500 mb-1">Fresh Water</div>
+                <div className="flex items-baseline space-x-1">
+                  <span className="text-xl font-bold font-mono text-slate-900">12</span>
+                  <span className="text-sm text-slate-500">m³/hr</span>
+                </div>
+              </div>
+              <div className="bg-slate-50 rounded-lg p-3 border border-slate-200">
+                <div className="text-xs font-semibold uppercase tracking-wider text-slate-500 mb-1">Recycle Water</div>
+                <div className="flex items-baseline space-x-1">
+                  <span className="text-xl font-bold font-mono text-slate-900">26</span>
+                  <span className="text-sm text-slate-500">m³/hr</span>
+                </div>
+              </div>
+              <div className="bg-slate-50 rounded-lg p-3 border border-slate-200">
+                <div className="text-xs font-semibold uppercase tracking-wider text-slate-500 mb-1">Total Flow</div>
+                <div className="flex items-baseline space-x-1">
+                  <span className="text-xl font-bold font-mono text-slate-900">118</span>
+                  <span className="text-sm text-slate-500">m³/hr</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
       </div>
     </div>
   );
