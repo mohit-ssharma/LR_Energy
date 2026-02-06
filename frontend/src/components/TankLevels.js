@@ -1,153 +1,154 @@
 import React from 'react';
-import { Droplet, AlertTriangle, CheckCircle2 } from 'lucide-react';
-
-const TankCard = ({ title, currentVolume, totalCapacity, unit, status, color }) => {
-  const percentage = (currentVolume / totalCapacity) * 100;
-  const available = totalCapacity - currentVolume;
-
-  const getStatusConfig = (status) => {
-    switch(status.toLowerCase()) {
-      case 'normal': 
-        return { 
-          bg: 'bg-emerald-50', 
-          text: 'text-emerald-700', 
-          border: 'border-emerald-200',
-          icon: CheckCircle2,
-          liquidColor: 'bg-emerald-500'
-        };
-      case 'moderate': 
-        return { 
-          bg: 'bg-amber-50', 
-          text: 'text-amber-700', 
-          border: 'border-amber-200',
-          icon: AlertTriangle,
-          liquidColor: 'bg-amber-500'
-        };
-      case 'high': 
-        return { 
-          bg: 'bg-orange-50', 
-          text: 'text-orange-700', 
-          border: 'border-orange-200',
-          icon: AlertTriangle,
-          liquidColor: 'bg-orange-500'
-        };
-      case 'critical': 
-        return { 
-          bg: 'bg-rose-50', 
-          text: 'text-rose-700', 
-          border: 'border-rose-200',
-          icon: AlertTriangle,
-          liquidColor: 'bg-rose-500'
-        };
-      default: 
-        return { 
-          bg: 'bg-slate-50', 
-          text: 'text-slate-700', 
-          border: 'border-slate-200',
-          icon: CheckCircle2,
-          liquidColor: 'bg-slate-500'
-        };
-    }
-  };
-
-  const statusConfig = getStatusConfig(status);
-  const StatusIcon = statusConfig.icon;
-
-  return (
-    <div className="bg-white border border-slate-200 shadow-sm rounded-lg overflow-hidden" data-testid={`tank-${title.toLowerCase().replace(/\s+/g, '-')}`}>
-      <div className="px-4 py-3 border-b border-slate-100 bg-gradient-to-r from-cyan-50 to-violet-50 flex justify-between items-center">
-        <div className="flex items-center space-x-2">
-          <Droplet className={`w-4 h-4 ${color}`} />
-          <span className="text-xs font-semibold uppercase tracking-wider text-slate-500">{title}</span>
-        </div>
-        <span className="text-xs text-slate-400 font-mono">08:43:41</span>
-      </div>
-
-      <div className="p-5 bg-gradient-to-br from-slate-50/30 to-white">
-        <div className="flex items-center justify-between mb-4">
-          <div>
-            <div className="flex items-baseline space-x-2 mb-1">
-              <span className="text-4xl font-bold font-mono tracking-tighter text-slate-900" data-testid={`${title.toLowerCase().replace(/\s+/g, '-')}-volume`}>
-                {currentVolume}
-              </span>
-              <span className="text-lg font-medium text-slate-400">{unit}</span>
-            </div>
-            <div className="text-sm font-medium text-slate-500">{percentage.toFixed(0)}% Full</div>
-          </div>
-          
-          <div className="relative w-24 h-40 bg-slate-100 border-2 border-slate-300 rounded-lg overflow-hidden">
-            <div 
-              className={`absolute bottom-0 left-0 w-full ${statusConfig.liquidColor} opacity-80 transition-all duration-1000 ease-in-out`}
-              style={{ height: `${percentage}%` }}
-            >
-              <div className="absolute inset-0 bg-gradient-to-t from-transparent to-white opacity-30"></div>
-            </div>
-            <div className="absolute inset-0 flex flex-col justify-between p-2 text-xs text-slate-500 font-mono">
-              <div className="text-right">100%</div>
-              <div className="text-right">75%</div>
-              <div className="text-right">50%</div>
-              <div className="text-right">25%</div>
-              <div className="text-right">0%</div>
-            </div>
-            <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 text-center">
-              <div className="text-xl font-bold font-mono text-white drop-shadow-lg">{percentage.toFixed(0)}%</div>
-            </div>
-          </div>
-        </div>
-
-        <div className="grid grid-cols-3 gap-2 mb-4">
-          <div className="bg-cyan-50 rounded-md p-2 border border-cyan-100">
-            <div className="text-xs text-slate-500 mb-0.5">Current</div>
-            <div className="text-sm font-bold font-mono text-slate-900">{currentVolume}</div>
-            <div className="text-xs text-slate-400">{unit}</div>
-          </div>
-          <div className="bg-slate-50 rounded-md p-2 border border-slate-100">
-            <div className="text-xs text-slate-500 mb-0.5">Capacity</div>
-            <div className="text-sm font-bold font-mono text-slate-900">{totalCapacity}</div>
-            <div className="text-xs text-slate-400">{unit}</div>
-          </div>
-          <div className="bg-emerald-50 rounded-md p-2 border border-emerald-100">
-            <div className="text-xs text-slate-500 mb-0.5">Available</div>
-            <div className="text-sm font-bold font-mono text-slate-900">{available.toFixed(1)}</div>
-            <div className="text-xs text-slate-400">{unit}</div>
-          </div>
-        </div>
-
-        <div className={`flex items-center justify-center space-x-2 p-2 rounded-lg border ${statusConfig.border} ${statusConfig.bg}`}>
-          <StatusIcon className={`w-4 h-4 ${statusConfig.text}`} />
-          <span className={`text-sm font-semibold ${statusConfig.text}`}>{status}</span>
-        </div>
-      </div>
-    </div>
-  );
-};
+import { Droplets, Database, AlertTriangle } from 'lucide-react';
 
 const TankLevels = () => {
-  const tanksData = [
+  // Updated dummy data per requirements
+  const tanks = [
     {
-      title: 'Buffer Tank Slurry Level',
-      currentVolume: 156.8,
-      totalCapacity: 250,
-      unit: 'm³',
-      status: 'Moderate',
-      color: 'text-cyan-600'
+      id: 'buffer',
+      name: 'Buffer Tank Slurry Level',
+      capacity: 1078,
+      capacityUnit: 'm³',
+      currentLevel: 82,
+      volume: 884,
+      volumeUnit: 'm³',
+      status: 'Warning',
+      color: 'amber',
+      icon: Database
     },
     {
-      title: 'Lagoon Tank Water Level',
-      currentVolume: 342.5,
-      totalCapacity: 500,
-      unit: 'm³',
-      status: 'Moderate',
-      color: 'text-violet-600'
+      id: 'lagoon',
+      name: 'Lagoon Tank Water Level',
+      capacity: null,
+      capacityUnit: null,
+      currentLevel: 76,
+      volume: null,
+      volumeUnit: null,
+      status: 'Normal',
+      color: 'emerald',
+      icon: Droplets
     }
   ];
+
+  const TankVisualization = ({ tank }) => {
+    const gradientColors = {
+      emerald: { from: '#10b981', to: '#059669' },
+      cyan: { from: '#06b6d4', to: '#0891b2' },
+      amber: { from: '#f59e0b', to: '#d97706' },
+      rose: { from: '#f43f5e', to: '#e11d48' }
+    };
+
+    const statusStyles = {
+      Normal: 'bg-emerald-100 text-emerald-700 border-emerald-200',
+      Warning: 'bg-amber-100 text-amber-700 border-amber-200',
+      Critical: 'bg-rose-100 text-rose-700 border-rose-200'
+    };
+
+    return (
+      <div className="bg-white border border-slate-200 shadow-sm rounded-lg overflow-hidden" data-testid={`tank-${tank.id}`}>
+        <div className="px-5 py-3 border-b border-slate-100 bg-gradient-to-r from-cyan-50 to-teal-50 flex justify-between items-center">
+          <div className="flex items-center space-x-3">
+            <div className={`p-2 ${tank.status === 'Warning' ? 'bg-amber-500' : 'bg-cyan-600'} rounded-md`}>
+              <tank.icon className="w-4 h-4 text-white" />
+            </div>
+            <div>
+              <h3 className="text-sm font-semibold text-slate-800">{tank.name}</h3>
+              {tank.capacity && (
+                <span className="text-xs text-slate-500">Capacity: {tank.capacity.toLocaleString()} {tank.capacityUnit}</span>
+              )}
+            </div>
+          </div>
+          <span className={`text-xs px-3 py-1 rounded-full border font-semibold ${statusStyles[tank.status]}`}>
+            {tank.status === 'Warning' && <AlertTriangle className="w-3 h-3 inline mr-1" />}
+            {tank.status}
+          </span>
+        </div>
+
+        <div className="p-5 bg-gradient-to-br from-slate-50/30 to-white">
+          <div className="flex items-center justify-between">
+            {/* Tank visualization */}
+            <div className="relative w-32 h-48 bg-slate-100 border-4 border-slate-300 rounded-xl overflow-hidden">
+              {/* Water/liquid fill */}
+              <div 
+                className="absolute bottom-0 left-0 w-full transition-all duration-1000"
+                style={{ 
+                  height: `${tank.currentLevel}%`,
+                  background: `linear-gradient(to top, ${gradientColors[tank.color].from}, ${gradientColors[tank.color].to})`
+                }}
+              >
+                {/* Animated wave effect */}
+                <div className="absolute top-0 left-0 w-full h-2">
+                  <svg viewBox="0 0 100 10" className="w-full h-full opacity-50">
+                    <path 
+                      d="M0 5 Q 25 0, 50 5 T 100 5 V 10 H 0 Z" 
+                      fill="white"
+                      className="animate-pulse-subtle"
+                    />
+                  </svg>
+                </div>
+                {/* Gradient overlay */}
+                <div className="absolute inset-0 bg-gradient-to-t from-transparent to-white opacity-20"></div>
+              </div>
+              
+              {/* Level markers */}
+              <div className="absolute inset-0 flex flex-col justify-between py-2 px-1">
+                <div className="text-xs text-slate-400 font-mono">100%</div>
+                <div className="text-xs text-slate-400 font-mono">50%</div>
+                <div className="text-xs text-slate-400 font-mono">0%</div>
+              </div>
+
+              {/* Center display */}
+              <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 bg-white/90 rounded-lg px-3 py-2 shadow-lg">
+                <div className="text-2xl font-bold font-mono text-slate-900">{tank.currentLevel}%</div>
+              </div>
+            </div>
+
+            {/* Stats */}
+            <div className="flex-1 ml-6 space-y-3">
+              <div className="bg-gradient-to-r from-slate-50 to-white rounded-lg p-4 border border-slate-200">
+                <div className="text-xs font-semibold uppercase tracking-wider text-slate-500 mb-1">Current Level</div>
+                <div className="flex items-baseline space-x-1">
+                  <span className="text-3xl font-bold font-mono text-slate-900" data-testid={`${tank.id}-level`}>{tank.currentLevel}</span>
+                  <span className="text-lg font-medium text-slate-500">%</span>
+                </div>
+              </div>
+
+              {tank.volume !== null && (
+                <div className="bg-gradient-to-r from-slate-50 to-white rounded-lg p-4 border border-slate-200">
+                  <div className="text-xs font-semibold uppercase tracking-wider text-slate-500 mb-1">Volume</div>
+                  <div className="flex items-baseline space-x-1">
+                    <span className="text-2xl font-bold font-mono text-slate-900" data-testid={`${tank.id}-volume`}>{tank.volume.toLocaleString()}</span>
+                    <span className="text-sm font-medium text-slate-500">{tank.volumeUnit}</span>
+                  </div>
+                </div>
+              )}
+
+              {tank.capacity && (
+                <div className="bg-gradient-to-r from-slate-50 to-white rounded-lg p-4 border border-slate-200">
+                  <div className="text-xs font-semibold uppercase tracking-wider text-slate-500 mb-1">Capacity</div>
+                  <div className="flex items-baseline space-x-1">
+                    <span className="text-2xl font-bold font-mono text-slate-900">{tank.capacity.toLocaleString()}</span>
+                    <span className="text-sm font-medium text-slate-500">{tank.capacityUnit}</span>
+                  </div>
+                </div>
+              )}
+
+              <div className="flex items-center text-xs text-slate-400 font-mono">
+                <span>Last Updated: 08:43:41</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  };
 
   return (
     <div className="mb-6" data-testid="tank-levels-section">
       <h2 className="text-xl font-semibold tracking-tight text-slate-800 mb-4">Tank Level Monitoring</h2>
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {tanksData.map((tank, index) => (
-          <TankCard key={index} {...tank} />
+        {tanks.map(tank => (
+          <TankVisualization key={tank.id} tank={tank} />
         ))}
       </div>
     </div>
