@@ -3,12 +3,12 @@ import { Droplet, Activity } from 'lucide-react';
 import { LineChart, Line, ResponsiveContainer, Tooltip } from 'recharts';
 
 const WaterFlowMeters = () => {
-  // Updated dummy data per requirements (Capacity Utilization removed)
+  // Updated dummy data - All with Totalizer
   const flowMeters = [
-    { id: 'feed-fm1', name: 'Feed FM-I', value: 42, unit: 'm³/hr', color: 'emerald' },
-    { id: 'feed-fm2', name: 'Feed FM-II', value: 38, unit: 'm³/hr', color: 'cyan' },
-    { id: 'fresh-water', name: 'Fresh Water FM', value: 12, unit: 'm³/hr', color: 'violet' },
-    { id: 'recycle', name: 'Recycle Water FM', value: 26, unit: 'm³/hr', color: 'amber' }
+    { id: 'feed-fm1', name: 'Feed FM-I', value: 42, unit: 'm³/hr', totalizer: 1008, totalizerUnit: 'm³', color: 'emerald' },
+    { id: 'feed-fm2', name: 'Feed FM-II', value: 38, unit: 'm³/hr', totalizer: 912, totalizerUnit: 'm³', color: 'cyan' },
+    { id: 'fresh-water', name: 'Fresh Water FM', value: 12, unit: 'm³/hr', totalizer: 288, totalizerUnit: 'm³', color: 'violet' },
+    { id: 'recycle', name: 'Recycle Water FM', value: 26, unit: 'm³/hr', totalizer: 624, totalizerUnit: 'm³', color: 'amber' }
   ];
 
   const generateTrendData = (baseValue) => {
@@ -25,6 +25,11 @@ const WaterFlowMeters = () => {
     amber: { bg: 'bg-amber-600', light: 'bg-amber-50', border: 'border-amber-200', text: 'text-amber-600', stroke: '#f59e0b' }
   };
 
+  // Calculate totals
+  const totalFeedFlow = flowMeters[0].value + flowMeters[1].value;
+  const totalWaterFlow = flowMeters.reduce((sum, m) => sum + m.value, 0);
+  const totalTotalizer = flowMeters.reduce((sum, m) => sum + m.totalizer, 0);
+
   return (
     <div className="mb-6" data-testid="water-flow-section">
       <h2 className="text-xl font-semibold tracking-tight text-slate-800 mb-4">Water Flow Meters</h2>
@@ -36,7 +41,7 @@ const WaterFlowMeters = () => {
             </div>
             <div>
               <h3 className="text-lg font-medium text-slate-800">Flow Meter Status</h3>
-              <span className="text-xs text-slate-500">Real-time flow measurements</span>
+              <span className="text-xs text-slate-500">Real-time flow measurements with 24Hr totalizers</span>
             </div>
           </div>
           <span className="text-xs px-3 py-1 bg-emerald-100 text-emerald-700 rounded-full border border-emerald-200 font-semibold">
@@ -66,6 +71,7 @@ const WaterFlowMeters = () => {
                   </div>
                   
                   <div className="mb-3">
+                    <div className="text-xs text-slate-500 mb-1">Current Flow</div>
                     <div className="flex items-baseline space-x-1 mb-1">
                       <span className={`text-3xl font-bold font-mono ${colors.text}`}>{meter.value}</span>
                       <span className="text-sm font-medium text-slate-500">{meter.unit}</span>
@@ -95,6 +101,15 @@ const WaterFlowMeters = () => {
                     </ResponsiveContainer>
                   </div>
 
+                  {/* Totalizer Box */}
+                  <div className="bg-white/80 rounded-md p-2 border border-slate-200 mb-2">
+                    <div className="text-xs text-slate-500">Totalizer (24 Hr)</div>
+                    <div className="flex items-baseline space-x-1">
+                      <span className="text-lg font-bold font-mono text-slate-900">{meter.totalizer.toLocaleString()}</span>
+                      <span className="text-xs text-slate-500">{meter.totalizerUnit}</span>
+                    </div>
+                  </div>
+
                   <div className="flex items-center justify-between text-xs text-slate-500">
                     <span>Status: Online</span>
                     <span className="font-mono">08:43:41</span>
@@ -110,29 +125,28 @@ const WaterFlowMeters = () => {
               <div className="bg-slate-50 rounded-lg p-3 border border-slate-200">
                 <div className="text-xs font-semibold uppercase tracking-wider text-slate-500 mb-1">Total Feed Flow</div>
                 <div className="flex items-baseline space-x-1">
-                  <span className="text-xl font-bold font-mono text-slate-900">80</span>
+                  <span className="text-xl font-bold font-mono text-slate-900">{totalFeedFlow}</span>
                   <span className="text-sm text-slate-500">m³/hr</span>
                 </div>
               </div>
               <div className="bg-slate-50 rounded-lg p-3 border border-slate-200">
-                <div className="text-xs font-semibold uppercase tracking-wider text-slate-500 mb-1">Fresh Water</div>
+                <div className="text-xs font-semibold uppercase tracking-wider text-slate-500 mb-1">Total Water Flow</div>
                 <div className="flex items-baseline space-x-1">
-                  <span className="text-xl font-bold font-mono text-slate-900">12</span>
+                  <span className="text-xl font-bold font-mono text-slate-900">{totalWaterFlow}</span>
                   <span className="text-sm text-slate-500">m³/hr</span>
                 </div>
               </div>
               <div className="bg-slate-50 rounded-lg p-3 border border-slate-200">
-                <div className="text-xs font-semibold uppercase tracking-wider text-slate-500 mb-1">Recycle Water</div>
+                <div className="text-xs font-semibold uppercase tracking-wider text-slate-500 mb-1">Total Totalizer (24 Hr)</div>
                 <div className="flex items-baseline space-x-1">
-                  <span className="text-xl font-bold font-mono text-slate-900">26</span>
-                  <span className="text-sm text-slate-500">m³/hr</span>
+                  <span className="text-xl font-bold font-mono text-slate-900">{totalTotalizer.toLocaleString()}</span>
+                  <span className="text-sm text-slate-500">m³</span>
                 </div>
               </div>
-              <div className="bg-slate-50 rounded-lg p-3 border border-slate-200">
-                <div className="text-xs font-semibold uppercase tracking-wider text-slate-500 mb-1">Total Flow</div>
+              <div className="bg-emerald-50 rounded-lg p-3 border border-emerald-200">
+                <div className="text-xs font-semibold uppercase tracking-wider text-emerald-600 mb-1">System Status</div>
                 <div className="flex items-baseline space-x-1">
-                  <span className="text-xl font-bold font-mono text-slate-900">118</span>
-                  <span className="text-sm text-slate-500">m³/hr</span>
+                  <span className="text-xl font-bold font-mono text-emerald-700">All Online</span>
                 </div>
               </div>
             </div>
