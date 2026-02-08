@@ -427,12 +427,24 @@ function TrendsPage() {
     );
   });
 
-  // Build statistics cards - show only: 12Hr Avg, 24Hr Avg, Min, Max
+  // Build statistics cards - show only: 12Hr Avg, 24Hr Avg, Min, Max with sample counts
   const statisticsCards = [];
   selectedParams.slice(0, 12).forEach(function(paramKey) {
     const param = allParameters.find(function(p) { return p.key === paramKey; });
     if (!param) return;
     const stats = getStatistics(paramKey);
+    
+    // Calculate coverage percentages
+    const coverage12hr = (stats.samples12hr / stats.expected12hr) * 100;
+    const coverage24hr = (stats.samples24hr / stats.expected24hr) * 100;
+    
+    // Determine status colors
+    const getStatusColor = function(coverage) {
+      if (coverage >= 95) return 'text-emerald-600';
+      if (coverage >= 80) return 'text-slate-500';
+      if (coverage >= 50) return 'text-amber-600';
+      return 'text-orange-600';
+    };
 
     statisticsCards.push(
       <div key={paramKey} className="bg-gradient-to-br from-slate-50 to-slate-100/50 rounded-lg p-3 border border-slate-200">
@@ -441,15 +453,21 @@ function TrendsPage() {
           <span className="text-xs font-semibold text-slate-700 truncate">{param.label}</span>
         </div>
         <div className="space-y-1 text-xs">
-          <div className="flex justify-between">
+          <div className="flex justify-between items-center">
             <span className="text-slate-500">12-Hr Avg:</span>
             <span className="font-bold font-mono text-slate-800">{stats.avg12hr.toFixed(2)}</span>
           </div>
-          <div className="flex justify-between">
+          <div className={`text-xs font-mono ${getStatusColor(coverage12hr)} bg-white/50 rounded px-1`}>
+            {stats.samples12hr}/{stats.expected12hr} ({coverage12hr.toFixed(0)}%)
+          </div>
+          <div className="flex justify-between items-center pt-1">
             <span className="text-slate-500">24-Hr Avg:</span>
             <span className="font-semibold font-mono text-slate-700">{stats.avg24hr.toFixed(2)}</span>
           </div>
-          <div className="flex justify-between">
+          <div className={`text-xs font-mono ${getStatusColor(coverage24hr)} bg-white/50 rounded px-1`}>
+            {stats.samples24hr}/{stats.expected24hr} ({coverage24hr.toFixed(0)}%)
+          </div>
+          <div className="flex justify-between pt-1 border-t border-slate-200 mt-1">
             <span className="text-slate-500">Min:</span>
             <span className="font-semibold font-mono text-emerald-600">{stats.min.toFixed(2)}</span>
           </div>
