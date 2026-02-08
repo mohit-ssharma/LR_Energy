@@ -326,6 +326,13 @@ function PreviewModal({ show, onClose, reportType, dateRange, reportTemplates })
             </div>
           </div>
 
+          {/* Data Quality Summary */}
+          <DataQualitySummary 
+            expectedRecords={43200} // 30 days * 24 hrs * 60 min
+            actualRecords={41500}   // Simulated: ~96% coverage
+            gaps={['Jan 5, 02:00 - 04:30 (150 min)', 'Jan 12, 18:00 - 18:45 (45 min)', 'Jan 22, 08:15 - 09:00 (45 min)']}
+          />
+
           {/* Summary Cards */}
           <div className="grid grid-cols-4 gap-4 mb-6">
             {summaryCards}
