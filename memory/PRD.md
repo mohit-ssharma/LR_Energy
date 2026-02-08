@@ -50,6 +50,17 @@ Build a web-based SCADA (Supervisory Control and Data Acquisition) monitoring sy
 - ✅ PDF/CSV download functionality verified
 - ✅ Session management working
 
+### Phase 5: Data Quality Transparency (Completed - Feb 8, 2026)
+- ✅ **KPI Cards**: Now show sample counts (e.g., "1380/1440 samples (96%)")
+- ✅ **Trends Statistics**: Each parameter shows 12-Hr and 24-Hr sample counts with coverage %
+- ✅ **Reports Preview**: Data Quality Summary section showing coverage, expected/received/missing records, and data gaps
+- ✅ **MNRE Dashboard**: Same sample count display for gas flow KPIs
+- ✅ Color-coded coverage indicators:
+  - Green (✓): ≥95% coverage
+  - Normal: 80-94% coverage
+  - Yellow (⚠️ Partial data): 50-79% coverage
+  - Orange (⚠️ Low coverage): <50% coverage
+
 ---
 
 ## User Roles & Access
