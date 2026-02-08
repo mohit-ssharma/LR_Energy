@@ -146,6 +146,7 @@ const KPISummary = () => {
       totalizerUnit: 'Nm³',
       avgLabel: null,
       avgValue: null,
+      avgSamples: null,
       icon: Wind,
       color: 'bg-emerald-600',
       trendData: generateTrendData(1250, 50)
@@ -159,6 +160,7 @@ const KPISummary = () => {
       totalizerUnit: 'Nm³',
       avgLabel: null,
       avgValue: null,
+      avgSamples: null,
       icon: Droplet,
       color: 'bg-violet-700',
       trendData: generateTrendData(1180, 40)
@@ -172,6 +174,7 @@ const KPISummary = () => {
       totalizerUnit: 'Nm³',
       avgLabel: null,
       avgValue: null,
+      avgSamples: null,
       icon: TrendingUp,
       color: 'bg-cyan-600',
       trendData: generateTrendData(1150, 35)
@@ -185,6 +188,7 @@ const KPISummary = () => {
       totalizerUnit: '%',
       avgLabel: 'Avg 12 Hr',
       avgValue: '96.5 %',
+      avgSamples: { samples: 700, expected: 720 }, // 12 hrs * 60 min = 720
       icon: Gauge,
       color: 'bg-amber-600',
       trendData: generateTrendData(96.8, 0.5)
@@ -198,6 +202,7 @@ const KPISummary = () => {
       totalizerUnit: '%',
       avgLabel: 'Avg 12 Hr',
       avgValue: '3.1 %',
+      avgSamples: { samples: 705, expected: 720 },
       icon: Wind,
       color: 'bg-violet-700',
       trendData: generateTrendData(2.9, 0.3)
@@ -211,6 +216,7 @@ const KPISummary = () => {
       totalizerUnit: 'ppm',
       avgLabel: 'Avg 12 Hr',
       avgValue: '190 ppm',
+      avgSamples: { samples: 680, expected: 720 }, // Simulating some missing data
       icon: Gauge,
       color: 'bg-rose-600',
       trendData: generateTrendData(180, 15)
