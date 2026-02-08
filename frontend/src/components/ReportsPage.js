@@ -478,32 +478,6 @@ function ReportsPage() {
               </div>
             </div>
           </div>
-
-          <div className="mt-5 pt-5 border-t border-slate-200">
-            <h3 className="text-sm font-semibold text-slate-700 mb-3">Quick Stats</h3>
-            <div className="space-y-2">
-              <div className="flex justify-between text-sm">
-                <span className="text-slate-600">Total Production (24Hr)</span>
-                <span className="font-bold font-mono text-slate-900">27,600 Nm³</span>
-              </div>
-              <div className="flex justify-between text-sm">
-                <span className="text-slate-600">Today's Production</span>
-                <span className="font-bold font-mono text-slate-900">12,450 Nm³</span>
-              </div>
-              <div className="flex justify-between text-sm">
-                <span className="text-slate-600">Avg CH₄ Content</span>
-                <span className="font-bold font-mono text-slate-900">96.8%</span>
-              </div>
-              <div className="flex justify-between text-sm">
-                <span className="text-slate-600">System Efficiency</span>
-                <span className="font-bold font-mono text-slate-900">92.9%</span>
-              </div>
-              <div className="flex justify-between text-sm">
-                <span className="text-slate-600">Uptime</span>
-                <span className="font-bold font-mono text-slate-900">99.2%</span>
-              </div>
-            </div>
-          </div>
         </div>
       </div>
 
