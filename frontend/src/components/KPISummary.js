@@ -1,8 +1,49 @@
 import React from 'react';
-import { TrendingUp, Droplet, Wind, Gauge } from 'lucide-react';
+import { TrendingUp, Droplet, Wind, Gauge, AlertTriangle, CheckCircle } from 'lucide-react';
 import { LineChart, Line, ResponsiveContainer } from 'recharts';
 
-const KPICard = ({ title, value, unit, totalizer, totalizerValue, totalizerUnit, avgLabel, avgValue, icon: Icon, color, trendData }) => {
+// Data Quality Badge Component
+const DataQualityBadge = ({ samples, expected, showWarning = true }) => {
+  const coverage = (samples / expected) * 100;
+  
+  let statusColor, statusBg, statusText;
+  if (coverage >= 95) {
+    statusColor = 'text-emerald-600';
+    statusBg = 'bg-emerald-50';
+    statusText = null; // No warning needed
+  } else if (coverage >= 80) {
+    statusColor = 'text-slate-600';
+    statusBg = 'bg-slate-50';
+    statusText = null;
+  } else if (coverage >= 50) {
+    statusColor = 'text-amber-600';
+    statusBg = 'bg-amber-50';
+    statusText = 'Partial data';
+  } else {
+    statusColor = 'text-orange-600';
+    statusBg = 'bg-orange-50';
+    statusText = 'Low coverage';
+  }
+
+  return (
+    <div className={`flex items-center justify-between mt-1 px-2 py-1 rounded ${statusBg}`}>
+      <span className={`text-xs font-mono ${statusColor}`}>
+        {samples}/{expected} samples ({coverage.toFixed(0)}%)
+      </span>
+      {showWarning && statusText && (
+        <span className={`text-xs flex items-center space-x-1 ${statusColor}`}>
+          <AlertTriangle className="w-3 h-3" />
+          <span>{statusText}</span>
+        </span>
+      )}
+      {coverage >= 95 && (
+        <CheckCircle className="w-3 h-3 text-emerald-500" />
+      )}
+    </div>
+  );
+};
+
+const KPICard = ({ title, value, unit, totalizer, totalizerValue, totalizerUnit, avgLabel, avgValue, avgSamples, icon: Icon, color, trendData }) => {
   const getColorClasses = (color) => {
     const colors = {
       'bg-emerald-600': { bg: 'bg-emerald-600', light: 'bg-emerald-50', border: 'border-emerald-200', text: 'text-emerald-600', stroke: '#10b981' },
@@ -15,6 +56,9 @@ const KPICard = ({ title, value, unit, totalizer, totalizerValue, totalizerUnit,
   };
 
   const colorClasses = getColorClasses(color);
+  
+  // Determine if this is a totalizer card (gas flows) or avg card (composition)
+  const isTotalizerCard = totalizer.includes('Totalizer');
   
   return (
     <div className="bg-white border border-slate-200 shadow-sm rounded-lg overflow-hidden" data-testid={`kpi-card-${title.toLowerCase().replace(/[₄₂]/g, '').replace(/\s+/g, '-')}`}>
@@ -54,17 +98,29 @@ const KPICard = ({ title, value, unit, totalizer, totalizerValue, totalizerUnit,
           </ResponsiveContainer>
         </div>
 
-        {/* Info box */}
+        {/* Info box with sample counts */}
         <div className={`${colorClasses.light} rounded-md p-3 border ${colorClasses.border} mb-3 min-h-[76px] flex flex-col justify-center`}>
           <div className="text-xs text-slate-500 mb-1">{totalizer}</div>
           <div className="flex items-baseline space-x-1">
             <span className="text-xl font-bold font-mono text-slate-900">{totalizerValue}</span>
             {totalizerUnit && <span className="text-xs text-slate-500">{totalizerUnit}</span>}
           </div>
+          {/* Show sample count for Totalizer cards */}
+          {isTotalizerCard && (
+            <DataQualityBadge samples={1380} expected={1440} showWarning={true} />
+          )}
           {avgLabel && (
             <div className="mt-2 pt-2 border-t border-slate-200">
               <div className="text-xs text-slate-500">{avgLabel}</div>
               <div className="text-sm font-bold font-mono text-slate-800">{avgValue}</div>
+              {/* Show sample count for Avg cards */}
+              {avgSamples && (
+                <DataQualityBadge 
+                  samples={avgSamples.samples} 
+                  expected={avgSamples.expected} 
+                  showWarning={true} 
+                />
+              )}
             </div>
           )}
         </div>
