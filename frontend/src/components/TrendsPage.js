@@ -121,11 +121,24 @@ function TrendsPage() {
     const min = Math.min.apply(null, values);
     const max = Math.max.apply(null, values);
     
-    // Simulate 12hr and 24hr averages
+    // Simulate 12hr and 24hr averages with sample counts
     const avg12hr = avg + (Math.random() * 2 - 1);
     const avg24hr = avg + (Math.random() * 3 - 1.5);
     
-    return { avg12hr: avg12hr, avg24hr: avg24hr, min: min, max: max };
+    // Simulate sample counts (some data might be missing)
+    const samples12hr = Math.floor(680 + Math.random() * 40); // out of 720
+    const samples24hr = Math.floor(1350 + Math.random() * 90); // out of 1440
+    
+    return { 
+      avg12hr: avg12hr, 
+      avg24hr: avg24hr, 
+      min: min, 
+      max: max,
+      samples12hr: samples12hr,
+      expected12hr: 720,
+      samples24hr: samples24hr,
+      expected24hr: 1440
+    };
   }
 
   function getFilteredCategories() {
