@@ -1,35 +1,37 @@
 import React from 'react';
-import { Power, Clock, Zap, Activity, CheckCircle2, XCircle } from 'lucide-react';
+import { Power, Zap, Activity, CheckCircle2, XCircle } from 'lucide-react';
 
 const EquipmentStatus = () => {
+  // Raw values for efficiency calculation
+  const rawBiogasFlow = 1250; // Nm³/hr
+  const purifiedGasFlow = 1180; // Nm³/hr
+  
+  // PSA Efficiency = (Purified Gas Flow / Raw BioGas Flow) * 100
+  const psaEfficiency = ((purifiedGasFlow / rawBiogasFlow) * 100).toFixed(1);
+  
+  // Compressor efficiency = same as PSA efficiency
+  const compressorEfficiency = psaEfficiency;
+
   // PSA Data
   const psaData = {
     status: 'Running',
     hoursToday: 22.5,
-    cyclesCompleted: 145,
-    efficiency: 94.2,
-    lastMaintenance: '15 Jan 2026',
-    nextMaintenance: '15 Feb 2026'
+    efficiency: psaEfficiency
   };
 
   // LT Panel Data
   const ltPanelData = {
     status: 'Active',
     currentLoad: 245,
-    maxLoad: 500,
     todayConsumption: 5880,
-    monthlyConsumption: 176400,
-    powerFactor: 0.92
+    monthlyConsumption: 176400
   };
 
   // Compressor Data
   const compressorData = {
     status: 'Running',
     hoursToday: 21.8,
-    pressure: 8.5,
-    maxPressure: 10,
-    temperature: 72,
-    efficiency: 91.5
+    efficiency: compressorEfficiency
   };
 
   const StatusBadge = ({ status }) => {
@@ -126,18 +128,13 @@ const EquipmentStatus = () => {
               />
             </div>
             
-            <div className="space-y-2">
-              <div className="flex justify-between items-center p-2 bg-slate-50 rounded-lg">
-                <span className="text-sm text-slate-600">Cycles Completed (24Hr)</span>
-                <span className="text-sm font-bold font-mono text-slate-900">{psaData.cyclesCompleted}</span>
+            <div className="bg-violet-50 rounded-lg p-3 border border-violet-200">
+              <div className="text-xs text-violet-600 mb-1">Efficiency Formula</div>
+              <div className="text-sm font-mono text-violet-800">
+                (Purified Gas / Raw Biogas) × 100
               </div>
-              <div className="flex justify-between items-center p-2 bg-slate-50 rounded-lg">
-                <span className="text-sm text-slate-600">Last Maintenance</span>
-                <span className="text-sm font-bold font-mono text-slate-900">{psaData.lastMaintenance}</span>
-              </div>
-              <div className="flex justify-between items-center p-2 bg-violet-50 rounded-lg border border-violet-200">
-                <span className="text-sm text-violet-700">Next Maintenance</span>
-                <span className="text-sm font-bold font-mono text-violet-900">{psaData.nextMaintenance}</span>
+              <div className="text-sm font-mono text-violet-900 mt-1">
+                ({purifiedGasFlow} / {rawBiogasFlow}) × 100 = <span className="font-bold">{psaEfficiency}%</span>
               </div>
             </div>
           </div>
@@ -159,35 +156,24 @@ const EquipmentStatus = () => {
           </div>
           
           <div className="p-5 bg-gradient-to-br from-slate-50/30 to-white">
-            <div className="flex justify-around mb-4">
+            <div className="flex justify-center mb-4">
               <CircularProgress 
                 value={ltPanelData.currentLoad} 
-                max={ltPanelData.maxLoad} 
+                max={500} 
                 label="Current Load" 
                 unit="kW"
                 color="#f59e0b"
               />
-              <CircularProgress 
-                value={Math.round(ltPanelData.powerFactor * 100)} 
-                max={100} 
-                label="Power Factor" 
-                unit="%"
-                color="#10b981"
-              />
             </div>
             
             <div className="space-y-2">
-              <div className="flex justify-between items-center p-2 bg-amber-50 rounded-lg border border-amber-200">
+              <div className="flex justify-between items-center p-3 bg-amber-50 rounded-lg border border-amber-200">
                 <span className="text-sm text-amber-700">Today's Consumption</span>
-                <span className="text-sm font-bold font-mono text-amber-900">{ltPanelData.todayConsumption.toLocaleString()} kWh</span>
+                <span className="text-lg font-bold font-mono text-amber-900">{ltPanelData.todayConsumption.toLocaleString()} kWh</span>
               </div>
-              <div className="flex justify-between items-center p-2 bg-slate-50 rounded-lg">
+              <div className="flex justify-between items-center p-3 bg-slate-50 rounded-lg border border-slate-200">
                 <span className="text-sm text-slate-600">Monthly Consumption</span>
-                <span className="text-sm font-bold font-mono text-slate-900">{ltPanelData.monthlyConsumption.toLocaleString()} kWh</span>
-              </div>
-              <div className="flex justify-between items-center p-2 bg-slate-50 rounded-lg">
-                <span className="text-sm text-slate-600">Max Load Capacity</span>
-                <span className="text-sm font-bold font-mono text-slate-900">{ltPanelData.maxLoad} kW</span>
+                <span className="text-lg font-bold font-mono text-slate-900">{ltPanelData.monthlyConsumption.toLocaleString()} kWh</span>
               </div>
             </div>
           </div>
@@ -226,19 +212,10 @@ const EquipmentStatus = () => {
               />
             </div>
             
-            <div className="space-y-2">
-              <div className="flex justify-between items-center p-2 bg-slate-50 rounded-lg">
-                <span className="text-sm text-slate-600">Operating Pressure</span>
-                <span className="text-sm font-bold font-mono text-slate-900">{compressorData.pressure} / {compressorData.maxPressure} bar</span>
-              </div>
-              <div className="flex justify-between items-center p-2 bg-slate-50 rounded-lg">
-                <span className="text-sm text-slate-600">Temperature</span>
-                <span className="text-sm font-bold font-mono text-slate-900">{compressorData.temperature}°C</span>
-              </div>
-              <div className="flex justify-between items-center p-2 bg-cyan-50 rounded-lg border border-cyan-200">
-                <span className="text-sm text-cyan-700">Runtime (24Hr)</span>
-                <span className="text-sm font-bold font-mono text-cyan-900">{compressorData.hoursToday} hrs</span>
-              </div>
+            <div className="bg-cyan-50 rounded-lg p-3 border border-cyan-200">
+              <div className="text-xs text-cyan-600 mb-1">Runtime (24Hr)</div>
+              <div className="text-2xl font-bold font-mono text-cyan-900">{compressorData.hoursToday} hrs</div>
+              <div className="text-xs text-cyan-600 mt-2">Efficiency synced with PSA</div>
             </div>
           </div>
         </div>
