@@ -1,7 +1,79 @@
 import React from 'react';
-import { X, Check, TrendingUp, TrendingDown, Minus, FileText, FileSpreadsheet } from 'lucide-react';
+import { X, Check, TrendingUp, TrendingDown, Minus, FileText, FileSpreadsheet, AlertTriangle, CheckCircle, Database } from 'lucide-react';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 import { generatePDFReport, generateCSVDownload, generateMonthlyData, calculateStats } from '../utils/pdfUtils';
+
+// Data Quality Summary Component
+function DataQualitySummary({ expectedRecords, actualRecords, gaps }) {
+  const coverage = (actualRecords / expectedRecords) * 100;
+  const missingRecords = expectedRecords - actualRecords;
+  
+  let statusColor, statusBg, statusIcon, statusText;
+  if (coverage >= 95) {
+    statusColor = 'text-emerald-700';
+    statusBg = 'bg-emerald-50 border-emerald-200';
+    statusIcon = <CheckCircle className="w-5 h-5 text-emerald-600" />;
+    statusText = 'GOOD';
+  } else if (coverage >= 80) {
+    statusColor = 'text-amber-700';
+    statusBg = 'bg-amber-50 border-amber-200';
+    statusIcon = <AlertTriangle className="w-5 h-5 text-amber-600" />;
+    statusText = 'FAIR';
+  } else {
+    statusColor = 'text-orange-700';
+    statusBg = 'bg-orange-50 border-orange-200';
+    statusIcon = <AlertTriangle className="w-5 h-5 text-orange-600" />;
+    statusText = 'POOR';
+  }
+  
+  return (
+    <div className={`rounded-lg p-4 border ${statusBg} mb-6`}>
+      <div className="flex items-center justify-between mb-3">
+        <div className="flex items-center space-x-2">
+          <Database className="w-5 h-5 text-slate-600" />
+          <h4 className="font-semibold text-slate-800">Data Quality Summary</h4>
+        </div>
+        <div className={`flex items-center space-x-2 px-3 py-1 rounded-full ${statusBg}`}>
+          {statusIcon}
+          <span className={`font-bold ${statusColor}`}>{statusText}</span>
+        </div>
+      </div>
+      <div className="grid grid-cols-4 gap-4">
+        <div className="bg-white/50 rounded-lg p-3">
+          <div className="text-xs text-slate-500 uppercase mb-1">Coverage</div>
+          <div className={`text-xl font-bold font-mono ${statusColor}`}>{coverage.toFixed(1)}%</div>
+        </div>
+        <div className="bg-white/50 rounded-lg p-3">
+          <div className="text-xs text-slate-500 uppercase mb-1">Expected</div>
+          <div className="text-xl font-bold font-mono text-slate-800">{expectedRecords.toLocaleString()}</div>
+        </div>
+        <div className="bg-white/50 rounded-lg p-3">
+          <div className="text-xs text-slate-500 uppercase mb-1">Received</div>
+          <div className="text-xl font-bold font-mono text-slate-800">{actualRecords.toLocaleString()}</div>
+        </div>
+        <div className="bg-white/50 rounded-lg p-3">
+          <div className="text-xs text-slate-500 uppercase mb-1">Missing</div>
+          <div className="text-xl font-bold font-mono text-rose-600">{missingRecords.toLocaleString()}</div>
+        </div>
+      </div>
+      {gaps && gaps.length > 0 && (
+        <div className="mt-3 pt-3 border-t border-slate-200">
+          <div className="text-xs font-semibold text-slate-600 mb-2 flex items-center space-x-1">
+            <AlertTriangle className="w-3 h-3" />
+            <span>Data Gaps Detected:</span>
+          </div>
+          <div className="flex flex-wrap gap-2">
+            {gaps.map((gap, idx) => (
+              <span key={idx} className="text-xs bg-white px-2 py-1 rounded border border-slate-200 font-mono">
+                {gap}
+              </span>
+            ))}
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
 
 // Helper component for table row
 function TableRow({ rowData, rowIndex }) {
