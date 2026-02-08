@@ -1,9 +1,50 @@
 import React from 'react';
-import { TrendingUp, Droplet, Wind } from 'lucide-react';
+import { TrendingUp, Droplet, Wind, AlertTriangle, CheckCircle } from 'lucide-react';
 import { LineChart, Line, ResponsiveContainer } from 'recharts';
 
+// Data Quality Badge Component for MNRE
+const DataQualityBadge = ({ samples, expected }) => {
+  const coverage = (samples / expected) * 100;
+  
+  let statusColor, statusBg, statusText;
+  if (coverage >= 95) {
+    statusColor = 'text-emerald-600';
+    statusBg = 'bg-emerald-50';
+    statusText = null;
+  } else if (coverage >= 80) {
+    statusColor = 'text-slate-600';
+    statusBg = 'bg-slate-50';
+    statusText = null;
+  } else if (coverage >= 50) {
+    statusColor = 'text-amber-600';
+    statusBg = 'bg-amber-50';
+    statusText = 'Partial data';
+  } else {
+    statusColor = 'text-orange-600';
+    statusBg = 'bg-orange-50';
+    statusText = 'Low coverage';
+  }
+
+  return (
+    <div className={`flex items-center justify-between mt-1 px-2 py-1 rounded ${statusBg}`}>
+      <span className={`text-xs font-mono ${statusColor}`}>
+        {samples}/{expected} samples ({coverage.toFixed(0)}%)
+      </span>
+      {statusText && (
+        <span className={`text-xs flex items-center space-x-1 ${statusColor}`}>
+          <AlertTriangle className="w-3 h-3" />
+          <span>{statusText}</span>
+        </span>
+      )}
+      {coverage >= 95 && (
+        <CheckCircle className="w-3 h-3 text-emerald-500" />
+      )}
+    </div>
+  );
+};
+
 // KPI Card Component for MNRE - Without "Change" attribute
-const MNREKPICard = ({ title, value, unit, totalizer, totalizerValue, totalizerUnit, icon: Icon, color, trendData }) => {
+const MNREKPICard = ({ title, value, unit, totalizer, totalizerValue, totalizerUnit, samples, expected, icon: Icon, color, trendData }) => {
   const getColorClasses = (color) => {
     const colors = {
       'bg-emerald-600': { bg: 'bg-emerald-600', light: 'bg-emerald-50', border: 'border-emerald-200', text: 'text-emerald-600', stroke: '#10b981' },
