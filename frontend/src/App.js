@@ -17,11 +17,13 @@ import ReportsPage from "./components/ReportsPage";
 import MNREDashboard from "./components/MNREDashboard";
 import MNRETrendsPage from "./components/MNRETrendsPage";
 import MNREHeader from "./components/MNREHeader";
+import ComparisonView from "./components/ComparisonView";
 
 const LREnergyDashboard = () => {
   return (
     <div className="max-w-[1920px] mx-auto p-4 md:p-6 lg:p-8 bg-slate-50 min-h-screen" data-testid="dashboard-page">
       <KPISummary />
+      <ComparisonView />
       <GasComposition />
       <DewPointMeter />
       <DigestersSection />
