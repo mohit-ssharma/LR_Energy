@@ -1,11 +1,12 @@
 import React, { useState } from 'react';
 import { LineChart, Line, AreaChart, Area, ResponsiveContainer, XAxis, YAxis, CartesianGrid, Tooltip, Legend } from 'recharts';
-import { TrendingUp, Calendar, BarChart3, Eye } from 'lucide-react';
+import { TrendingUp, Calendar, BarChart3, Eye, X, Maximize2 } from 'lucide-react';
 
 function MNRETrendsPage() {
   const [timeRange, setTimeRange] = useState('24h');
   const [chartType, setChartType] = useState('area');
   const [selectedCategory, setSelectedCategory] = useState('all');
+  const [maximizedChart, setMaximizedChart] = useState(null);
 
   function generateTrendData(hours) {
     const data = [];
