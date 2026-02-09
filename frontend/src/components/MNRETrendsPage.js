@@ -312,6 +312,8 @@ function MNRETrendsPage() {
 
   return (
     <div className="max-w-[1920px] mx-auto p-4 md:p-6 lg:p-8 bg-slate-50 min-h-screen" data-testid="mnre-trends-page">
+      {renderMaximizedModal()}
+      
       <div className="mb-6">
         <h1 className="text-2xl font-bold tracking-tight text-slate-800 mb-2 flex items-center space-x-3">
           <TrendingUp className="w-7 h-7 text-emerald-600" />
@@ -368,33 +370,12 @@ function MNRETrendsPage() {
           </div>
         </div>
 
-        {/* Chart Visualization - NO Statistics Section */}
-        <div className="lg:col-span-9 bg-white rounded-lg border border-slate-200 p-5 shadow-sm">
-          <h3 className="text-lg font-semibold text-slate-800 mb-4">Data Visualization</h3>
-          <ResponsiveContainer width="100%" height={500}>
-            <ChartComponent data={trendData} margin={{ top: 5, right: 20, left: 0, bottom: 5 }}>
-              <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
-              <XAxis 
-                dataKey="time" 
-                stroke="#94a3b8" 
-                style={{ fontSize: '11px' }}
-                tickFormatter={function(value) { return timeRange === '1h' ? value + 'm' : value + 'h'; }}
-              />
-              <YAxis stroke="#94a3b8" style={{ fontSize: '11px' }} />
-              <Tooltip 
-                contentStyle={{ 
-                  backgroundColor: 'white', 
-                  border: '1px solid #e2e8f0',
-                  borderRadius: '8px',
-                  boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)',
-                  fontSize: '12px'
-                }}
-              />
-              <Legend wrapperStyle={{ fontSize: '12px' }} />
-              {chartElements}
-            </ChartComponent>
-          </ResponsiveContainer>
-          {/* Selected Parameter Statistics REMOVED as per requirement */}
+        {/* Chart Visualization - Split by Category like Head Office */}
+        <div className="lg:col-span-9 space-y-4">
+          <h3 className="text-lg font-semibold text-slate-800">Data Visualization <span className="text-sm font-normal text-slate-500">(Click chart to maximize)</span></h3>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {categoryCharts}
+          </div>
         </div>
       </div>
     </div>
