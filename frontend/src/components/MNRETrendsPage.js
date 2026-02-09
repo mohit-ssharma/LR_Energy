@@ -72,8 +72,6 @@ function MNRETrendsPage() {
     }
   }
 
-  const ChartComponent = chartType === 'area' ? AreaChart : LineChart;
-  
   const allParameters = [];
   Object.values(parameterCategories).forEach(function(params) {
     params.forEach(function(p) { allParameters.push(p); });
