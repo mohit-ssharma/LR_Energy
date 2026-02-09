@@ -54,12 +54,23 @@ Build a web-based SCADA (Supervisory Control and Data Acquisition) monitoring sy
 - ✅ **KPI Cards**: Now show sample counts (e.g., "1380/1440 samples (96%)")
 - ✅ **Trends Statistics**: Each parameter shows 12-Hr and 24-Hr sample counts with coverage %
 - ✅ **Reports Preview**: Data Quality Summary section showing coverage, expected/received/missing records, and data gaps
-- ✅ **MNRE Dashboard**: Same sample count display for gas flow KPIs
+- ✅ **MNRE Dashboard**: Shows only Totalizer (no sample counts per user request)
 - ✅ Color-coded coverage indicators:
   - Green (✓): ≥95% coverage
   - Normal: 80-94% coverage
   - Yellow (⚠️ Partial data): 50-79% coverage
   - Orange (⚠️ Low coverage): <50% coverage
+
+### Phase 6: Advanced UI Features (Completed - Feb 9, 2026)
+- ✅ **MNRE Trends Split Charts**: Charts now split by category (Gas Flow, Gas Composition) like Head Office
+- ✅ **Performance Comparison Section** (Head Office only):
+  - Today vs Yesterday / This Week vs Last Week / This Month vs Last Month
+  - Summary cards (Improved, Stable, Warning, Declined)
+  - Comparison cards for all parameters (Gas Production, Gas Composition, Equipment & Storage)
+  - Trend overlay charts comparing current vs previous period
+  - Key Insights section with automatic analysis
+  - Full Comparison Modal with detailed table and export options
+  - Collapsible section at bottom of dashboard
 
 ---
 
