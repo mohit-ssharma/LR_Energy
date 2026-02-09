@@ -176,37 +176,138 @@ function MNRETrendsPage() {
     );
   });
 
-  // Build chart lines/areas
-  const chartElements = selectedParams.map(function(paramKey) {
-    const param = allParameters.find(function(p) { return p.key === paramKey; });
-    if (!param) return null;
+  // Build chart lines/areas - NOT USED anymore, using split charts instead
+  
+  // Get categories to display based on selected parameters
+  function getCategoriesToDisplay() {
+    const categories = [];
+    Object.keys(parameterCategories).forEach(function(categoryName) {
+      const params = parameterCategories[categoryName];
+      const hasSelected = params.some(function(p) { return selectedParams.includes(p.key); });
+      if (hasSelected && (selectedCategory === 'all' || selectedCategory === categoryName)) {
+        categories.push({ name: categoryName, params: params });
+      }
+    });
+    return categories;
+  }
+
+  const categoriesToDisplay = getCategoriesToDisplay();
+
+  // Render chart for a category (same as Head Office)
+  function renderCategoryChart(categoryName, params, isMaximized) {
+    const categorySelectedParams = params.filter(function(p) { return selectedParams.includes(p.key); });
+    if (categorySelectedParams.length === 0) return null;
+
+    const ChartComp = chartType === 'area' ? AreaChart : LineChart;
+    const height = isMaximized ? 500 : 250;
+
+    return (
+      <div 
+        key={categoryName}
+        className={'bg-white rounded-lg border border-slate-200 p-4 shadow-sm ' + (isMaximized ? '' : 'cursor-pointer hover:shadow-md transition-shadow')}
+        onClick={function() { if (!isMaximized) setMaximizedChart(categoryName); }}
+      >
+        <div className="flex items-center justify-between mb-3">
+          <h4 className="text-sm font-semibold text-slate-700">{categoryName}</h4>
+          {!isMaximized && (
+            <Maximize2 className="w-4 h-4 text-slate-400" />
+          )}
+        </div>
+        <ResponsiveContainer width="100%" height={height}>
+          <ChartComp data={trendData} margin={{ top: 5, right: 20, left: 0, bottom: 5 }}>
+            <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
+            <XAxis 
+              dataKey="time" 
+              stroke="#94a3b8" 
+              style={{ fontSize: '10px' }}
+              tickFormatter={function(value) { return timeRange === '1h' ? value + 'm' : value + 'h'; }}
+            />
+            <YAxis stroke="#94a3b8" style={{ fontSize: '10px' }} />
+            <Tooltip 
+              contentStyle={{ 
+                backgroundColor: 'white', 
+                border: '1px solid #e2e8f0',
+                borderRadius: '6px',
+                fontSize: '11px'
+              }}
+            />
+            {isMaximized && <Legend wrapperStyle={{ fontSize: '11px' }} />}
+            {categorySelectedParams.map(function(param) {
+              if (chartType === 'area') {
+                return (
+                  <Area
+                    key={param.key}
+                    type="monotone"
+                    dataKey={param.key}
+                    stroke={param.color}
+                    fill={param.color}
+                    fillOpacity={0.2}
+                    strokeWidth={2}
+                    name={param.label}
+                  />
+                );
+              } else {
+                return (
+                  <Line
+                    key={param.key}
+                    type="monotone"
+                    dataKey={param.key}
+                    stroke={param.color}
+                    strokeWidth={2}
+                    dot={false}
+                    name={param.label}
+                  />
+                );
+              }
+            })}
+          </ChartComp>
+        </ResponsiveContainer>
+        {/* Legend for small charts */}
+        {!isMaximized && (
+          <div className="flex flex-wrap gap-2 mt-2">
+            {categorySelectedParams.map(function(param) {
+              return (
+                <div key={param.key} className="flex items-center space-x-1">
+                  <div className="w-2 h-2 rounded-full" style={{ backgroundColor: param.color }}></div>
+                  <span className="text-xs text-slate-600">{param.label}</span>
+                </div>
+              );
+            })}
+          </div>
+        )}
+      </div>
+    );
+  }
+
+  // Maximized chart modal
+  function renderMaximizedModal() {
+    if (!maximizedChart) return null;
     
-    if (chartType === 'area') {
-      return (
-        <Area
-          key={paramKey}
-          type="monotone"
-          dataKey={paramKey}
-          stroke={param.color}
-          fill={param.color}
-          fillOpacity={0.2}
-          strokeWidth={2}
-          name={param.label}
-        />
-      );
-    } else {
-      return (
-        <Line
-          key={paramKey}
-          type="monotone"
-          dataKey={paramKey}
-          stroke={param.color}
-          strokeWidth={2}
-          dot={false}
-          name={param.label}
-        />
-      );
-    }
+    const params = parameterCategories[maximizedChart];
+    
+    return (
+      <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+        <div className="bg-white rounded-xl shadow-2xl w-full max-w-6xl max-h-[90vh] overflow-hidden">
+          <div className="bg-gradient-to-r from-emerald-600 to-teal-600 text-white p-4 flex justify-between items-center">
+            <h3 className="text-xl font-bold">{maximizedChart} - Detailed View</h3>
+            <button 
+              onClick={function() { setMaximizedChart(null); }}
+              className="p-2 hover:bg-white/20 rounded-lg transition-colors"
+            >
+              <X className="w-5 h-5" />
+            </button>
+          </div>
+          <div className="p-6">
+            {renderCategoryChart(maximizedChart, params, true)}
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // Build category charts
+  const categoryCharts = categoriesToDisplay.map(function(cat) {
+    return renderCategoryChart(cat.name, cat.params, false);
   });
 
   return (
