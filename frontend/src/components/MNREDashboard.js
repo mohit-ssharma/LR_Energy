@@ -74,7 +74,7 @@ const MNREKPISummary = () => {
     }));
   };
 
-  // Only the 3 gas flow KPIs for MNRE with updated values and sample counts
+  // Only the 3 gas flow KPIs for MNRE with updated values (NO sample counts)
   const kpiData = [
     {
       title: 'Raw Biogas Flow',
@@ -83,8 +83,6 @@ const MNREKPISummary = () => {
       totalizer: 'Totalizer (24 Hr)',
       totalizerValue: '30,000',
       totalizerUnit: 'Nm³',
-      samples: 1380,
-      expected: 1440, // 24 hrs * 60 min = 1440
       icon: Wind,
       color: 'bg-emerald-600',
       trendData: generateTrendData(1250)
@@ -96,8 +94,6 @@ const MNREKPISummary = () => {
       totalizer: 'Totalizer (24 Hr)',
       totalizerValue: '28,320',
       totalizerUnit: 'Nm³',
-      samples: 1400,
-      expected: 1440,
       icon: Droplet,
       color: 'bg-violet-700',
       trendData: generateTrendData(1180)
@@ -109,8 +105,6 @@ const MNREKPISummary = () => {
       totalizer: 'Totalizer (24 Hr)',
       totalizerValue: '27,600',
       totalizerUnit: 'Nm³',
-      samples: 1420,
-      expected: 1440,
       icon: TrendingUp,
       color: 'bg-cyan-600',
       trendData: generateTrendData(1150)
