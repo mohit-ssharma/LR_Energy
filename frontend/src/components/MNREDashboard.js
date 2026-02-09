@@ -53,15 +53,13 @@ const MNREKPICard = ({ title, value, unit, totalizer, totalizerValue, totalizerU
           </ResponsiveContainer>
         </div>
 
-        {/* Totalizer box - NO Change attribute, WITH sample count */}
+        {/* Totalizer box - NO Change attribute, NO sample counts */}
         <div className={`${colorClasses.light} rounded-md p-3 border ${colorClasses.border}`}>
           <div className="text-xs text-slate-500 mb-1">{totalizer}</div>
           <div className="flex items-baseline space-x-1">
             <span className="text-xl font-bold font-mono text-slate-900">{totalizerValue}</span>
             {totalizerUnit && <span className="text-xs text-slate-500">{totalizerUnit}</span>}
           </div>
-          {/* Show sample count for data quality transparency */}
-          <DataQualityBadge samples={samples} expected={expected} />
         </div>
       </div>
     </div>
