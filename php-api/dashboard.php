@@ -60,18 +60,20 @@ try {
         $dataStatus = 'DELAYED';
     }
     
-    // Get 1-hour statistics
+    // Get 1-hour statistics (COALESCE returns 0 if all values are NULL)
     $stmt1hr = $pdo->query("
         SELECT 
             COUNT(*) as sample_count,
-            AVG(raw_biogas_flow) as avg_raw_biogas_flow,
-            AVG(purified_gas_flow) as avg_purified_gas_flow,
-            AVG(product_gas_flow) as avg_product_gas_flow,
-            AVG(ch4_concentration) as avg_ch4,
-            AVG(co2_level) as avg_co2,
-            AVG(o2_concentration) as avg_o2,
-            AVG(h2s_content) as avg_h2s,
-            AVG(dew_point) as avg_dew_point
+            COUNT(raw_biogas_flow) as raw_biogas_samples,
+            COUNT(ch4_concentration) as ch4_samples,
+            COALESCE(AVG(raw_biogas_flow), 0) as avg_raw_biogas_flow,
+            COALESCE(AVG(purified_gas_flow), 0) as avg_purified_gas_flow,
+            COALESCE(AVG(product_gas_flow), 0) as avg_product_gas_flow,
+            COALESCE(AVG(ch4_concentration), 0) as avg_ch4,
+            COALESCE(AVG(co2_level), 0) as avg_co2,
+            COALESCE(AVG(o2_concentration), 0) as avg_o2,
+            COALESCE(AVG(h2s_content), 0) as avg_h2s,
+            COALESCE(AVG(dew_point), 0) as avg_dew_point
         FROM scada_readings 
         WHERE plant_id = '" . PLANT_ID . "' 
         AND timestamp >= DATE_SUB(NOW(), INTERVAL 1 HOUR)
@@ -82,14 +84,16 @@ try {
     $stmt12hr = $pdo->query("
         SELECT 
             COUNT(*) as sample_count,
-            AVG(raw_biogas_flow) as avg_raw_biogas_flow,
-            AVG(purified_gas_flow) as avg_purified_gas_flow,
-            AVG(product_gas_flow) as avg_product_gas_flow,
-            AVG(ch4_concentration) as avg_ch4,
-            AVG(co2_level) as avg_co2,
-            AVG(o2_concentration) as avg_o2,
-            AVG(h2s_content) as avg_h2s,
-            AVG(dew_point) as avg_dew_point
+            COUNT(raw_biogas_flow) as raw_biogas_samples,
+            COUNT(ch4_concentration) as ch4_samples,
+            COALESCE(AVG(raw_biogas_flow), 0) as avg_raw_biogas_flow,
+            COALESCE(AVG(purified_gas_flow), 0) as avg_purified_gas_flow,
+            COALESCE(AVG(product_gas_flow), 0) as avg_product_gas_flow,
+            COALESCE(AVG(ch4_concentration), 0) as avg_ch4,
+            COALESCE(AVG(co2_level), 0) as avg_co2,
+            COALESCE(AVG(o2_concentration), 0) as avg_o2,
+            COALESCE(AVG(h2s_content), 0) as avg_h2s,
+            COALESCE(AVG(dew_point), 0) as avg_dew_point
         FROM scada_readings 
         WHERE plant_id = '" . PLANT_ID . "' 
         AND timestamp >= DATE_SUB(NOW(), INTERVAL 12 HOUR)
