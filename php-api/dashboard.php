@@ -123,12 +123,15 @@ try {
     // =====================================================
     // PSA/Compressor Running Hours Calculation
     // =====================================================
-    // Count minutes where compressor_status = 1, divide by 60 to get hours
+    // PSA Running Hours Calculation (Based on psa_status from SCADA)
+    // =====================================================
+    // Count minutes where psa_status = 1, divide by 60 to get hours
     
-    // Today's running hours
+    // Today's PSA running hours
     $stmtPsaToday = $pdo->query("
         SELECT 
-            SUM(CASE WHEN compressor_status = 1 THEN 1 ELSE 0 END) as running_minutes,
+            SUM(CASE WHEN psa_status = 1 THEN 1 ELSE 0 END) as psa_running_minutes,
+            SUM(CASE WHEN compressor_status = 1 THEN 1 ELSE 0 END) as compressor_running_minutes,
             COUNT(*) as total_minutes
         FROM scada_readings 
         WHERE plant_id = '" . PLANT_ID . "' 
@@ -136,10 +139,11 @@ try {
     ");
     $psaToday = $stmtPsaToday->fetch();
     
-    // This month's running hours
+    // This month's PSA running hours
     $stmtPsaMonth = $pdo->query("
         SELECT 
-            SUM(CASE WHEN compressor_status = 1 THEN 1 ELSE 0 END) as running_minutes,
+            SUM(CASE WHEN psa_status = 1 THEN 1 ELSE 0 END) as psa_running_minutes,
+            SUM(CASE WHEN compressor_status = 1 THEN 1 ELSE 0 END) as compressor_running_minutes,
             COUNT(*) as total_minutes
         FROM scada_readings 
         WHERE plant_id = '" . PLANT_ID . "' 
@@ -152,11 +156,14 @@ try {
     // LT Panel Power Consumption Calculation
     // =====================================================
     // Consumption (kWh) = Average Power (kW) × Hours
+    // Current Load comes from lt_panel_power field
     
     // Today's consumption
     $stmtPowerToday = $pdo->query("
         SELECT 
             COALESCE(AVG(lt_panel_power), 0) as avg_power_kw,
+            COALESCE(MAX(lt_panel_power), 0) as max_power_kw,
+            COALESCE(MIN(lt_panel_power), 0) as min_power_kw,
             COUNT(*) as total_minutes
         FROM scada_readings 
         WHERE plant_id = '" . PLANT_ID . "' 
