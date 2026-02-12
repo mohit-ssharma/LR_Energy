@@ -120,6 +120,62 @@ try {
     ");
     $stats24hr = $stmt24hr->fetch();
     
+    // =====================================================
+    // PSA/Compressor Running Hours Calculation
+    // =====================================================
+    // Count minutes where compressor_status = 1, divide by 60 to get hours
+    
+    // Today's running hours
+    $stmtPsaToday = $pdo->query("
+        SELECT 
+            SUM(CASE WHEN compressor_status = 1 THEN 1 ELSE 0 END) as running_minutes,
+            COUNT(*) as total_minutes
+        FROM scada_readings 
+        WHERE plant_id = '" . PLANT_ID . "' 
+        AND DATE(timestamp) = CURDATE()
+    ");
+    $psaToday = $stmtPsaToday->fetch();
+    
+    // This month's running hours
+    $stmtPsaMonth = $pdo->query("
+        SELECT 
+            SUM(CASE WHEN compressor_status = 1 THEN 1 ELSE 0 END) as running_minutes,
+            COUNT(*) as total_minutes
+        FROM scada_readings 
+        WHERE plant_id = '" . PLANT_ID . "' 
+        AND MONTH(timestamp) = MONTH(CURDATE())
+        AND YEAR(timestamp) = YEAR(CURDATE())
+    ");
+    $psaMonth = $stmtPsaMonth->fetch();
+    
+    // =====================================================
+    // LT Panel Power Consumption Calculation
+    // =====================================================
+    // Consumption (kWh) = Average Power (kW) × Hours
+    
+    // Today's consumption
+    $stmtPowerToday = $pdo->query("
+        SELECT 
+            COALESCE(AVG(lt_panel_power), 0) as avg_power_kw,
+            COUNT(*) as total_minutes
+        FROM scada_readings 
+        WHERE plant_id = '" . PLANT_ID . "' 
+        AND DATE(timestamp) = CURDATE()
+    ");
+    $powerToday = $stmtPowerToday->fetch();
+    
+    // This month's consumption
+    $stmtPowerMonth = $pdo->query("
+        SELECT 
+            COALESCE(AVG(lt_panel_power), 0) as avg_power_kw,
+            COUNT(*) as total_minutes
+        FROM scada_readings 
+        WHERE plant_id = '" . PLANT_ID . "' 
+        AND MONTH(timestamp) = MONTH(CURDATE())
+        AND YEAR(timestamp) = YEAR(CURDATE())
+    ");
+    $powerMonth = $stmtPowerMonth->fetch();
+    
     $executionTime = round((microtime(true) - $startTime) * 1000);
     
     // Build response
