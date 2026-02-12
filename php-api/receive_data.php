@@ -52,7 +52,7 @@ if (!$pdo) {
     sendError('Database connection failed', 500);
 }
 
-// Define all expected fields
+// Define all expected fields (37 fields total)
 $fields = [
     'timestamp',
     'raw_biogas_flow', 'raw_biogas_totalizer',
@@ -66,7 +66,7 @@ $fields = [
     'feed_fm2_flow', 'feed_fm2_totalizer',
     'fresh_water_flow', 'fresh_water_totalizer',
     'recycle_water_flow', 'recycle_water_totalizer',
-    'psa_efficiency', 'lt_panel_power', 'compressor_status'
+    'psa_status', 'psa_efficiency', 'lt_panel_power', 'compressor_status'
 ];
 
 // Build SQL query
