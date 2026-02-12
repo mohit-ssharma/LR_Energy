@@ -139,6 +139,15 @@ function TrendsPage() {
     fetchData();
   }, [fetchData]);
 
+  // Auto-refresh every 60 seconds (1 minute)
+  useEffect(() => {
+    const interval = setInterval(() => {
+      fetchData();
+    }, 60000); // 60 seconds
+    
+    return () => clearInterval(interval);
+  }, [fetchData]);
+
   const parameterCategories = {
     'Gas Flow': [
       { key: 'rawBiogas', label: 'Raw Biogas Flow', color: '#10b981', unit: 'Nm³/hr' },
