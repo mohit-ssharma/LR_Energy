@@ -366,6 +366,39 @@ const ComparisonView = () => {
             <option value="this_month_vs_last">This Month vs Last Month</option>
           </select>
           
+          {/* Download Menu */}
+          <div className="relative">
+            <button 
+              onClick={(e) => { e.stopPropagation(); setShowDownloadMenu(!showDownloadMenu); }}
+              className="flex items-center space-x-1 px-2 py-1 bg-white/20 hover:bg-white/30 rounded text-sm"
+              title="Download comparison"
+            >
+              <Download className="w-4 h-4" />
+              <span>Export</span>
+            </button>
+            {showDownloadMenu && (
+              <div 
+                className="absolute right-0 mt-2 w-40 bg-white rounded-lg shadow-lg border border-slate-200 z-20"
+                onClick={(e) => e.stopPropagation()}
+              >
+                <button 
+                  onClick={downloadPDF}
+                  className="flex items-center w-full px-4 py-2 text-sm text-slate-700 hover:bg-slate-50 rounded-t-lg"
+                >
+                  <FileText className="w-4 h-4 mr-2 text-red-500" />
+                  Download PDF
+                </button>
+                <button 
+                  onClick={downloadCSV}
+                  className="flex items-center w-full px-4 py-2 text-sm text-slate-700 hover:bg-slate-50 rounded-b-lg"
+                >
+                  <FileSpreadsheet className="w-4 h-4 mr-2 text-green-500" />
+                  Download CSV
+                </button>
+              </div>
+            )}
+          </div>
+          
           <button 
             onClick={(e) => { e.stopPropagation(); fetchData(); }}
             className="p-1 hover:bg-white/20 rounded"
