@@ -276,9 +276,9 @@ const ComparisonView = () => {
     fetchData();
   }, [fetchData]);
 
-  // Auto-refresh every 5 minutes
+  // Auto-refresh every 60 seconds (1 minute)
   useEffect(() => {
-    const interval = setInterval(fetchData, 300000);
+    const interval = setInterval(fetchData, 60000);
     return () => clearInterval(interval);
   }, [fetchData]);
 
