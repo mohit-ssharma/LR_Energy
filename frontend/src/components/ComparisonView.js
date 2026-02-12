@@ -1,6 +1,5 @@
-import React, { useState, useEffect, useCallback } from 'react';
-import { TrendingUp, TrendingDown, Minus, ChevronDown, ChevronUp, BarChart3, Calendar, RefreshCw, WifiOff } from 'lucide-react';
-import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend } from 'recharts';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
+import { TrendingUp, TrendingDown, Minus, ChevronDown, ChevronUp, BarChart3, RefreshCw, WifiOff, Wifi, AlertTriangle } from 'lucide-react';
 import { getComparisonData, formatNumber } from '../services/api';
 
 // Comparison Card Component
@@ -82,8 +81,13 @@ const ComparisonView = () => {
   const [comparisonData, setComparisonData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [isConnected, setIsConnected] = useState(false);
+  const [isDemo, setIsDemo] = useState(false);
+  
+  // Store last known good data
+  const lastKnownDataRef = useRef(null);
 
-  // Mock data for when API is unavailable
+  // Mock data for when API is unavailable (first load only)
   const getMockComparisonData = () => ({
     period: 'today_vs_yesterday',
     period_label: 'Today vs Yesterday (Demo)',
@@ -109,24 +113,45 @@ const ComparisonView = () => {
     try {
       const result = await getComparisonData(comparisonPeriod);
       
-      if (result.success) {
+      if (result.success && result.data) {
+        // ✅ Valid data received - Connection is LIVE
         setComparisonData(result.data);
+        lastKnownDataRef.current = result.data; // Store as last known good data
         setError(null);
+        setIsConnected(true);
+        setIsDemo(false);
       } else {
-        // Use mock data when API fails
-        console.log('API unavailable, using demo comparison data');
-        setComparisonData(getMockComparisonData());
-        setError('demo');
+        // API call failed
+        handleConnectionLost();
       }
     } catch (err) {
-      // Use mock data on error
-      console.log('API error, using demo comparison data');
-      setComparisonData(getMockComparisonData());
-      setError('demo');
+      // Network error
+      console.error('Comparison API error:', err.message);
+      handleConnectionLost();
     } finally {
       setLoading(false);
     }
   }, [comparisonPeriod]);
+
+  // Handle connection lost - KEEP LAST KNOWN DATA
+  const handleConnectionLost = () => {
+    setIsConnected(false);
+    
+    if (lastKnownDataRef.current) {
+      // ✅ We have last known real data - KEEP SHOWING IT
+      setComparisonData({
+        ...lastKnownDataRef.current,
+        _connectionLost: true
+      });
+      setError('Connection lost - showing last known data');
+      setIsDemo(false);
+    } else {
+      // ❌ No previous data - show demo
+      setComparisonData(getMockComparisonData());
+      setError('API not connected - showing demo data');
+      setIsDemo(true);
+    }
+  };
 
   // Fetch on mount and when period changes
   useEffect(() => {
@@ -141,12 +166,34 @@ const ComparisonView = () => {
 
   // Get period label
   const getPeriodLabel = () => {
+    if (isDemo) return comparisonData?.period_label || 'Today vs Yesterday (Demo)';
     return comparisonData?.period_label || 'Today vs Yesterday';
   };
 
   // Handle period change
   const handlePeriodChange = (e) => {
     setComparisonPeriod(e.target.value);
+  };
+
+  // Connection Status Badge
+  const ConnectionBadge = () => {
+    if (isDemo) {
+      return (
+        <span className="flex items-center space-x-1 px-2 py-1 bg-amber-100 text-amber-700 rounded text-xs font-medium">
+          <WifiOff className="w-3 h-3" />
+          <span>DEMO</span>
+        </span>
+      );
+    }
+    if (!isConnected) {
+      return (
+        <span className="flex items-center space-x-1 px-2 py-1 bg-red-100 text-red-700 rounded text-xs font-medium">
+          <WifiOff className="w-3 h-3" />
+          <span>OFFLINE</span>
+        </span>
+      );
+    }
+    return null; // Don't show badge when connected (header already shows LIVE)
   };
 
   // Loading state
@@ -162,24 +209,6 @@ const ComparisonView = () => {
         <div className="flex items-center justify-center p-8">
           <RefreshCw className="w-6 h-6 text-slate-400 animate-spin mr-2" />
           <span className="text-slate-500">Loading comparison data...</span>
-        </div>
-      </div>
-    );
-  }
-
-  // Error state - don't block if we have mock data
-  if (error && !comparisonData) {
-    return (
-      <div className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden mb-6" data-testid="comparison-view">
-        <div className="bg-gradient-to-r from-indigo-600 to-purple-600 text-white px-6 py-4">
-          <div className="flex items-center space-x-2">
-            <BarChart3 className="w-5 h-5" />
-            <span className="font-semibold">Performance Comparison</span>
-          </div>
-        </div>
-        <div className="flex items-center justify-center p-8 bg-amber-50">
-          <WifiOff className="w-6 h-6 text-amber-500 mr-2" />
-          <span className="text-amber-700">Loading demo data...</span>
         </div>
       </div>
     );
@@ -204,6 +233,7 @@ const ComparisonView = () => {
           <BarChart3 className="w-5 h-5" />
           <span className="font-semibold">Performance Comparison</span>
           <span className="bg-white/20 px-2 py-0.5 rounded text-sm">{getPeriodLabel()}</span>
+          <ConnectionBadge />
         </div>
         
         <div className="flex items-center space-x-4">
@@ -232,6 +262,18 @@ const ComparisonView = () => {
 
       {isExpanded && (
         <div className="p-6">
+          {/* Warning Banner for Connection Issues */}
+          {error && (
+            <div className={`mb-4 p-3 rounded-lg flex items-center ${
+              isDemo ? 'bg-amber-50 border border-amber-200' : 'bg-orange-50 border border-orange-200'
+            }`}>
+              <AlertTriangle className={`w-4 h-4 mr-2 ${isDemo ? 'text-amber-500' : 'text-orange-500'}`} />
+              <span className={`text-sm ${isDemo ? 'text-amber-700' : 'text-orange-700'}`}>
+                {error}
+              </span>
+            </div>
+          )}
+          
           {/* Summary Badges */}
           <div className="grid grid-cols-4 gap-4 mb-6">
             <SummaryBadge 
