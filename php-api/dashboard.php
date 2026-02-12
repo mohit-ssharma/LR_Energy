@@ -96,17 +96,20 @@ try {
     ");
     $stats12hr = $stmt12hr->fetch();
     
-    // Get 24-hour totalizer differences
+    // Get 24-hour totalizer differences (COALESCE handles NULLs - returns 0 if NULL)
     $stmt24hr = $pdo->query("
         SELECT 
             COUNT(*) as sample_count,
-            MAX(raw_biogas_totalizer) - MIN(raw_biogas_totalizer) as totalizer_raw_biogas,
-            MAX(purified_gas_totalizer) - MIN(purified_gas_totalizer) as totalizer_purified_gas,
-            MAX(product_gas_totalizer) - MIN(product_gas_totalizer) as totalizer_product_gas,
-            MAX(feed_fm1_totalizer) - MIN(feed_fm1_totalizer) as totalizer_feed_fm1,
-            MAX(feed_fm2_totalizer) - MIN(feed_fm2_totalizer) as totalizer_feed_fm2,
-            MAX(fresh_water_totalizer) - MIN(fresh_water_totalizer) as totalizer_fresh_water,
-            MAX(recycle_water_totalizer) - MIN(recycle_water_totalizer) as totalizer_recycle_water
+            COUNT(raw_biogas_totalizer) as raw_biogas_samples,
+            COUNT(purified_gas_totalizer) as purified_gas_samples,
+            COUNT(product_gas_totalizer) as product_gas_samples,
+            COALESCE(MAX(raw_biogas_totalizer) - MIN(raw_biogas_totalizer), 0) as totalizer_raw_biogas,
+            COALESCE(MAX(purified_gas_totalizer) - MIN(purified_gas_totalizer), 0) as totalizer_purified_gas,
+            COALESCE(MAX(product_gas_totalizer) - MIN(product_gas_totalizer), 0) as totalizer_product_gas,
+            COALESCE(MAX(feed_fm1_totalizer) - MIN(feed_fm1_totalizer), 0) as totalizer_feed_fm1,
+            COALESCE(MAX(feed_fm2_totalizer) - MIN(feed_fm2_totalizer), 0) as totalizer_feed_fm2,
+            COALESCE(MAX(fresh_water_totalizer) - MIN(fresh_water_totalizer), 0) as totalizer_fresh_water,
+            COALESCE(MAX(recycle_water_totalizer) - MIN(recycle_water_totalizer), 0) as totalizer_recycle_water
         FROM scada_readings 
         WHERE plant_id = '" . PLANT_ID . "' 
         AND timestamp >= DATE_SUB(NOW(), INTERVAL 24 HOUR)
