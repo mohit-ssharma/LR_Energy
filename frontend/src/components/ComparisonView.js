@@ -83,9 +83,127 @@ const ComparisonView = () => {
   const [error, setError] = useState(null);
   const [isConnected, setIsConnected] = useState(false);
   const [isDemo, setIsDemo] = useState(false);
+  const [showDownloadMenu, setShowDownloadMenu] = useState(false);
   
   // Store last known good data
   const lastKnownDataRef = useRef(null);
+
+  // Download comparison data as CSV
+  const downloadCSV = () => {
+    if (!comparisonData?.metrics) return;
+    
+    const headers = ['Parameter', 'Unit', 'Category', 'Today', 'Yesterday', 'Change', 'Change %', 'Status'];
+    const rows = Object.entries(comparisonData.metrics).map(([key, m]) => [
+      m.label,
+      m.unit,
+      m.category,
+      m.current,
+      m.previous,
+      m.change,
+      m.change_percent + '%',
+      m.status
+    ]);
+    
+    const csvContent = [
+      `Performance Comparison - ${comparisonData.period_label}`,
+      `Generated: ${comparisonData.generated_at}`,
+      '',
+      headers.join(','),
+      ...rows.map(row => row.join(','))
+    ].join('\n');
+    
+    const blob = new Blob([csvContent], { type: 'text/csv' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `comparison_${comparisonPeriod}_${new Date().toISOString().split('T')[0]}.csv`;
+    a.click();
+    URL.revokeObjectURL(url);
+    setShowDownloadMenu(false);
+  };
+
+  // Download comparison data as PDF (using print)
+  const downloadPDF = () => {
+    if (!comparisonData?.metrics) return;
+    
+    const printWindow = window.open('', '_blank');
+    const summary = comparisonData.summary || {};
+    const metrics = comparisonData.metrics || {};
+    
+    const html = `
+      <!DOCTYPE html>
+      <html>
+      <head>
+        <title>Performance Comparison - ${comparisonData.period_label}</title>
+        <style>
+          body { font-family: Arial, sans-serif; padding: 20px; }
+          h1 { color: #1e293b; border-bottom: 2px solid #6366f1; padding-bottom: 10px; }
+          h2 { color: #475569; margin-top: 20px; }
+          .summary { display: flex; gap: 20px; margin: 20px 0; }
+          .summary-card { padding: 15px 25px; border-radius: 8px; text-align: center; }
+          .improved { background: #d1fae5; color: #065f46; }
+          .stable { background: #dbeafe; color: #1e40af; }
+          .warning { background: #fef3c7; color: #92400e; }
+          .declined { background: #fee2e2; color: #991b1b; }
+          table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+          th, td { border: 1px solid #e2e8f0; padding: 10px; text-align: left; }
+          th { background: #f1f5f9; font-weight: 600; }
+          .status-improved { color: #059669; }
+          .status-stable { color: #2563eb; }
+          .status-warning { color: #d97706; }
+          .status-declined { color: #dc2626; }
+          .meta { color: #64748b; font-size: 12px; margin-top: 20px; }
+        </style>
+      </head>
+      <body>
+        <h1>Performance Comparison Report</h1>
+        <p><strong>Period:</strong> ${comparisonData.period_label}</p>
+        <p><strong>Generated:</strong> ${comparisonData.generated_at}</p>
+        
+        <h2>Summary</h2>
+        <div class="summary">
+          <div class="summary-card improved"><strong>${summary.improved || 0}</strong><br/>Improved</div>
+          <div class="summary-card stable"><strong>${summary.stable || 0}</strong><br/>Stable</div>
+          <div class="summary-card warning"><strong>${summary.warning || 0}</strong><br/>Warning</div>
+          <div class="summary-card declined"><strong>${summary.declined || 0}</strong><br/>Declined</div>
+        </div>
+        
+        <h2>Detailed Metrics</h2>
+        <table>
+          <thead>
+            <tr>
+              <th>Parameter</th>
+              <th>Today</th>
+              <th>Yesterday</th>
+              <th>Change</th>
+              <th>Status</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${Object.entries(metrics).map(([key, m]) => `
+              <tr>
+                <td>${m.label} (${m.unit})</td>
+                <td>${m.current}</td>
+                <td>${m.previous}</td>
+                <td>${m.change > 0 ? '+' : ''}${m.change} (${m.change_percent > 0 ? '+' : ''}${m.change_percent}%)</td>
+                <td class="status-${m.status}">${m.status.charAt(0).toUpperCase() + m.status.slice(1)}</td>
+              </tr>
+            `).join('')}
+          </tbody>
+        </table>
+        
+        <p class="meta">LR Energy Biogas Plant - Karnal | SCADA Monitoring System</p>
+      </body>
+      </html>
+    `;
+    
+    printWindow.document.write(html);
+    printWindow.document.close();
+    printWindow.onload = () => {
+      printWindow.print();
+    };
+    setShowDownloadMenu(false);
+  };
 
   // Mock data for when API is unavailable (first load only)
   const getMockComparisonData = () => ({
