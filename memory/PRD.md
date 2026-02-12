@@ -323,3 +323,4 @@ See `/app/updated_field_structure.md` for complete schema.
 - **Feb 6, 2026**: UI updates (branding, values, limits), Field structure document created
 - **Feb 8, 2026**: Comprehensive UI verification completed - 100% pass rate
 - **Feb 12, 2026**: PHP Backend integration completed, consistent connection handling implemented across all components
+- **Feb 12, 2026**: Added Export (PDF/CSV) to Comparison section, 60-second auto-refresh to all components, created PLC Data Interface Specification JSON for sync script development, updated totalizers to midnight-to-midnight calculation
