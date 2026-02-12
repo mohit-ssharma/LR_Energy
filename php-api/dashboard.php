@@ -293,32 +293,41 @@ try {
                 : 0
         ],
         
-        // Equipment Status - PSA & Compressor
+        // Equipment Status - PSA, Compressor & LT Panel
         'equipment' => [
+            // PSA Unit - Status from psa_status field (from SCADA)
             'psa' => [
-                'status' => intval($latest['compressor_status']) === 1 ? 'Running' : 'Stopped',
-                'running_hours_today' => round(intval($psaToday['running_minutes']) / 60, 1),
-                'running_minutes_today' => intval($psaToday['running_minutes']),
+                'status' => intval($latest['psa_status']) === 1 ? 'Running' : 'Stopped',
+                'status_code' => intval($latest['psa_status']),
+                'running_hours_today' => round(intval($psaToday['psa_running_minutes']) / 60, 2),
+                'running_minutes_today' => intval($psaToday['psa_running_minutes']),
                 'total_minutes_today' => intval($psaToday['total_minutes']),
-                'running_hours_month' => round(intval($psaMonth['running_minutes']) / 60, 1),
-                'efficiency' => floatval($latest['raw_biogas_flow']) > 0 
-                    ? round((floatval($latest['purified_gas_flow']) / floatval($latest['raw_biogas_flow'])) * 100, 1)
+                'running_hours_month' => round(intval($psaMonth['psa_running_minutes']) / 60, 2),
+                'running_minutes_month' => intval($psaMonth['psa_running_minutes']),
+                'efficiency' => floatval($latest['psa_efficiency']),
+                'calculated_efficiency' => floatval($latest['raw_biogas_flow']) > 0 
+                    ? round((floatval($latest['purified_gas_flow']) / floatval($latest['raw_biogas_flow'])) * 100, 2)
                     : 0
             ],
+            // Compressor - Status from compressor_status field (from SCADA)
             'compressor' => [
                 'status' => intval($latest['compressor_status']) === 1 ? 'Running' : 'Stopped',
-                'running_hours_today' => round(intval($psaToday['running_minutes']) / 60, 1),
-                'efficiency' => floatval($latest['raw_biogas_flow']) > 0 
-                    ? round((floatval($latest['purified_gas_flow']) / floatval($latest['raw_biogas_flow'])) * 100, 1)
-                    : 0
+                'status_code' => intval($latest['compressor_status']),
+                'running_hours_today' => round(intval($psaToday['compressor_running_minutes']) / 60, 2),
+                'running_minutes_today' => intval($psaToday['compressor_running_minutes']),
+                'running_hours_month' => round(intval($psaMonth['compressor_running_minutes']) / 60, 2)
             ],
+            // LT Panel - Consumption calculated from current load (lt_panel_power)
             'lt_panel' => [
-                'status' => 'Active',
+                'status' => floatval($latest['lt_panel_power']) > 0 ? 'Active' : 'Inactive',
                 'current_load_kw' => floatval($latest['lt_panel_power']),
-                'avg_power_today_kw' => round(floatval($powerToday['avg_power_kw']), 1),
-                'consumption_today_kwh' => round(floatval($powerToday['avg_power_kw']) * (intval($powerToday['total_minutes']) / 60), 0),
-                'consumption_month_kwh' => round(floatval($powerMonth['avg_power_kw']) * (intval($powerMonth['total_minutes']) / 60), 0),
-                'hours_today' => round(intval($powerToday['total_minutes']) / 60, 1)
+                'avg_power_today_kw' => round(floatval($powerToday['avg_power_kw']), 2),
+                'max_power_today_kw' => round(floatval($powerToday['max_power_kw']), 2),
+                'min_power_today_kw' => round(floatval($powerToday['min_power_kw']), 2),
+                'consumption_today_kwh' => round(floatval($powerToday['avg_power_kw']) * (intval($powerToday['total_minutes']) / 60), 2),
+                'consumption_month_kwh' => round(floatval($powerMonth['avg_power_kw']) * (intval($powerMonth['total_minutes']) / 60), 2),
+                'hours_recorded_today' => round(intval($powerToday['total_minutes']) / 60, 2),
+                'hours_recorded_month' => round(intval($powerMonth['total_minutes']) / 60, 2)
             ]
         ],
         
