@@ -232,6 +232,10 @@ const KPISummary = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [lastRefresh, setLastRefresh] = useState(null);
+  const [isConnected, setIsConnected] = useState(false);
+  const [isDemo, setIsDemo] = useState(false);
+  const [connectionAttempts, setConnectionAttempts] = useState(0);
+  const lastKnownDataRef = useRef(null); // Keep last known good data
 
   // Mock data for when API is unavailable
   const getMockData = () => ({
@@ -276,28 +280,80 @@ const KPISummary = () => {
     }
   });
 
-  // Fetch dashboard data
+  // Fetch dashboard data with connection tracking
   const fetchData = useCallback(async () => {
+    setConnectionAttempts(prev => prev + 1);
+    
     try {
       const result = await getDashboardData();
       
-      if (result.success) {
-        setDashboardData(result.data);
-        setError(null);
-        setLastRefresh(new Date());
+      if (result.success && result.data) {
+        // Check if data is valid (has required fields)
+        if (result.data.current && result.data.current.raw_biogas_flow !== undefined) {
+          // Valid data received
+          setDashboardData(result.data);
+          lastKnownDataRef.current = result.data; // Store as last known good data
+          setError(null);
+          setIsConnected(true);
+          setIsDemo(false);
+          setLastRefresh(new Date());
+        } else {
+          // API returned but data is empty/invalid
+          console.warn('API returned empty or invalid data');
+          handleNoData('Server returned empty data');
+        }
       } else {
-        // Use mock data when API fails
-        console.log('API unavailable, using demo data');
-        setDashboardData(getMockData());
-        setError('Using demo data - API not connected');
-        setLastRefresh(new Date());
+        // API call failed
+        console.log('API unavailable:', result.error);
+        handleConnectionLost(result.error);
       }
     } catch (err) {
-      // Use mock data on error
-      console.log('API error, using demo data:', err.message);
+      // Network error or exception
+      console.error('API error:', err.message);
+      handleConnectionLost(err.message);
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  // Handle connection lost - use last known data or fallback to mock
+  const handleConnectionLost = (errorMsg) => {
+    if (lastKnownDataRef.current) {
+      // We have last known good data - use it with warning
+      setDashboardData({
+        ...lastKnownDataRef.current,
+        data_status: 'OFFLINE',
+        _connectionLost: true
+      });
+      setError('Connection lost - showing last known data');
+      setIsConnected(false);
+      setIsDemo(false);
+    } else {
+      // No previous data - use mock
       setDashboardData(getMockData());
-      setError('Using demo data - API not connected');
-      setLastRefresh(new Date());
+      setError('API not connected - showing demo data');
+      setIsConnected(false);
+      setIsDemo(true);
+    }
+    setLastRefresh(new Date());
+  };
+
+  // Handle no data from server
+  const handleNoData = (errorMsg) => {
+    if (lastKnownDataRef.current) {
+      setDashboardData({
+        ...lastKnownDataRef.current,
+        data_status: 'NO_DATA',
+        _noNewData: true
+      });
+      setError('No new data from server');
+      setIsConnected(true);
+    } else {
+      setDashboardData(getMockData());
+      setError('No data available - showing demo');
+      setIsDemo(true);
+    }
+    setLastRefresh(new Date());
     } finally {
       setLoading(false);
     }
