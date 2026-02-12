@@ -354,10 +354,7 @@ const KPISummary = () => {
       setIsDemo(true);
     }
     setLastRefresh(new Date());
-    } finally {
-      setLoading(false);
-    }
-  }, []);
+  };
 
   // Initial fetch and auto-refresh every 60 seconds
   useEffect(() => {
