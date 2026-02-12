@@ -530,6 +530,7 @@ const KPISummary = () => {
             isDemo={isDemo}
             dataStatus={dashboardData?.data_status}
             lastUpdate={lastRefresh}
+            lastKnownTime={dashboardData?._lastKnownTime || dashboardData?.last_update}
             onRetry={fetchData}
           />
           
