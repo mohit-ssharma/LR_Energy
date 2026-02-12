@@ -83,6 +83,26 @@ const ComparisonView = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
+  // Mock data for when API is unavailable
+  const getMockComparisonData = () => ({
+    period: 'today_vs_yesterday',
+    period_label: 'Today vs Yesterday (Demo)',
+    generated_at: new Date().toISOString(),
+    summary: { improved: 5, stable: 3, warning: 1, declined: 0 },
+    data_quality: { current_samples: 1380, previous_samples: 1440 },
+    metrics: {
+      raw_biogas_flow: { label: 'Raw Biogas Flow', unit: 'Nm³/hr', category: 'gas_production', current: 1250.5, previous: 1180.2, change: 70.3, change_percent: 5.9, status: 'improved' },
+      purified_gas_flow: { label: 'Purified Gas Flow', unit: 'Nm³/hr', category: 'gas_production', current: 1180.2, previous: 1150.5, change: 29.7, change_percent: 2.6, status: 'improved' },
+      product_gas_flow: { label: 'Product Gas Flow', unit: 'Nm³/hr', category: 'gas_production', current: 1150.8, previous: 1140.2, change: 10.6, change_percent: 0.9, status: 'stable' },
+      ch4: { label: 'CH₄', unit: '%', category: 'gas_composition', current: 96.8, previous: 96.5, change: 0.3, change_percent: 0.3, status: 'stable' },
+      co2: { label: 'CO₂', unit: '%', category: 'gas_composition', current: 2.9, previous: 3.1, change: -0.2, change_percent: -6.5, status: 'improved' },
+      o2: { label: 'O₂', unit: '%', category: 'gas_composition', current: 0.3, previous: 0.28, change: 0.02, change_percent: 7.1, status: 'warning' },
+      h2s: { label: 'H₂S', unit: 'ppm', category: 'gas_composition', current: 180, previous: 195, change: -15, change_percent: -7.7, status: 'improved' },
+      buffer_tank: { label: 'Buffer Tank', unit: '%', category: 'equipment', current: 82, previous: 80, change: 2, change_percent: 2.5, status: 'improved' },
+      psa_efficiency: { label: 'PSA Efficiency', unit: '%', category: 'equipment', current: 94.4, previous: 94.2, change: 0.2, change_percent: 0.2, status: 'stable' }
+    }
+  });
+
   // Fetch comparison data
   const fetchData = useCallback(async () => {
     setLoading(true);
@@ -93,10 +113,16 @@ const ComparisonView = () => {
         setComparisonData(result.data);
         setError(null);
       } else {
-        setError(result.error);
+        // Use mock data when API fails
+        console.log('API unavailable, using demo comparison data');
+        setComparisonData(getMockComparisonData());
+        setError('demo');
       }
     } catch (err) {
-      setError(err.message);
+      // Use mock data on error
+      console.log('API error, using demo comparison data');
+      setComparisonData(getMockComparisonData());
+      setError('demo');
     } finally {
       setLoading(false);
     }
