@@ -261,7 +261,7 @@ INSERT INTO `scada_readings` (
     `feed_fm2_flow`, `feed_fm2_totalizer`,
     `fresh_water_flow`, `fresh_water_totalizer`,
     `recycle_water_flow`, `recycle_water_totalizer`,
-    `psa_efficiency`, `lt_panel_power`, `compressor_status`,
+    `psa_status`, `psa_efficiency`, `lt_panel_power`, `compressor_status`,
     `plant_id`
 ) VALUES (
     NOW(),
@@ -276,7 +276,7 @@ INSERT INTO `scada_readings` (
     38.00, 4500.00,
     12.00, 1500.00,
     26.00, 3000.00,
-    94.40, 245.00, 1,
+    1, 94.40, 245.00, 1,
     'KARNAL'
 );
 
