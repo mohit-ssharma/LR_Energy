@@ -1,5 +1,5 @@
-import React, { useState, useEffect, useCallback } from 'react';
-import { Power, Zap, Activity, CheckCircle2, XCircle, RefreshCw, WifiOff } from 'lucide-react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
+import { Power, Zap, Activity, CheckCircle2, XCircle, RefreshCw, WifiOff, Wifi, AlertTriangle } from 'lucide-react';
 import { getDashboardData, formatNumber } from '../services/api';
 
 const EquipmentStatus = () => {
@@ -7,8 +7,14 @@ const EquipmentStatus = () => {
   const [currentValues, setCurrentValues] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [isConnected, setIsConnected] = useState(false);
+  const [isDemo, setIsDemo] = useState(false);
+  
+  // Store last known good data
+  const lastKnownEquipmentRef = useRef(null);
+  const lastKnownCurrentRef = useRef(null);
 
-  // Mock data for when API is unavailable
+  // Mock data for when API is unavailable (first load only)
   const getMockEquipmentData = () => ({
     psa: {
       status: 'Running',
@@ -48,27 +54,49 @@ const EquipmentStatus = () => {
     try {
       const result = await getDashboardData();
       
-      if (result.success) {
+      if (result.success && result.data?.equipment) {
+        // ✅ Valid data received - Connection is LIVE
         setEquipmentData(result.data.equipment);
         setCurrentValues(result.data.current);
+        
+        // Store as last known good data
+        lastKnownEquipmentRef.current = result.data.equipment;
+        lastKnownCurrentRef.current = result.data.current;
+        
         setError(null);
+        setIsConnected(true);
+        setIsDemo(false);
       } else {
-        // Use mock data when API fails
-        console.log('API unavailable, using demo equipment data');
-        setEquipmentData(getMockEquipmentData());
-        setCurrentValues(getMockCurrentValues());
-        setError('demo');
+        // API call failed
+        handleConnectionLost();
       }
     } catch (err) {
-      // Use mock data on error
-      console.log('API error, using demo equipment data');
-      setEquipmentData(getMockEquipmentData());
-      setCurrentValues(getMockCurrentValues());
-      setError('demo');
+      // Network error
+      console.error('Equipment API error:', err.message);
+      handleConnectionLost();
     } finally {
       setLoading(false);
     }
   }, []);
+
+  // Handle connection lost - KEEP LAST KNOWN DATA
+  const handleConnectionLost = () => {
+    setIsConnected(false);
+    
+    if (lastKnownEquipmentRef.current) {
+      // ✅ We have last known real data - KEEP SHOWING IT
+      setEquipmentData(lastKnownEquipmentRef.current);
+      setCurrentValues(lastKnownCurrentRef.current);
+      setError('Connection lost - showing last known data');
+      setIsDemo(false);
+    } else {
+      // ❌ No previous data - show demo
+      setEquipmentData(getMockEquipmentData());
+      setCurrentValues(getMockCurrentValues());
+      setError('API not connected - showing demo data');
+      setIsDemo(true);
+    }
+  };
 
   // Initial fetch and auto-refresh every 60 seconds
   useEffect(() => {
@@ -137,6 +165,32 @@ const EquipmentStatus = () => {
     );
   };
 
+  // Connection Status Badge
+  const ConnectionBadge = () => {
+    if (isDemo) {
+      return (
+        <span className="flex items-center space-x-1 px-2 py-1 bg-amber-100 text-amber-700 rounded text-xs font-medium">
+          <WifiOff className="w-3 h-3" />
+          <span>DEMO</span>
+        </span>
+      );
+    }
+    if (!isConnected) {
+      return (
+        <span className="flex items-center space-x-1 px-2 py-1 bg-red-100 text-red-700 rounded text-xs font-medium">
+          <WifiOff className="w-3 h-3" />
+          <span>OFFLINE</span>
+        </span>
+      );
+    }
+    return (
+      <span className="flex items-center space-x-1 px-2 py-1 bg-emerald-100 text-emerald-700 rounded text-xs font-medium">
+        <Wifi className="w-3 h-3" />
+        <span>LIVE</span>
+      </span>
+    );
+  };
+
   // Loading state
   if (loading) {
     return (
@@ -150,14 +204,14 @@ const EquipmentStatus = () => {
     );
   }
 
-  // Error state - don't block, we have mock data
+  // Error state - don't block, we have data (last known or mock)
   if (error && !equipmentData) {
     return (
       <div className="mb-6" data-testid="equipment-status-section">
         <h2 className="text-xl font-semibold tracking-tight text-slate-800 mb-4">Equipment Status</h2>
         <div className="flex items-center justify-center p-8 bg-amber-50 rounded-lg border border-amber-200">
           <WifiOff className="w-6 h-6 text-amber-500 mr-2" />
-          <span className="text-amber-700">Loading demo data...</span>
+          <span className="text-amber-700">Loading data...</span>
         </div>
       </div>
     );
@@ -176,15 +230,30 @@ const EquipmentStatus = () => {
     <div className="mb-6" data-testid="equipment-status-section">
       <div className="flex items-center justify-between mb-4">
         <h2 className="text-xl font-semibold tracking-tight text-slate-800">Equipment Status</h2>
-        <button 
-          onClick={fetchData}
-          className="flex items-center space-x-1 px-2 py-1 text-xs text-slate-500 hover:text-slate-700 hover:bg-slate-100 rounded"
-          title="Refresh data"
-        >
-          <RefreshCw className="w-3 h-3" />
-          <span>Refresh</span>
-        </button>
+        <div className="flex items-center space-x-2">
+          <ConnectionBadge />
+          <button 
+            onClick={fetchData}
+            className="flex items-center space-x-1 px-2 py-1 text-xs text-slate-500 hover:text-slate-700 hover:bg-slate-100 rounded"
+            title="Refresh data"
+          >
+            <RefreshCw className="w-3 h-3" />
+            <span>Refresh</span>
+          </button>
+        </div>
       </div>
+      
+      {/* Warning Banner for Connection Issues */}
+      {error && (
+        <div className={`mb-4 p-3 rounded-lg flex items-center ${
+          isDemo ? 'bg-amber-50 border border-amber-200' : 'bg-orange-50 border border-orange-200'
+        }`}>
+          <AlertTriangle className={`w-4 h-4 mr-2 ${isDemo ? 'text-amber-500' : 'text-orange-500'}`} />
+          <span className={`text-sm ${isDemo ? 'text-amber-700' : 'text-orange-700'}`}>
+            {error}
+          </span>
+        </div>
+      )}
       
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* PSA Section */}
