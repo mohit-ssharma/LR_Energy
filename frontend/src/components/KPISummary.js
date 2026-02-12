@@ -1,16 +1,17 @@
-import React from 'react';
-import { TrendingUp, Droplet, Wind, Gauge, AlertTriangle, CheckCircle } from 'lucide-react';
+import React, { useState, useEffect, useCallback } from 'react';
+import { TrendingUp, Droplet, Wind, Gauge, AlertTriangle, CheckCircle, RefreshCw, WifiOff } from 'lucide-react';
 import { LineChart, Line, ResponsiveContainer } from 'recharts';
+import { getDashboardData, formatNumber } from '../services/api';
 
 // Data Quality Badge Component
 const DataQualityBadge = ({ samples, expected, showWarning = true }) => {
-  const coverage = (samples / expected) * 100;
+  const coverage = expected > 0 ? (samples / expected) * 100 : 0;
   
   let statusColor, statusBg, statusText;
   if (coverage >= 95) {
     statusColor = 'text-emerald-600';
     statusBg = 'bg-emerald-50';
-    statusText = null; // No warning needed
+    statusText = null;
   } else if (coverage >= 80) {
     statusColor = 'text-slate-600';
     statusBg = 'bg-slate-50';
@@ -43,7 +44,25 @@ const DataQualityBadge = ({ samples, expected, showWarning = true }) => {
   );
 };
 
-const KPICard = ({ title, value, unit, totalizer, totalizerValue, totalizerUnit, avgLabel, avgValue, avgSamples, icon: Icon, color, trendData }) => {
+// Data Status Badge
+const DataStatusBadge = ({ status, ageSeconds }) => {
+  const getStatusStyle = () => {
+    switch (status) {
+      case 'FRESH': return 'bg-emerald-100 text-emerald-700 border-emerald-200';
+      case 'DELAYED': return 'bg-amber-100 text-amber-700 border-amber-200';
+      case 'STALE': return 'bg-red-100 text-red-700 border-red-200';
+      default: return 'bg-slate-100 text-slate-700 border-slate-200';
+    }
+  };
+
+  return (
+    <span className={`px-2 py-0.5 rounded-full text-xs font-medium border ${getStatusStyle()}`}>
+      {status} {ageSeconds && `(${ageSeconds}s ago)`}
+    </span>
+  );
+};
+
+const KPICard = ({ title, value, unit, totalizer, totalizerValue, totalizerUnit, avgLabel, avgValue, avgSamples, icon: Icon, color, trendData, lastUpdate }) => {
   const getColorClasses = (color) => {
     const colors = {
       'bg-emerald-600': { bg: 'bg-emerald-600', light: 'bg-emerald-50', border: 'border-emerald-200', text: 'text-emerald-600', stroke: '#10b981' },
@@ -56,9 +75,14 @@ const KPICard = ({ title, value, unit, totalizer, totalizerValue, totalizerUnit,
   };
 
   const colorClasses = getColorClasses(color);
-  
-  // Determine if this is a totalizer card (gas flows) or avg card (composition)
   const isTotalizerCard = totalizer.includes('Totalizer');
+  
+  // Format time from lastUpdate
+  const formatTime = (timestamp) => {
+    if (!timestamp) return '--:--:--';
+    const date = new Date(timestamp);
+    return date.toLocaleTimeString('en-IN', { hour12: false });
+  };
   
   return (
     <div className="bg-white border border-slate-200 shadow-sm rounded-lg overflow-hidden" data-testid={`kpi-card-${title.toLowerCase().replace(/[₄₂]/g, '').replace(/\s+/g, '-')}`}>
@@ -69,7 +93,7 @@ const KPICard = ({ title, value, unit, totalizer, totalizerValue, totalizerUnit,
           </div>
           <span className="text-xs font-semibold uppercase tracking-wider text-slate-600">{title}</span>
         </div>
-        <span className="text-xs text-slate-400 font-mono">08:43:41</span>
+        <span className="text-xs text-slate-400 font-mono">{formatTime(lastUpdate)}</span>
       </div>
 
       <div className="p-4 bg-gradient-to-br from-slate-50/20 to-white">
@@ -79,11 +103,11 @@ const KPICard = ({ title, value, unit, totalizer, totalizerValue, totalizerUnit,
             <span className="text-3xl font-bold font-mono tracking-tighter text-slate-900" data-testid={`${title.toLowerCase().replace(/[₄₂]/g, '').replace(/\s+/g, '-')}-value`}>
               {value}
             </span>
-            <span className="text-sm font-medium text-slate-400">{unit}</span>
+            <span className="text-lg text-slate-500 font-medium">{unit}</span>
           </div>
         </div>
-
-        <div className="h-12 mb-3">
+        
+        <div className="h-12 mb-3 -mx-1">
           <ResponsiveContainer width="100%" height="100%">
             <LineChart data={trendData}>
               <Line 
@@ -92,36 +116,35 @@ const KPICard = ({ title, value, unit, totalizer, totalizerValue, totalizerUnit,
                 stroke={colorClasses.stroke}
                 strokeWidth={2}
                 dot={false}
-                animationDuration={300}
               />
             </LineChart>
           </ResponsiveContainer>
         </div>
 
-        {/* Info box with sample counts */}
-        <div className={`${colorClasses.light} rounded-md p-3 border ${colorClasses.border} mb-3 min-h-[76px] flex flex-col justify-center`}>
-          <div className="text-xs text-slate-500 mb-1">{totalizer}</div>
-          <div className="flex items-baseline space-x-1">
-            <span className="text-xl font-bold font-mono text-slate-900">{totalizerValue}</span>
-            {totalizerUnit && <span className="text-xs text-slate-500">{totalizerUnit}</span>}
+        <div className={`p-2.5 rounded-md ${colorClasses.light} border ${colorClasses.border}`}>
+          <div className="flex justify-between items-center">
+            <span className="text-xs font-medium text-slate-600">{totalizer}</span>
+            <span className={`font-mono text-sm font-semibold ${colorClasses.text}`}>
+              {totalizerValue} <span className="text-xs font-normal opacity-75">{totalizerUnit}</span>
+            </span>
           </div>
-          {/* Show sample count for Totalizer cards */}
-          {isTotalizerCard && (
-            <DataQualityBadge samples={1380} expected={1440} showWarning={true} />
-          )}
-          {avgLabel && (
-            <div className="mt-2 pt-2 border-t border-slate-200">
-              <div className="text-xs text-slate-500">{avgLabel}</div>
-              <div className="text-sm font-bold font-mono text-slate-800">{avgValue}</div>
-              {/* Show sample count for Avg cards */}
+          
+          {avgLabel && avgValue && (
+            <>
+              <div className="border-t border-slate-200/50 mt-2 pt-2 flex justify-between items-center">
+                <span className="text-xs font-medium text-slate-600">{avgLabel}</span>
+                <span className={`font-mono text-sm font-semibold ${colorClasses.text}`}>
+                  {avgValue}
+                </span>
+              </div>
               {avgSamples && (
-                <DataQualityBadge 
-                  samples={avgSamples.samples} 
-                  expected={avgSamples.expected} 
-                  showWarning={true} 
-                />
+                <DataQualityBadge samples={avgSamples.samples} expected={avgSamples.expected} />
               )}
-            </div>
+            </>
+          )}
+          
+          {isTotalizerCard && avgSamples && (
+            <DataQualityBadge samples={avgSamples.samples} expected={avgSamples.expected} />
           )}
         </div>
       </div>
@@ -130,102 +153,203 @@ const KPICard = ({ title, value, unit, totalizer, totalizerValue, totalizerUnit,
 };
 
 const KPISummary = () => {
+  const [dashboardData, setDashboardData] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+  const [lastRefresh, setLastRefresh] = useState(null);
+
+  // Fetch dashboard data
+  const fetchData = useCallback(async () => {
+    try {
+      const result = await getDashboardData();
+      
+      if (result.success) {
+        setDashboardData(result.data);
+        setError(null);
+        setLastRefresh(new Date());
+      } else {
+        setError(result.error);
+      }
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  // Initial fetch and auto-refresh every 60 seconds
+  useEffect(() => {
+    fetchData();
+    
+    const interval = setInterval(() => {
+      fetchData();
+    }, 60000); // 60 seconds
+    
+    return () => clearInterval(interval);
+  }, [fetchData]);
+
+  // Generate trend data from historical if available, otherwise static
   const generateTrendData = (baseValue, variance) => {
     return Array.from({ length: 15 }, (_, i) => ({
       value: baseValue + (Math.random() * variance * 2 - variance)
     }));
   };
 
-  const kpiData = [
-    {
-      title: 'Raw Biogas Flow',
-      value: '1250',
-      unit: 'Nm³/hr',
-      totalizer: 'Totalizer (24 Hr)',
-      totalizerValue: '30,000',
-      totalizerUnit: 'Nm³',
-      avgLabel: null,
-      avgValue: null,
-      avgSamples: null,
-      icon: Wind,
-      color: 'bg-emerald-600',
-      trendData: generateTrendData(1250, 50)
-    },
-    {
-      title: 'Purified Gas Flow',
-      value: '1180',
-      unit: 'Nm³/hr',
-      totalizer: 'Totalizer (24 Hr)',
-      totalizerValue: '28,320',
-      totalizerUnit: 'Nm³',
-      avgLabel: null,
-      avgValue: null,
-      avgSamples: null,
-      icon: Droplet,
-      color: 'bg-violet-700',
-      trendData: generateTrendData(1180, 40)
-    },
-    {
-      title: 'Product Gas Flow',
-      value: '1150',
-      unit: 'Nm³/hr',
-      totalizer: 'Totalizer (24 Hr)',
-      totalizerValue: '27,600',
-      totalizerUnit: 'Nm³',
-      avgLabel: null,
-      avgValue: null,
-      avgSamples: null,
-      icon: TrendingUp,
-      color: 'bg-cyan-600',
-      trendData: generateTrendData(1150, 35)
-    },
-    {
-      title: 'CH₄',
-      value: '96.8',
-      unit: '%',
-      totalizer: 'Avg 1 Hr',
-      totalizerValue: '96.8',
-      totalizerUnit: '%',
-      avgLabel: 'Avg 12 Hr',
-      avgValue: '96.5 %',
-      avgSamples: { samples: 700, expected: 720 }, // 12 hrs * 60 min = 720
-      icon: Gauge,
-      color: 'bg-amber-600',
-      trendData: generateTrendData(96.8, 0.5)
-    },
-    {
-      title: 'CO₂',
-      value: '2.9',
-      unit: '%',
-      totalizer: 'Avg 1 Hr',
-      totalizerValue: '2.9',
-      totalizerUnit: '%',
-      avgLabel: 'Avg 12 Hr',
-      avgValue: '3.1 %',
-      avgSamples: { samples: 705, expected: 720 },
-      icon: Wind,
-      color: 'bg-violet-700',
-      trendData: generateTrendData(2.9, 0.3)
-    },
-    {
-      title: 'H₂S',
-      value: '180',
-      unit: 'ppm',
-      totalizer: 'Avg 1 Hr',
-      totalizerValue: '180',
-      totalizerUnit: 'ppm',
-      avgLabel: 'Avg 12 Hr',
-      avgValue: '190 ppm',
-      avgSamples: { samples: 680, expected: 720 }, // Simulating some missing data
-      icon: Gauge,
-      color: 'bg-rose-600',
-      trendData: generateTrendData(180, 15)
-    }
-  ];
+  // Build KPI data from API response
+  const buildKPIData = () => {
+    if (!dashboardData) return [];
+
+    const { current, avg_1hr, avg_12hr, totalizer_24hr, last_update } = dashboardData;
+
+    return [
+      {
+        title: 'Raw Biogas Flow',
+        value: formatNumber(current?.raw_biogas_flow, 1),
+        unit: 'Nm³/hr',
+        totalizer: 'Totalizer (24 Hr)',
+        totalizerValue: formatNumber(totalizer_24hr?.raw_biogas, 0),
+        totalizerUnit: 'Nm³',
+        avgLabel: null,
+        avgValue: null,
+        avgSamples: { samples: totalizer_24hr?.sample_count || 0, expected: totalizer_24hr?.expected_samples || 1440 },
+        icon: Wind,
+        color: 'bg-emerald-600',
+        trendData: generateTrendData(current?.raw_biogas_flow || 1250, 50),
+        lastUpdate: last_update
+      },
+      {
+        title: 'Purified Gas Flow',
+        value: formatNumber(current?.purified_gas_flow, 1),
+        unit: 'Nm³/hr',
+        totalizer: 'Totalizer (24 Hr)',
+        totalizerValue: formatNumber(totalizer_24hr?.purified_gas, 0),
+        totalizerUnit: 'Nm³',
+        avgLabel: null,
+        avgValue: null,
+        avgSamples: { samples: totalizer_24hr?.sample_count || 0, expected: totalizer_24hr?.expected_samples || 1440 },
+        icon: Droplet,
+        color: 'bg-violet-700',
+        trendData: generateTrendData(current?.purified_gas_flow || 1180, 40),
+        lastUpdate: last_update
+      },
+      {
+        title: 'Product Gas Flow',
+        value: formatNumber(current?.product_gas_flow, 1),
+        unit: 'Nm³/hr',
+        totalizer: 'Totalizer (24 Hr)',
+        totalizerValue: formatNumber(totalizer_24hr?.product_gas, 0),
+        totalizerUnit: 'Nm³',
+        avgLabel: null,
+        avgValue: null,
+        avgSamples: { samples: totalizer_24hr?.sample_count || 0, expected: totalizer_24hr?.expected_samples || 1440 },
+        icon: TrendingUp,
+        color: 'bg-cyan-600',
+        trendData: generateTrendData(current?.product_gas_flow || 1150, 35),
+        lastUpdate: last_update
+      },
+      {
+        title: 'CH₄',
+        value: formatNumber(current?.ch4_concentration, 1),
+        unit: '%',
+        totalizer: 'Avg 1 Hr',
+        totalizerValue: formatNumber(avg_1hr?.ch4_concentration, 1),
+        totalizerUnit: '%',
+        avgLabel: 'Avg 12 Hr',
+        avgValue: `${formatNumber(avg_12hr?.ch4_concentration, 1)} %`,
+        avgSamples: { samples: avg_12hr?.sample_count || 0, expected: avg_12hr?.expected_samples || 720 },
+        icon: Gauge,
+        color: 'bg-amber-600',
+        trendData: generateTrendData(current?.ch4_concentration || 96.8, 0.5),
+        lastUpdate: last_update
+      },
+      {
+        title: 'CO₂',
+        value: formatNumber(current?.co2_level, 1),
+        unit: '%',
+        totalizer: 'Avg 1 Hr',
+        totalizerValue: formatNumber(avg_1hr?.co2_level, 1),
+        totalizerUnit: '%',
+        avgLabel: 'Avg 12 Hr',
+        avgValue: `${formatNumber(avg_12hr?.co2_level, 1)} %`,
+        avgSamples: { samples: avg_12hr?.sample_count || 0, expected: avg_12hr?.expected_samples || 720 },
+        icon: Wind,
+        color: 'bg-violet-700',
+        trendData: generateTrendData(current?.co2_level || 2.9, 0.3),
+        lastUpdate: last_update
+      },
+      {
+        title: 'H₂S',
+        value: formatNumber(current?.h2s_content, 0),
+        unit: 'ppm',
+        totalizer: 'Avg 1 Hr',
+        totalizerValue: formatNumber(avg_1hr?.h2s_content, 0),
+        totalizerUnit: 'ppm',
+        avgLabel: 'Avg 12 Hr',
+        avgValue: `${formatNumber(avg_12hr?.h2s_content, 0)} ppm`,
+        avgSamples: { samples: avg_12hr?.sample_count || 0, expected: avg_12hr?.expected_samples || 720 },
+        icon: Gauge,
+        color: 'bg-rose-600',
+        trendData: generateTrendData(current?.h2s_content || 180, 15),
+        lastUpdate: last_update
+      }
+    ];
+  };
+
+  // Loading state
+  if (loading) {
+    return (
+      <div className="mb-6" data-testid="kpi-summary-section">
+        <h2 className="text-xl font-semibold tracking-tight text-slate-800 mb-4">KPI Summary</h2>
+        <div className="flex items-center justify-center p-8 bg-white rounded-lg border border-slate-200">
+          <RefreshCw className="w-6 h-6 text-slate-400 animate-spin mr-2" />
+          <span className="text-slate-500">Loading dashboard data...</span>
+        </div>
+      </div>
+    );
+  }
+
+  // Error state
+  if (error) {
+    return (
+      <div className="mb-6" data-testid="kpi-summary-section">
+        <h2 className="text-xl font-semibold tracking-tight text-slate-800 mb-4">KPI Summary</h2>
+        <div className="flex items-center justify-center p-8 bg-red-50 rounded-lg border border-red-200">
+          <WifiOff className="w-6 h-6 text-red-400 mr-2" />
+          <span className="text-red-600">Failed to load data: {error}</span>
+          <button 
+            onClick={fetchData}
+            className="ml-4 px-3 py-1 bg-red-100 hover:bg-red-200 text-red-700 rounded-md text-sm"
+          >
+            Retry
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  const kpiData = buildKPIData();
 
   return (
     <div className="mb-6" data-testid="kpi-summary-section">
-      <h2 className="text-xl font-semibold tracking-tight text-slate-800 mb-4">KPI Summary</h2>
+      <div className="flex items-center justify-between mb-4">
+        <h2 className="text-xl font-semibold tracking-tight text-slate-800">KPI Summary</h2>
+        <div className="flex items-center space-x-3">
+          {dashboardData?.data_status && (
+            <DataStatusBadge 
+              status={dashboardData.data_status} 
+              ageSeconds={dashboardData.data_age_seconds}
+            />
+          )}
+          <button 
+            onClick={fetchData}
+            className="flex items-center space-x-1 px-2 py-1 text-xs text-slate-500 hover:text-slate-700 hover:bg-slate-100 rounded"
+            title="Refresh data"
+          >
+            <RefreshCw className="w-3 h-3" />
+            <span>Refresh</span>
+          </button>
+        </div>
+      </div>
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-4">
         {kpiData.map((kpi, index) => (
           <KPICard key={index} {...kpi} />
