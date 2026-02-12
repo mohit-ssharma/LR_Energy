@@ -1,0 +1,6 @@
+requests>=2.31.0
+python-dotenv>=1.0.0
+
+# Uncomment based on your SCADA connection type:
+# opcua>=0.98.0          # For OPC UA connection
+# pyodbc>=5.0.0          # For SQL Server connection
