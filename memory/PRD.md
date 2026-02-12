@@ -72,6 +72,31 @@ Build a web-based SCADA (Supervisory Control and Data Acquisition) monitoring sy
   - Full Comparison Modal with detailed table and export options
   - Collapsible section at bottom of dashboard
 
+### Phase 7: PHP Backend Integration (Completed - Feb 12, 2026)
+- ✅ **PHP REST API Backend** (`/app/php-api/`):
+  - `config.php`: Database configuration
+  - `auth.php`: Authentication endpoint
+  - `dashboard.php`: Current values, averages, equipment status
+  - `trends.php`: Historical data for charts
+  - `comparison.php`: Today vs Yesterday analysis
+  - `receive_data.php`: Data ingestion from SCADA
+  - `sync_status.php`: Sync status monitoring
+  - `schema.sql`: Complete MySQL schema
+- ✅ **Frontend API Integration** (`/app/frontend/src/services/api.js`):
+  - Central API service module
+  - All components integrated with backend endpoints
+- ✅ **Consistent Connection Handling** (All components):
+  - `KPISummary.js`: DEMO/OFFLINE/LIVE badges, warning banners, retry buttons
+  - `EquipmentStatus.js`: Connection status indicators
+  - `ComparisonView.js`: Connection handling with period selection
+  - `TrendsPage.js`: Connection handling with full chart functionality
+  - `MNREDashboard.js`: Full backend integration with connection handling
+- ✅ **Robust Error Handling**:
+  - Shows last known data when connection is lost (not mock)
+  - DEMO mode for initial load without API
+  - OFFLINE mode when API connection lost during session
+  - Auto-refresh every 60 seconds
+
 ---
 
 ## User Roles & Access
@@ -190,34 +215,40 @@ See `/app/updated_field_structure.md` for complete schema.
 
 ## Prioritized Backlog
 
-### P0 - Critical (Next)
-1. ☐ **PHP Backend Development** - BLOCKED waiting for credentials
+### P0 - Critical (Completed)
+1. ✅ **PHP Backend Development**
    - Database connection to MySQL
-   - API endpoints (dashboard, trends, reports, auth)
-   - Data calculations (averages, totalizers)
-2. ☐ **Data Sync Script**
-   - Python/PHP script for plant PC
-   - Connect to local SQL Server
-   - Push to GoDaddy MySQL every 1 minute
-3. ☐ **Auto-refresh Implementation**
+   - API endpoints (dashboard, trends, reports, auth, comparison)
+   - Data calculations (averages, totalizers, PSA running hours, efficiency)
+2. ✅ **Frontend-Backend Integration**
+   - All components connected to PHP API
+   - Consistent connection handling across all pages
+3. ✅ **Auto-refresh Implementation**
    - Frontend polling every 60 seconds
-   - Optimized queries for performance
+   - Connection status monitoring
 
-### P1 - High Priority
-1. ☐ MySQL Database Setup on GoDaddy
-2. ☐ Deployment to karnal.lrenergy.in
-3. ☐ Frontend production build upload
-4. ☐ Testing with real SCADA data
+### P1 - High Priority (Next)
+1. ☐ **Python Sync Script** - BLOCKED waiting for Siemens SCADA details
+   - WinCC version and data access method (OPC UA, direct SQL, etc.)
+   - Complete list of 37 tag addresses from PLC
+2. ☐ **GoDaddy Deployment Guide**
+   - Upload PHP API files
+   - Build and upload React production build
+   - MySQL database setup
+3. ☐ Testing with real SCADA data
 
 ### P2 - Medium Priority
 1. ☐ Sonipat Plant dashboard activation
-2. ☐ Alert/notification system
-3. ☐ Data archival strategy (monthly aggregation)
+2. ☐ Real-time Alert System (bell icon, alert panel, banner)
+3. ☐ Alert History Page/Log
+4. ☐ Performance optimization (daily_summary tables)
 
 ### P3 - Future
-1. ☐ Mobile responsive improvements
-2. ☐ Email notifications for critical alerts
-3. ☐ User management interface
+1. ☐ Print-Friendly Dashboard feature
+2. ☐ Dark Mode
+3. ☐ Data Loss Recovery Strategy
+4. ☐ Mobile responsive improvements
+5. ☐ Email notifications for critical alerts
 
 ---
 
@@ -254,7 +285,20 @@ See `/app/updated_field_structure.md` for complete schema.
 | Navigation | ✅ PASS | All navigation working |
 | Session | ✅ PASS | Persistence working |
 
-**Test Report:** `/app/test_reports/iteration_1.json`
+### Connection Handling Verification (Feb 12, 2026)
+| Component | Status | Tests |
+|-----------|--------|-------|
+| KPISummary Connection | ✅ PASS | DEMO/OFFLINE badges, warning banners, retry buttons |
+| EquipmentStatus Connection | ✅ PASS | DEMO badge, warning banner, refresh button |
+| ComparisonView Connection | ✅ PASS | DEMO badge, warning banner, period selector |
+| TrendsPage Connection | ✅ PASS | DEMO/OFFLINE/LIVE badges, retry button, charts render |
+| MNREDashboard Integration | ✅ PASS | Full API integration, 3 KPIs only, connection handling |
+| Retry/Refresh Functions | ✅ PASS | All buttons trigger data fetch |
+| Dashboard Navigation | ✅ PASS | Both user roles navigate correctly |
+
+**Test Reports:** 
+- `/app/test_reports/iteration_1.json` (UI Verification)
+- `/app/test_reports/iteration_2.json` (Connection Handling)
 
 ---
 
@@ -278,3 +322,4 @@ See `/app/updated_field_structure.md` for complete schema.
 - **Feb 3, 2026**: Role-based access control implemented
 - **Feb 6, 2026**: UI updates (branding, values, limits), Field structure document created
 - **Feb 8, 2026**: Comprehensive UI verification completed - 100% pass rate
+- **Feb 12, 2026**: PHP Backend integration completed, consistent connection handling implemented across all components
