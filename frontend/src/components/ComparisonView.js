@@ -123,86 +123,101 @@ const ComparisonView = () => {
     setShowDownloadMenu(false);
   };
 
-  // Download comparison data as PDF (using print)
+  // Download comparison data as PDF using html2pdf.js
   const downloadPDF = () => {
     if (!comparisonData?.metrics) return;
     
-    const printWindow = window.open('', '_blank');
     const summary = comparisonData.summary || {};
     const metrics = comparisonData.metrics || {};
     
-    const html = `
-      <!DOCTYPE html>
-      <html>
-      <head>
-        <title>Performance Comparison - ${comparisonData.period_label}</title>
-        <style>
-          body { font-family: Arial, sans-serif; padding: 20px; }
-          h1 { color: #1e293b; border-bottom: 2px solid #6366f1; padding-bottom: 10px; }
-          h2 { color: #475569; margin-top: 20px; }
-          .summary { display: flex; gap: 20px; margin: 20px 0; }
-          .summary-card { padding: 15px 25px; border-radius: 8px; text-align: center; }
-          .improved { background: #d1fae5; color: #065f46; }
-          .stable { background: #dbeafe; color: #1e40af; }
-          .warning { background: #fef3c7; color: #92400e; }
-          .declined { background: #fee2e2; color: #991b1b; }
-          table { width: 100%; border-collapse: collapse; margin-top: 20px; }
-          th, td { border: 1px solid #e2e8f0; padding: 10px; text-align: left; }
-          th { background: #f1f5f9; font-weight: 600; }
-          .status-improved { color: #059669; }
-          .status-stable { color: #2563eb; }
-          .status-warning { color: #d97706; }
-          .status-declined { color: #dc2626; }
-          .meta { color: #64748b; font-size: 12px; margin-top: 20px; }
-        </style>
-      </head>
-      <body>
-        <h1>Performance Comparison Report</h1>
-        <p><strong>Period:</strong> ${comparisonData.period_label}</p>
-        <p><strong>Generated:</strong> ${comparisonData.generated_at}</p>
-        
-        <h2>Summary</h2>
-        <div class="summary">
-          <div class="summary-card improved"><strong>${summary.improved || 0}</strong><br/>Improved</div>
-          <div class="summary-card stable"><strong>${summary.stable || 0}</strong><br/>Stable</div>
-          <div class="summary-card warning"><strong>${summary.warning || 0}</strong><br/>Warning</div>
-          <div class="summary-card declined"><strong>${summary.declined || 0}</strong><br/>Declined</div>
+    // Create a hidden container for PDF generation
+    const container = document.createElement('div');
+    container.style.position = 'absolute';
+    container.style.left = '-9999px';
+    container.style.top = '0';
+    container.style.width = '210mm';
+    container.style.padding = '20px';
+    container.style.background = '#ffffff';
+    container.style.fontFamily = 'Arial, sans-serif';
+    
+    container.innerHTML = `
+      <div style="border-bottom: 3px solid #6366f1; padding-bottom: 15px; margin-bottom: 20px;">
+        <h1 style="color: #1e293b; margin: 0; font-size: 24px;">Performance Comparison Report</h1>
+        <p style="color: #64748b; margin: 5px 0 0 0; font-size: 12px;">LR Energy Biogas Plant - Karnal | SCADA Monitoring System</p>
+      </div>
+      
+      <div style="margin-bottom: 20px;">
+        <p style="margin: 5px 0;"><strong>Period:</strong> ${comparisonData.period_label}</p>
+        <p style="margin: 5px 0;"><strong>Generated:</strong> ${new Date().toLocaleString('en-IN')}</p>
+      </div>
+      
+      <h2 style="color: #475569; font-size: 16px; margin: 20px 0 10px 0; border-bottom: 1px solid #e2e8f0; padding-bottom: 5px;">Summary</h2>
+      <div style="display: flex; gap: 15px; margin-bottom: 25px;">
+        <div style="flex: 1; padding: 15px; border-radius: 8px; text-align: center; background: #d1fae5; color: #065f46;">
+          <div style="font-size: 28px; font-weight: bold;">${summary.improved || 0}</div>
+          <div style="font-size: 12px; font-weight: 500;">Improved</div>
         </div>
-        
-        <h2>Detailed Metrics</h2>
-        <table>
-          <thead>
-            <tr>
-              <th>Parameter</th>
-              <th>Today</th>
-              <th>Yesterday</th>
-              <th>Change</th>
-              <th>Status</th>
-            </tr>
-          </thead>
-          <tbody>
-            ${Object.entries(metrics).map(([key, m]) => `
-              <tr>
-                <td>${m.label} (${m.unit})</td>
-                <td>${m.current}</td>
-                <td>${m.previous}</td>
-                <td>${m.change > 0 ? '+' : ''}${m.change} (${m.change_percent > 0 ? '+' : ''}${m.change_percent}%)</td>
-                <td class="status-${m.status}">${m.status.charAt(0).toUpperCase() + m.status.slice(1)}</td>
+        <div style="flex: 1; padding: 15px; border-radius: 8px; text-align: center; background: #dbeafe; color: #1e40af;">
+          <div style="font-size: 28px; font-weight: bold;">${summary.stable || 0}</div>
+          <div style="font-size: 12px; font-weight: 500;">Stable</div>
+        </div>
+        <div style="flex: 1; padding: 15px; border-radius: 8px; text-align: center; background: #fef3c7; color: #92400e;">
+          <div style="font-size: 28px; font-weight: bold;">${summary.warning || 0}</div>
+          <div style="font-size: 12px; font-weight: 500;">Warning</div>
+        </div>
+        <div style="flex: 1; padding: 15px; border-radius: 8px; text-align: center; background: #fee2e2; color: #991b1b;">
+          <div style="font-size: 28px; font-weight: bold;">${summary.declined || 0}</div>
+          <div style="font-size: 12px; font-weight: 500;">Declined</div>
+        </div>
+      </div>
+      
+      <h2 style="color: #475569; font-size: 16px; margin: 20px 0 10px 0; border-bottom: 1px solid #e2e8f0; padding-bottom: 5px;">Detailed Metrics</h2>
+      <table style="width: 100%; border-collapse: collapse; font-size: 11px;">
+        <thead>
+          <tr style="background: #f1f5f9;">
+            <th style="border: 1px solid #e2e8f0; padding: 10px; text-align: left; font-weight: 600;">Parameter</th>
+            <th style="border: 1px solid #e2e8f0; padding: 10px; text-align: right; font-weight: 600;">Today</th>
+            <th style="border: 1px solid #e2e8f0; padding: 10px; text-align: right; font-weight: 600;">Yesterday</th>
+            <th style="border: 1px solid #e2e8f0; padding: 10px; text-align: right; font-weight: 600;">Change</th>
+            <th style="border: 1px solid #e2e8f0; padding: 10px; text-align: center; font-weight: 600;">Status</th>
+          </tr>
+        </thead>
+        <tbody>
+          ${Object.entries(metrics).map(([key, m], idx) => {
+            const bgColor = idx % 2 === 0 ? '#ffffff' : '#f8fafc';
+            const statusColor = m.status === 'improved' ? '#059669' : m.status === 'declined' ? '#dc2626' : m.status === 'warning' ? '#d97706' : '#2563eb';
+            return `
+              <tr style="background: ${bgColor};">
+                <td style="border: 1px solid #e2e8f0; padding: 8px;">${m.label} (${m.unit})</td>
+                <td style="border: 1px solid #e2e8f0; padding: 8px; text-align: right; font-weight: 500;">${m.current}</td>
+                <td style="border: 1px solid #e2e8f0; padding: 8px; text-align: right; color: #64748b;">${m.previous}</td>
+                <td style="border: 1px solid #e2e8f0; padding: 8px; text-align: right;">${m.change > 0 ? '+' : ''}${m.change} (${m.change_percent > 0 ? '+' : ''}${m.change_percent}%)</td>
+                <td style="border: 1px solid #e2e8f0; padding: 8px; text-align: center; color: ${statusColor}; font-weight: 500;">${m.status.charAt(0).toUpperCase() + m.status.slice(1)}</td>
               </tr>
-            `).join('')}
-          </tbody>
-        </table>
-        
-        <p class="meta">LR Energy Biogas Plant - Karnal | SCADA Monitoring System</p>
-      </body>
-      </html>
+            `;
+          }).join('')}
+        </tbody>
+      </table>
+      
+      <div style="margin-top: 30px; padding-top: 15px; border-top: 1px solid #e2e8f0; color: #94a3b8; font-size: 10px; text-align: center;">
+        Generated by SCADA Monitoring System | LR Energy Biogas Plant - Karnal
+      </div>
     `;
     
-    printWindow.document.write(html);
-    printWindow.document.close();
-    printWindow.onload = () => {
-      printWindow.print();
+    document.body.appendChild(container);
+    
+    const opt = {
+      margin: 10,
+      filename: `comparison_${comparisonPeriod}_${new Date().toISOString().split('T')[0]}.pdf`,
+      image: { type: 'jpeg', quality: 0.98 },
+      html2canvas: { scale: 2, useCORS: true },
+      jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
     };
+    
+    html2pdf().set(opt).from(container).save().then(() => {
+      document.body.removeChild(container);
+    });
+    
     setShowDownloadMenu(false);
   };
 
