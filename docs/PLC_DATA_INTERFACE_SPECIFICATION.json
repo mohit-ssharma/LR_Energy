@@ -1,0 +1,587 @@
+{
+  "_documentation": {
+    "title": "LR Energy SCADA - PLC Data Interface Specification",
+    "version": "1.0",
+    "date": "February 2026",
+    "description": "This JSON template defines the exact data format required from the Siemens SCADA/PLC system. The sync script will read these values every 60 seconds and push to the cloud database.",
+    "contact": "IT Department - LR Energy",
+    "notes": [
+      "All values should be provided in the specified units",
+      "Use NULL for any unavailable/faulty sensor reading",
+      "Totalizers are cumulative counters (never reset)",
+      "Status fields use 0=Off, 1=On/Running"
+    ]
+  },
+
+  "_sync_requirements": {
+    "frequency": "Every 60 seconds",
+    "protocol": "HTTP POST to cloud API",
+    "data_format": "JSON",
+    "total_fields": 37,
+    "api_endpoint": "https://karnal.lrenergy.in/api/receive_data.php"
+  },
+
+  "data": {
+    "_section_1_metadata": {
+      "description": "Timestamp and plant identification"
+    },
+    "timestamp": {
+      "description": "Reading timestamp",
+      "format": "YYYY-MM-DD HH:MM:SS",
+      "example": "2026-02-12 10:30:00",
+      "source": "System clock at time of reading",
+      "required": true
+    },
+    "plant_id": {
+      "description": "Plant identifier",
+      "format": "String",
+      "example": "KARNAL",
+      "source": "Configuration constant",
+      "required": true
+    },
+
+    "_section_2_gas_flow": {
+      "description": "Gas flow measurements - 6 fields",
+      "instruments": "Flow meters on gas lines"
+    },
+    "raw_biogas_flow": {
+      "description": "Raw biogas flow rate (instantaneous)",
+      "unit": "Nm³/hr",
+      "data_type": "DECIMAL(10,2)",
+      "range": "0 - 2000",
+      "example": 1250.50,
+      "tag_address": "<<PLC_TAG_ADDRESS>>",
+      "required": true
+    },
+    "raw_biogas_totalizer": {
+      "description": "Raw biogas cumulative total (never resets)",
+      "unit": "Nm³",
+      "data_type": "DECIMAL(15,2)",
+      "range": "0 - 99999999",
+      "example": 150000.00,
+      "tag_address": "<<PLC_TAG_ADDRESS>>",
+      "note": "Cumulative counter - used to calculate daily production",
+      "required": true
+    },
+    "purified_gas_flow": {
+      "description": "Purified gas flow rate (after PSA)",
+      "unit": "Nm³/hr",
+      "data_type": "DECIMAL(10,2)",
+      "range": "0 - 2000",
+      "example": 1180.20,
+      "tag_address": "<<PLC_TAG_ADDRESS>>",
+      "required": true
+    },
+    "purified_gas_totalizer": {
+      "description": "Purified gas cumulative total",
+      "unit": "Nm³",
+      "data_type": "DECIMAL(15,2)",
+      "range": "0 - 99999999",
+      "example": 142000.00,
+      "tag_address": "<<PLC_TAG_ADDRESS>>",
+      "required": true
+    },
+    "product_gas_flow": {
+      "description": "Product gas flow rate (final output)",
+      "unit": "Nm³/hr",
+      "data_type": "DECIMAL(10,2)",
+      "range": "0 - 2000",
+      "example": 1150.80,
+      "tag_address": "<<PLC_TAG_ADDRESS>>",
+      "required": true
+    },
+    "product_gas_totalizer": {
+      "description": "Product gas cumulative total",
+      "unit": "Nm³",
+      "data_type": "DECIMAL(15,2)",
+      "range": "0 - 99999999",
+      "example": 138000.00,
+      "tag_address": "<<PLC_TAG_ADDRESS>>",
+      "required": true
+    },
+
+    "_section_3_gas_composition": {
+      "description": "Gas quality/composition - 5 fields",
+      "instruments": "Gas analyzer"
+    },
+    "ch4_concentration": {
+      "description": "Methane (CH4) concentration",
+      "unit": "%",
+      "data_type": "DECIMAL(5,2)",
+      "range": "0 - 100",
+      "normal_range": "94 - 98",
+      "example": 96.80,
+      "tag_address": "<<PLC_TAG_ADDRESS>>",
+      "required": true
+    },
+    "co2_level": {
+      "description": "Carbon dioxide (CO2) level",
+      "unit": "%",
+      "data_type": "DECIMAL(5,2)",
+      "range": "0 - 100",
+      "normal_range": "1 - 5",
+      "example": 2.90,
+      "tag_address": "<<PLC_TAG_ADDRESS>>",
+      "required": true
+    },
+    "o2_concentration": {
+      "description": "Oxygen (O2) concentration",
+      "unit": "%",
+      "data_type": "DECIMAL(5,2)",
+      "range": "0 - 21",
+      "normal_range": "0 - 0.5",
+      "example": 0.30,
+      "tag_address": "<<PLC_TAG_ADDRESS>>",
+      "required": true
+    },
+    "h2s_content": {
+      "description": "Hydrogen sulfide (H2S) content",
+      "unit": "ppm",
+      "data_type": "DECIMAL(10,2)",
+      "range": "0 - 5000",
+      "normal_range": "0 - 500",
+      "example": 180.00,
+      "tag_address": "<<PLC_TAG_ADDRESS>>",
+      "required": true
+    },
+    "dew_point": {
+      "description": "Dew point measurement",
+      "unit": "mg/m³",
+      "data_type": "DECIMAL(10,2)",
+      "range": "-100 - 100",
+      "example": -68.00,
+      "tag_address": "<<PLC_TAG_ADDRESS>>",
+      "required": true
+    },
+
+    "_section_4_digester_1": {
+      "description": "Digester 1 parameters - 6 fields",
+      "location": "Primary digester tank"
+    },
+    "d1_temp_bottom": {
+      "description": "Digester 1 bottom temperature",
+      "unit": "°C",
+      "data_type": "DECIMAL(5,2)",
+      "range": "0 - 60",
+      "normal_range": "35 - 42",
+      "example": 37.00,
+      "tag_address": "<<PLC_TAG_ADDRESS>>",
+      "required": true
+    },
+    "d1_temp_top": {
+      "description": "Digester 1 top temperature",
+      "unit": "°C",
+      "data_type": "DECIMAL(5,2)",
+      "range": "0 - 60",
+      "normal_range": "35 - 42",
+      "example": 36.50,
+      "tag_address": "<<PLC_TAG_ADDRESS>>",
+      "required": true
+    },
+    "d1_gas_pressure": {
+      "description": "Digester 1 balloon gas pressure",
+      "unit": "mbar",
+      "data_type": "DECIMAL(10,2)",
+      "range": "0 - 100",
+      "normal_range": "20 - 50",
+      "example": 32.00,
+      "tag_address": "<<PLC_TAG_ADDRESS>>",
+      "required": true
+    },
+    "d1_air_pressure": {
+      "description": "Digester 1 balloon air pressure",
+      "unit": "mbar",
+      "data_type": "DECIMAL(10,2)",
+      "range": "0 - 100",
+      "normal_range": "10 - 30",
+      "example": 18.00,
+      "tag_address": "<<PLC_TAG_ADDRESS>>",
+      "required": true
+    },
+    "d1_slurry_height": {
+      "description": "Digester 1 slurry height/level",
+      "unit": "m",
+      "data_type": "DECIMAL(5,2)",
+      "range": "0 - 15",
+      "normal_range": "5 - 10",
+      "example": 7.60,
+      "tag_address": "<<PLC_TAG_ADDRESS>>",
+      "required": true
+    },
+    "d1_gas_level": {
+      "description": "Digester 1 gas storage level",
+      "unit": "%",
+      "data_type": "DECIMAL(5,2)",
+      "range": "0 - 100",
+      "normal_range": "50 - 85",
+      "example": 75.00,
+      "tag_address": "<<PLC_TAG_ADDRESS>>",
+      "required": true
+    },
+
+    "_section_5_digester_2": {
+      "description": "Digester 2 parameters - 6 fields",
+      "location": "Secondary digester tank"
+    },
+    "d2_temp_bottom": {
+      "description": "Digester 2 bottom temperature",
+      "unit": "°C",
+      "data_type": "DECIMAL(5,2)",
+      "range": "0 - 60",
+      "normal_range": "35 - 42",
+      "example": 36.50,
+      "tag_address": "<<PLC_TAG_ADDRESS>>",
+      "required": true
+    },
+    "d2_temp_top": {
+      "description": "Digester 2 top temperature",
+      "unit": "°C",
+      "data_type": "DECIMAL(5,2)",
+      "range": "0 - 60",
+      "normal_range": "35 - 42",
+      "example": 36.00,
+      "tag_address": "<<PLC_TAG_ADDRESS>>",
+      "required": true
+    },
+    "d2_gas_pressure": {
+      "description": "Digester 2 balloon gas pressure",
+      "unit": "mbar",
+      "data_type": "DECIMAL(10,2)",
+      "range": "0 - 100",
+      "normal_range": "20 - 50",
+      "example": 30.00,
+      "tag_address": "<<PLC_TAG_ADDRESS>>",
+      "required": true
+    },
+    "d2_air_pressure": {
+      "description": "Digester 2 balloon air pressure",
+      "unit": "mbar",
+      "data_type": "DECIMAL(10,2)",
+      "range": "0 - 100",
+      "normal_range": "10 - 30",
+      "example": 17.00,
+      "tag_address": "<<PLC_TAG_ADDRESS>>",
+      "required": true
+    },
+    "d2_slurry_height": {
+      "description": "Digester 2 slurry height/level",
+      "unit": "m",
+      "data_type": "DECIMAL(5,2)",
+      "range": "0 - 15",
+      "normal_range": "5 - 10",
+      "example": 7.30,
+      "tag_address": "<<PLC_TAG_ADDRESS>>",
+      "required": true
+    },
+    "d2_gas_level": {
+      "description": "Digester 2 gas storage level",
+      "unit": "%",
+      "data_type": "DECIMAL(5,2)",
+      "range": "0 - 100",
+      "normal_range": "50 - 85",
+      "example": 72.00,
+      "tag_address": "<<PLC_TAG_ADDRESS>>",
+      "required": true
+    },
+
+    "_section_6_tank_levels": {
+      "description": "Storage tank levels - 2 fields"
+    },
+    "buffer_tank_level": {
+      "description": "Buffer tank level",
+      "unit": "%",
+      "data_type": "DECIMAL(5,2)",
+      "range": "0 - 100",
+      "normal_range": "30 - 90",
+      "example": 82.00,
+      "tag_address": "<<PLC_TAG_ADDRESS>>",
+      "required": true
+    },
+    "lagoon_tank_level": {
+      "description": "Lagoon tank level",
+      "unit": "%",
+      "data_type": "DECIMAL(5,2)",
+      "range": "0 - 100",
+      "normal_range": "30 - 90",
+      "example": 76.00,
+      "tag_address": "<<PLC_TAG_ADDRESS>>",
+      "required": true
+    },
+
+    "_section_7_water_flow": {
+      "description": "Water flow meters - 8 fields"
+    },
+    "feed_fm1_flow": {
+      "description": "Feed flow meter 1 - current flow rate",
+      "unit": "m³/hr",
+      "data_type": "DECIMAL(10,2)",
+      "range": "0 - 100",
+      "example": 42.00,
+      "tag_address": "<<PLC_TAG_ADDRESS>>",
+      "required": true
+    },
+    "feed_fm1_totalizer": {
+      "description": "Feed flow meter 1 - cumulative total",
+      "unit": "m³",
+      "data_type": "DECIMAL(15,2)",
+      "range": "0 - 99999999",
+      "example": 5000.00,
+      "tag_address": "<<PLC_TAG_ADDRESS>>",
+      "required": true
+    },
+    "feed_fm2_flow": {
+      "description": "Feed flow meter 2 - current flow rate",
+      "unit": "m³/hr",
+      "data_type": "DECIMAL(10,2)",
+      "range": "0 - 100",
+      "example": 38.00,
+      "tag_address": "<<PLC_TAG_ADDRESS>>",
+      "required": true
+    },
+    "feed_fm2_totalizer": {
+      "description": "Feed flow meter 2 - cumulative total",
+      "unit": "m³",
+      "data_type": "DECIMAL(15,2)",
+      "range": "0 - 99999999",
+      "example": 4500.00,
+      "tag_address": "<<PLC_TAG_ADDRESS>>",
+      "required": true
+    },
+    "fresh_water_flow": {
+      "description": "Fresh water flow - current flow rate",
+      "unit": "m³/hr",
+      "data_type": "DECIMAL(10,2)",
+      "range": "0 - 50",
+      "example": 12.00,
+      "tag_address": "<<PLC_TAG_ADDRESS>>",
+      "required": true
+    },
+    "fresh_water_totalizer": {
+      "description": "Fresh water - cumulative total",
+      "unit": "m³",
+      "data_type": "DECIMAL(15,2)",
+      "range": "0 - 99999999",
+      "example": 1500.00,
+      "tag_address": "<<PLC_TAG_ADDRESS>>",
+      "required": true
+    },
+    "recycle_water_flow": {
+      "description": "Recycle water flow - current flow rate",
+      "unit": "m³/hr",
+      "data_type": "DECIMAL(10,2)",
+      "range": "0 - 100",
+      "example": 26.00,
+      "tag_address": "<<PLC_TAG_ADDRESS>>",
+      "required": true
+    },
+    "recycle_water_totalizer": {
+      "description": "Recycle water - cumulative total",
+      "unit": "m³",
+      "data_type": "DECIMAL(15,2)",
+      "range": "0 - 99999999",
+      "example": 3000.00,
+      "tag_address": "<<PLC_TAG_ADDRESS>>",
+      "required": true
+    },
+
+    "_section_8_equipment": {
+      "description": "Equipment status and power - 4 fields"
+    },
+    "psa_status": {
+      "description": "PSA unit running status",
+      "unit": "Boolean",
+      "data_type": "TINYINT(1)",
+      "values": {
+        "0": "Off/Stopped",
+        "1": "On/Running"
+      },
+      "example": 1,
+      "tag_address": "<<PLC_TAG_ADDRESS>>",
+      "note": "Used to calculate PSA running hours",
+      "required": true
+    },
+    "psa_efficiency": {
+      "description": "PSA efficiency (if available from SCADA)",
+      "unit": "%",
+      "data_type": "DECIMAL(5,2)",
+      "range": "0 - 100",
+      "normal_range": "90 - 98",
+      "example": 94.40,
+      "tag_address": "<<PLC_TAG_ADDRESS>>",
+      "note": "Can be calculated server-side if not available: (purified_gas_flow / raw_biogas_flow) × 100",
+      "required": false
+    },
+    "lt_panel_power": {
+      "description": "LT Panel current power load",
+      "unit": "kW",
+      "data_type": "DECIMAL(10,2)",
+      "range": "0 - 500",
+      "normal_range": "150 - 300",
+      "example": 245.00,
+      "tag_address": "<<PLC_TAG_ADDRESS>>",
+      "note": "Used to calculate daily/monthly power consumption",
+      "required": true
+    },
+    "compressor_status": {
+      "description": "Compressor running status",
+      "unit": "Boolean",
+      "data_type": "TINYINT(1)",
+      "values": {
+        "0": "Off/Stopped",
+        "1": "On/Running"
+      },
+      "example": 1,
+      "tag_address": "<<PLC_TAG_ADDRESS>>",
+      "note": "Used to calculate compressor running hours",
+      "required": true
+    }
+  },
+
+  "_sample_json_payload": {
+    "description": "This is the exact JSON format to send to the API every 60 seconds",
+    "api_key_header": "X-API-Key: YOUR_API_KEY_HERE",
+    "content_type": "application/json",
+    "method": "POST",
+    "payload": {
+      "timestamp": "2026-02-12 10:30:00",
+      "plant_id": "KARNAL",
+      "raw_biogas_flow": 1250.50,
+      "raw_biogas_totalizer": 150000.00,
+      "purified_gas_flow": 1180.20,
+      "purified_gas_totalizer": 142000.00,
+      "product_gas_flow": 1150.80,
+      "product_gas_totalizer": 138000.00,
+      "ch4_concentration": 96.80,
+      "co2_level": 2.90,
+      "o2_concentration": 0.30,
+      "h2s_content": 180.00,
+      "dew_point": -68.00,
+      "d1_temp_bottom": 37.00,
+      "d1_temp_top": 36.50,
+      "d1_gas_pressure": 32.00,
+      "d1_air_pressure": 18.00,
+      "d1_slurry_height": 7.60,
+      "d1_gas_level": 75.00,
+      "d2_temp_bottom": 36.50,
+      "d2_temp_top": 36.00,
+      "d2_gas_pressure": 30.00,
+      "d2_air_pressure": 17.00,
+      "d2_slurry_height": 7.30,
+      "d2_gas_level": 72.00,
+      "buffer_tank_level": 82.00,
+      "lagoon_tank_level": 76.00,
+      "feed_fm1_flow": 42.00,
+      "feed_fm1_totalizer": 5000.00,
+      "feed_fm2_flow": 38.00,
+      "feed_fm2_totalizer": 4500.00,
+      "fresh_water_flow": 12.00,
+      "fresh_water_totalizer": 1500.00,
+      "recycle_water_flow": 26.00,
+      "recycle_water_totalizer": 3000.00,
+      "psa_status": 1,
+      "psa_efficiency": 94.40,
+      "lt_panel_power": 245.00,
+      "compressor_status": 1
+    }
+  },
+
+  "_tag_mapping_template": {
+    "description": "PLC developer should fill in the actual SCADA tag addresses below",
+    "format": "Depends on SCADA type (WinCC, OPC UA, etc.)",
+    "tags": {
+      "raw_biogas_flow": "<<FILL_TAG_ADDRESS>>",
+      "raw_biogas_totalizer": "<<FILL_TAG_ADDRESS>>",
+      "purified_gas_flow": "<<FILL_TAG_ADDRESS>>",
+      "purified_gas_totalizer": "<<FILL_TAG_ADDRESS>>",
+      "product_gas_flow": "<<FILL_TAG_ADDRESS>>",
+      "product_gas_totalizer": "<<FILL_TAG_ADDRESS>>",
+      "ch4_concentration": "<<FILL_TAG_ADDRESS>>",
+      "co2_level": "<<FILL_TAG_ADDRESS>>",
+      "o2_concentration": "<<FILL_TAG_ADDRESS>>",
+      "h2s_content": "<<FILL_TAG_ADDRESS>>",
+      "dew_point": "<<FILL_TAG_ADDRESS>>",
+      "d1_temp_bottom": "<<FILL_TAG_ADDRESS>>",
+      "d1_temp_top": "<<FILL_TAG_ADDRESS>>",
+      "d1_gas_pressure": "<<FILL_TAG_ADDRESS>>",
+      "d1_air_pressure": "<<FILL_TAG_ADDRESS>>",
+      "d1_slurry_height": "<<FILL_TAG_ADDRESS>>",
+      "d1_gas_level": "<<FILL_TAG_ADDRESS>>",
+      "d2_temp_bottom": "<<FILL_TAG_ADDRESS>>",
+      "d2_temp_top": "<<FILL_TAG_ADDRESS>>",
+      "d2_gas_pressure": "<<FILL_TAG_ADDRESS>>",
+      "d2_air_pressure": "<<FILL_TAG_ADDRESS>>",
+      "d2_slurry_height": "<<FILL_TAG_ADDRESS>>",
+      "d2_gas_level": "<<FILL_TAG_ADDRESS>>",
+      "buffer_tank_level": "<<FILL_TAG_ADDRESS>>",
+      "lagoon_tank_level": "<<FILL_TAG_ADDRESS>>",
+      "feed_fm1_flow": "<<FILL_TAG_ADDRESS>>",
+      "feed_fm1_totalizer": "<<FILL_TAG_ADDRESS>>",
+      "feed_fm2_flow": "<<FILL_TAG_ADDRESS>>",
+      "feed_fm2_totalizer": "<<FILL_TAG_ADDRESS>>",
+      "fresh_water_flow": "<<FILL_TAG_ADDRESS>>",
+      "fresh_water_totalizer": "<<FILL_TAG_ADDRESS>>",
+      "recycle_water_flow": "<<FILL_TAG_ADDRESS>>",
+      "recycle_water_totalizer": "<<FILL_TAG_ADDRESS>>",
+      "psa_status": "<<FILL_TAG_ADDRESS>>",
+      "psa_efficiency": "<<FILL_TAG_ADDRESS>>",
+      "lt_panel_power": "<<FILL_TAG_ADDRESS>>",
+      "compressor_status": "<<FILL_TAG_ADDRESS>>"
+    }
+  },
+
+  "_field_summary_table": {
+    "description": "Quick reference of all 37 fields",
+    "fields": [
+      {"#": 1, "field": "timestamp", "unit": "DateTime", "type": "String"},
+      {"#": 2, "field": "plant_id", "unit": "-", "type": "String"},
+      {"#": 3, "field": "raw_biogas_flow", "unit": "Nm³/hr", "type": "Decimal"},
+      {"#": 4, "field": "raw_biogas_totalizer", "unit": "Nm³", "type": "Decimal"},
+      {"#": 5, "field": "purified_gas_flow", "unit": "Nm³/hr", "type": "Decimal"},
+      {"#": 6, "field": "purified_gas_totalizer", "unit": "Nm³", "type": "Decimal"},
+      {"#": 7, "field": "product_gas_flow", "unit": "Nm³/hr", "type": "Decimal"},
+      {"#": 8, "field": "product_gas_totalizer", "unit": "Nm³", "type": "Decimal"},
+      {"#": 9, "field": "ch4_concentration", "unit": "%", "type": "Decimal"},
+      {"#": 10, "field": "co2_level", "unit": "%", "type": "Decimal"},
+      {"#": 11, "field": "o2_concentration", "unit": "%", "type": "Decimal"},
+      {"#": 12, "field": "h2s_content", "unit": "ppm", "type": "Decimal"},
+      {"#": 13, "field": "dew_point", "unit": "mg/m³", "type": "Decimal"},
+      {"#": 14, "field": "d1_temp_bottom", "unit": "°C", "type": "Decimal"},
+      {"#": 15, "field": "d1_temp_top", "unit": "°C", "type": "Decimal"},
+      {"#": 16, "field": "d1_gas_pressure", "unit": "mbar", "type": "Decimal"},
+      {"#": 17, "field": "d1_air_pressure", "unit": "mbar", "type": "Decimal"},
+      {"#": 18, "field": "d1_slurry_height", "unit": "m", "type": "Decimal"},
+      {"#": 19, "field": "d1_gas_level", "unit": "%", "type": "Decimal"},
+      {"#": 20, "field": "d2_temp_bottom", "unit": "°C", "type": "Decimal"},
+      {"#": 21, "field": "d2_temp_top", "unit": "°C", "type": "Decimal"},
+      {"#": 22, "field": "d2_gas_pressure", "unit": "mbar", "type": "Decimal"},
+      {"#": 23, "field": "d2_air_pressure", "unit": "mbar", "type": "Decimal"},
+      {"#": 24, "field": "d2_slurry_height", "unit": "m", "type": "Decimal"},
+      {"#": 25, "field": "d2_gas_level", "unit": "%", "type": "Decimal"},
+      {"#": 26, "field": "buffer_tank_level", "unit": "%", "type": "Decimal"},
+      {"#": 27, "field": "lagoon_tank_level", "unit": "%", "type": "Decimal"},
+      {"#": 28, "field": "feed_fm1_flow", "unit": "m³/hr", "type": "Decimal"},
+      {"#": 29, "field": "feed_fm1_totalizer", "unit": "m³", "type": "Decimal"},
+      {"#": 30, "field": "feed_fm2_flow", "unit": "m³/hr", "type": "Decimal"},
+      {"#": 31, "field": "feed_fm2_totalizer", "unit": "m³", "type": "Decimal"},
+      {"#": 32, "field": "fresh_water_flow", "unit": "m³/hr", "type": "Decimal"},
+      {"#": 33, "field": "fresh_water_totalizer", "unit": "m³", "type": "Decimal"},
+      {"#": 34, "field": "recycle_water_flow", "unit": "m³/hr", "type": "Decimal"},
+      {"#": 35, "field": "recycle_water_totalizer", "unit": "m³", "type": "Decimal"},
+      {"#": 36, "field": "psa_status", "unit": "0/1", "type": "Integer"},
+      {"#": 37, "field": "psa_efficiency", "unit": "%", "type": "Decimal"},
+      {"#": 38, "field": "lt_panel_power", "unit": "kW", "type": "Decimal"},
+      {"#": 39, "field": "compressor_status", "unit": "0/1", "type": "Integer"}
+    ]
+  },
+
+  "_important_notes_for_plc_developer": [
+    "1. TOTALIZERS: These are cumulative counters that should NEVER reset. Used to calculate daily production (MAX - MIN for the day).",
+    "2. STATUS FIELDS: psa_status and compressor_status must be 0 (Off) or 1 (Running). These are used to calculate equipment running hours.",
+    "3. NULL HANDLING: If a sensor reading is unavailable, send NULL instead of 0. The system handles NULLs appropriately.",
+    "4. TIMESTAMP: Must be synchronized with server time. Format: 'YYYY-MM-DD HH:MM:SS' in IST timezone.",
+    "5. DATA FREQUENCY: Send data every 60 seconds. Missing data points will affect dashboard accuracy indicators.",
+    "6. DECIMAL PRECISION: Flow rates to 2 decimal places, percentages to 2 decimal places.",
+    "7. UNITS: Ensure all values are in the specified units before sending. No unit conversion is done server-side.",
+    "8. API AUTHENTICATION: Include API key in header for security."
+  ]
+}
