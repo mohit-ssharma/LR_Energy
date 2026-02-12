@@ -510,12 +510,16 @@ const KPISummary = () => {
       <div className="flex items-center justify-between mb-4">
         <h2 className="text-xl font-semibold tracking-tight text-slate-800">KPI Summary</h2>
         <div className="flex items-center space-x-3">
-          {dashboardData?.data_status && (
-            <DataStatusBadge 
-              status={dashboardData.data_status} 
-              ageSeconds={dashboardData.data_age_seconds}
-            />
-          )}
+          {/* Connection Status Indicator */}
+          <ConnectionStatus
+            isConnected={isConnected}
+            isDemo={isDemo}
+            dataStatus={dashboardData?.data_status}
+            lastUpdate={lastRefresh}
+            onRetry={fetchData}
+          />
+          
+          {/* Manual Refresh Button */}
           <button 
             onClick={fetchData}
             className="flex items-center space-x-1 px-2 py-1 text-xs text-slate-500 hover:text-slate-700 hover:bg-slate-100 rounded"
