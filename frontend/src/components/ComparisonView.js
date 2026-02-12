@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
-import { TrendingUp, TrendingDown, Minus, ChevronDown, ChevronUp, BarChart3, RefreshCw, WifiOff, Wifi, AlertTriangle } from 'lucide-react';
+import { TrendingUp, TrendingDown, Minus, ChevronDown, ChevronUp, BarChart3, RefreshCw, WifiOff, Wifi, AlertTriangle, Download, FileText, FileSpreadsheet } from 'lucide-react';
 import { getComparisonData, formatNumber } from '../services/api';
 
 // Comparison Card Component
