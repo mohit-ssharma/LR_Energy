@@ -124,7 +124,7 @@ const ComparisonView = () => {
   };
 
   // Download comparison data as PDF using html2pdf.js
-  const downloadPDF = () => {
+  const downloadPDF = async () => {
     if (!comparisonData?.metrics) return;
     
     const summary = comparisonData.summary || {};
@@ -133,7 +133,7 @@ const ComparisonView = () => {
     // Create a visible container for PDF generation
     const container = document.createElement('div');
     container.id = 'pdf-comparison-content';
-    container.style.cssText = 'position: fixed; top: 0; left: 0; width: 210mm; padding: 20px; background: #ffffff; font-family: Arial, sans-serif; z-index: 9999;';
+    container.style.cssText = 'position: fixed; top: 0; left: 0; width: 800px; min-height: 600px; padding: 20px; background: #ffffff; font-family: Arial, sans-serif; z-index: 9999; overflow: visible;';
     
     const metricsRows = Object.entries(metrics).map(([key, m], idx) => {
       const bgColor = idx % 2 === 0 ? '#ffffff' : '#f8fafc';
@@ -163,19 +163,19 @@ const ComparisonView = () => {
       <h2 style="color: #475569; font-size: 16px; margin: 20px 0 10px 0; border-bottom: 1px solid #e2e8f0; padding-bottom: 5px;">Summary</h2>
       <table style="width: 100%; margin-bottom: 25px; border-collapse: collapse;">
         <tr>
-          <td style="width: 25%; padding: 15px; border-radius: 8px; text-align: center; background: #d1fae5; color: #065f46;">
+          <td style="width: 25%; padding: 15px; text-align: center; background: #d1fae5; color: #065f46;">
             <div style="font-size: 28px; font-weight: bold;">${summary.improved || 0}</div>
             <div style="font-size: 12px; font-weight: 500;">Improved</div>
           </td>
-          <td style="width: 25%; padding: 15px; border-radius: 8px; text-align: center; background: #dbeafe; color: #1e40af;">
+          <td style="width: 25%; padding: 15px; text-align: center; background: #dbeafe; color: #1e40af;">
             <div style="font-size: 28px; font-weight: bold;">${summary.stable || 0}</div>
             <div style="font-size: 12px; font-weight: 500;">Stable</div>
           </td>
-          <td style="width: 25%; padding: 15px; border-radius: 8px; text-align: center; background: #fef3c7; color: #92400e;">
+          <td style="width: 25%; padding: 15px; text-align: center; background: #fef3c7; color: #92400e;">
             <div style="font-size: 28px; font-weight: bold;">${summary.warning || 0}</div>
             <div style="font-size: 12px; font-weight: 500;">Warning</div>
           </td>
-          <td style="width: 25%; padding: 15px; border-radius: 8px; text-align: center; background: #fee2e2; color: #991b1b;">
+          <td style="width: 25%; padding: 15px; text-align: center; background: #fee2e2; color: #991b1b;">
             <div style="font-size: 28px; font-weight: bold;">${summary.declined || 0}</div>
             <div style="font-size: 12px; font-weight: 500;">Declined</div>
           </td>
@@ -204,6 +204,10 @@ const ComparisonView = () => {
     `;
     
     document.body.appendChild(container);
+    setShowDownloadMenu(false);
+    
+    // Wait for DOM to render
+    await new Promise(resolve => setTimeout(resolve, 100));
     
     const opt = {
       margin: [10, 10, 10, 10],
@@ -213,19 +217,21 @@ const ComparisonView = () => {
         scale: 2, 
         useCORS: true,
         logging: false,
+        width: 800,
         windowWidth: 800
       },
       jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
     };
     
-    html2pdf().set(opt).from(container).save().then(() => {
-      document.body.removeChild(container);
-    }).catch((err) => {
+    try {
+      await html2pdf().set(opt).from(container).save();
+    } catch (err) {
       console.error('PDF generation error:', err);
-      document.body.removeChild(container);
-    });
-    
-    setShowDownloadMenu(false);
+    } finally {
+      if (document.body.contains(container)) {
+        document.body.removeChild(container);
+      }
+    }
   };
 
   // Mock data for when API is unavailable (first load only)
