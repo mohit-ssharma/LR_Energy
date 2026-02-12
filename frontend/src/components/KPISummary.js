@@ -1,7 +1,82 @@
-import React, { useState, useEffect, useCallback } from 'react';
-import { TrendingUp, Droplet, Wind, Gauge, AlertTriangle, CheckCircle, RefreshCw, WifiOff } from 'lucide-react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
+import { TrendingUp, Droplet, Wind, Gauge, AlertTriangle, CheckCircle, RefreshCw, WifiOff, Wifi, AlertCircle } from 'lucide-react';
 import { LineChart, Line, ResponsiveContainer } from 'recharts';
 import { getDashboardData, formatNumber } from '../services/api';
+
+// Connection Status Component
+const ConnectionStatus = ({ isConnected, isDemo, dataStatus, lastUpdate, onRetry }) => {
+  const getStatusInfo = () => {
+    if (isDemo) {
+      return {
+        icon: <WifiOff className="w-4 h-4" />,
+        text: 'DEMO MODE',
+        subtext: 'API not connected',
+        color: 'bg-amber-100 text-amber-700 border-amber-200'
+      };
+    }
+    
+    if (!isConnected) {
+      return {
+        icon: <WifiOff className="w-4 h-4" />,
+        text: 'OFFLINE',
+        subtext: 'Connection lost',
+        color: 'bg-red-100 text-red-700 border-red-200'
+      };
+    }
+    
+    switch (dataStatus) {
+      case 'FRESH':
+        return {
+          icon: <Wifi className="w-4 h-4" />,
+          text: 'LIVE',
+          subtext: 'Real-time data',
+          color: 'bg-emerald-100 text-emerald-700 border-emerald-200'
+        };
+      case 'DELAYED':
+        return {
+          icon: <AlertCircle className="w-4 h-4" />,
+          text: 'DELAYED',
+          subtext: 'Data is 2-5 min old',
+          color: 'bg-amber-100 text-amber-700 border-amber-200'
+        };
+      case 'STALE':
+        return {
+          icon: <AlertTriangle className="w-4 h-4" />,
+          text: 'STALE',
+          subtext: 'Data is >5 min old',
+          color: 'bg-red-100 text-red-700 border-red-200'
+        };
+      default:
+        return {
+          icon: <Wifi className="w-4 h-4" />,
+          text: 'CONNECTED',
+          subtext: '',
+          color: 'bg-blue-100 text-blue-700 border-blue-200'
+        };
+    }
+  };
+
+  const status = getStatusInfo();
+  
+  return (
+    <div className={`flex items-center space-x-2 px-3 py-1.5 rounded-lg border ${status.color}`}>
+      {status.icon}
+      <div className="flex flex-col">
+        <span className="text-xs font-bold">{status.text}</span>
+        {status.subtext && <span className="text-xs opacity-75">{status.subtext}</span>}
+      </div>
+      {(!isConnected || isDemo) && (
+        <button 
+          onClick={onRetry}
+          className="ml-2 p-1 hover:bg-white/50 rounded"
+          title="Retry connection"
+        >
+          <RefreshCw className="w-3 h-3" />
+        </button>
+      )}
+    </div>
+  );
+};
 
 // Data Quality Badge Component
 const DataQualityBadge = ({ samples, expected, showWarning = true }) => {
