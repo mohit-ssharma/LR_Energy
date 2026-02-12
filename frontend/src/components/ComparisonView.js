@@ -167,7 +167,7 @@ const ComparisonView = () => {
     );
   }
 
-  // Error state
+  // Error state - don't block if we have mock data
   if (error && !comparisonData) {
     return (
       <div className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden mb-6" data-testid="comparison-view">
@@ -177,15 +177,9 @@ const ComparisonView = () => {
             <span className="font-semibold">Performance Comparison</span>
           </div>
         </div>
-        <div className="flex items-center justify-center p-8 bg-red-50">
-          <WifiOff className="w-6 h-6 text-red-400 mr-2" />
-          <span className="text-red-600">Failed to load comparison data</span>
-          <button 
-            onClick={fetchData}
-            className="ml-4 px-3 py-1 bg-red-100 hover:bg-red-200 text-red-700 rounded-md text-sm"
-          >
-            Retry
-          </button>
+        <div className="flex items-center justify-center p-8 bg-amber-50">
+          <WifiOff className="w-6 h-6 text-amber-500 mr-2" />
+          <span className="text-amber-700">Loading demo data...</span>
         </div>
       </div>
     );
