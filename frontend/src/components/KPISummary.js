@@ -158,6 +158,49 @@ const KPISummary = () => {
   const [error, setError] = useState(null);
   const [lastRefresh, setLastRefresh] = useState(null);
 
+  // Mock data for when API is unavailable
+  const getMockData = () => ({
+    data_status: 'DEMO',
+    data_age_seconds: 0,
+    last_update: new Date().toISOString(),
+    current: {
+      raw_biogas_flow: 1250.5,
+      raw_biogas_totalizer: 150000,
+      purified_gas_flow: 1180.2,
+      purified_gas_totalizer: 142000,
+      product_gas_flow: 1150.8,
+      product_gas_totalizer: 138000,
+      ch4_concentration: 96.8,
+      co2_level: 2.9,
+      o2_concentration: 0.3,
+      h2s_content: 180,
+      dew_point: -68
+    },
+    avg_1hr: {
+      raw_biogas_flow: 1248.5,
+      ch4_concentration: 96.75,
+      co2_level: 2.88,
+      h2s_content: 178,
+      sample_count: 58,
+      expected_samples: 60
+    },
+    avg_12hr: {
+      raw_biogas_flow: 1245.2,
+      ch4_concentration: 96.5,
+      co2_level: 2.92,
+      h2s_content: 182,
+      sample_count: 700,
+      expected_samples: 720
+    },
+    totalizer_24hr: {
+      raw_biogas: 30000,
+      purified_gas: 28320,
+      product_gas: 27600,
+      sample_count: 1380,
+      expected_samples: 1440
+    }
+  });
+
   // Fetch dashboard data
   const fetchData = useCallback(async () => {
     try {
@@ -168,10 +211,18 @@ const KPISummary = () => {
         setError(null);
         setLastRefresh(new Date());
       } else {
-        setError(result.error);
+        // Use mock data when API fails
+        console.log('API unavailable, using demo data');
+        setDashboardData(getMockData());
+        setError('Using demo data - API not connected');
+        setLastRefresh(new Date());
       }
     } catch (err) {
-      setError(err.message);
+      // Use mock data on error
+      console.log('API error, using demo data:', err.message);
+      setDashboardData(getMockData());
+      setError('Using demo data - API not connected');
+      setLastRefresh(new Date());
     } finally {
       setLoading(false);
     }
