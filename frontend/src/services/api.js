@@ -93,6 +93,18 @@ export async function testConnection() {
 }
 
 /**
+ * Get report data for user-selected date range
+ * Endpoint: GET /reports.php?start_date=YYYY-MM-DD&end_date=YYYY-MM-DD&report_type=production
+ * 
+ * @param {string} startDate - Start date in YYYY-MM-DD format
+ * @param {string} endDate - End date in YYYY-MM-DD format
+ * @param {string} reportType - Type of report: production, quality, performance, compliance, custom
+ */
+export async function getReportData(startDate, endDate, reportType = 'production') {
+    return fetchAPI(`reports.php?start_date=${startDate}&end_date=${endDate}&report_type=${reportType}`);
+}
+
+/**
  * Format number with commas
  */
 export function formatNumber(num, decimals = 0) {
@@ -141,6 +153,7 @@ export default {
     getDashboardData,
     getComparisonData,
     getTrendsData,
+    getReportData,
     getSyncStatus,
     loginUser,
     testConnection,
