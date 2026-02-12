@@ -290,7 +290,13 @@ const KPISummary = () => {
       if (result.success && result.data) {
         // Check if data is valid (has required fields)
         if (result.data.current && result.data.current.raw_biogas_flow !== undefined) {
-          // Valid data received
+          // ✅ Valid data received - Connection is LIVE
+          
+          // Check if we were previously disconnected (reconnection scenario)
+          if (!isConnected && lastKnownDataRef.current) {
+            console.log('Connection restored! Fetching fresh data...');
+          }
+          
           setDashboardData(result.data);
           lastKnownDataRef.current = result.data; // Store as last known good data
           setError(null);
@@ -314,40 +320,44 @@ const KPISummary = () => {
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [isConnected]);
 
-  // Handle connection lost - use last known data or fallback to mock
+  // Handle connection lost - KEEP LAST KNOWN DATA (not mock)
   const handleConnectionLost = (errorMsg) => {
+    setIsConnected(false);
+    
     if (lastKnownDataRef.current) {
-      // We have last known good data - use it with warning
+      // ✅ We have last known real data - KEEP SHOWING IT
+      // Don't replace with mock data, just add offline indicator
       setDashboardData({
         ...lastKnownDataRef.current,
         data_status: 'OFFLINE',
-        _connectionLost: true
+        _connectionLost: true,
+        _lastKnownTime: lastKnownDataRef.current.last_update
       });
       setError('Connection lost - showing last known data');
-      setIsConnected(false);
       setIsDemo(false);
     } else {
-      // No previous data - use mock
+      // ❌ No previous data ever received - this is first load, show demo
       setDashboardData(getMockData());
       setError('API not connected - showing demo data');
-      setIsConnected(false);
       setIsDemo(true);
     }
     setLastRefresh(new Date());
   };
 
-  // Handle no data from server
+  // Handle no new data from server (connected but no fresh data)
   const handleNoData = (errorMsg) => {
     if (lastKnownDataRef.current) {
+      // Keep showing last known data with "no new data" indicator
       setDashboardData({
         ...lastKnownDataRef.current,
         data_status: 'NO_DATA',
         _noNewData: true
       });
-      setError('No new data from server');
+      setError('No new data from server - showing last known');
       setIsConnected(true);
+      setIsDemo(false);
     } else {
       setDashboardData(getMockData());
       setError('No data available - showing demo');
