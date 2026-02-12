@@ -530,6 +530,36 @@ const KPISummary = () => {
           </button>
         </div>
       </div>
+      
+      {/* Warning Banner for Connection Issues */}
+      {error && dashboardData && (
+        <div className={`mb-4 p-3 rounded-lg flex items-center justify-between ${
+          isDemo ? 'bg-amber-50 border border-amber-200' : 'bg-orange-50 border border-orange-200'
+        }`}>
+          <div className="flex items-center space-x-2">
+            <AlertTriangle className={`w-5 h-5 ${isDemo ? 'text-amber-500' : 'text-orange-500'}`} />
+            <div>
+              <span className={`font-medium ${isDemo ? 'text-amber-700' : 'text-orange-700'}`}>
+                {isDemo ? 'Demo Mode' : 'Connection Lost'}
+              </span>
+              <span className={`text-sm ml-2 ${isDemo ? 'text-amber-600' : 'text-orange-600'}`}>
+                {isDemo 
+                  ? '- Showing sample data. Connect to API for live data.' 
+                  : '- Showing last known data. Attempting to reconnect...'}
+              </span>
+            </div>
+          </div>
+          <button 
+            onClick={fetchData}
+            className={`px-3 py-1 text-sm font-medium rounded ${
+              isDemo ? 'bg-amber-200 text-amber-800 hover:bg-amber-300' : 'bg-orange-200 text-orange-800 hover:bg-orange-300'
+            }`}
+          >
+            Retry Now
+          </button>
+        </div>
+      )}
+      
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-4">
         {kpiData.map((kpi, index) => (
           <KPICard key={index} {...kpi} />
