@@ -234,6 +234,7 @@ try {
             'recycle_water_flow' => floatval($latest['recycle_water_flow']),
             'recycle_water_totalizer' => floatval($latest['recycle_water_totalizer']),
             
+            'psa_status' => intval($latest['psa_status']),
             'psa_efficiency' => floatval($latest['psa_efficiency']),
             'lt_panel_power' => floatval($latest['lt_panel_power']),
             'compressor_status' => intval($latest['compressor_status'])
