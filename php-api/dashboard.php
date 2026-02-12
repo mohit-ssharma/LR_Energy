@@ -285,6 +285,35 @@ try {
                 : 0
         ],
         
+        // Equipment Status - PSA & Compressor
+        'equipment' => [
+            'psa' => [
+                'status' => intval($latest['compressor_status']) === 1 ? 'Running' : 'Stopped',
+                'running_hours_today' => round(intval($psaToday['running_minutes']) / 60, 1),
+                'running_minutes_today' => intval($psaToday['running_minutes']),
+                'total_minutes_today' => intval($psaToday['total_minutes']),
+                'running_hours_month' => round(intval($psaMonth['running_minutes']) / 60, 1),
+                'efficiency' => floatval($latest['raw_biogas_flow']) > 0 
+                    ? round((floatval($latest['purified_gas_flow']) / floatval($latest['raw_biogas_flow'])) * 100, 1)
+                    : 0
+            ],
+            'compressor' => [
+                'status' => intval($latest['compressor_status']) === 1 ? 'Running' : 'Stopped',
+                'running_hours_today' => round(intval($psaToday['running_minutes']) / 60, 1),
+                'efficiency' => floatval($latest['raw_biogas_flow']) > 0 
+                    ? round((floatval($latest['purified_gas_flow']) / floatval($latest['raw_biogas_flow'])) * 100, 1)
+                    : 0
+            ],
+            'lt_panel' => [
+                'status' => 'Active',
+                'current_load_kw' => floatval($latest['lt_panel_power']),
+                'avg_power_today_kw' => round(floatval($powerToday['avg_power_kw']), 1),
+                'consumption_today_kwh' => round(floatval($powerToday['avg_power_kw']) * (intval($powerToday['total_minutes']) / 60), 0),
+                'consumption_month_kwh' => round(floatval($powerMonth['avg_power_kw']) * (intval($powerMonth['total_minutes']) / 60), 0),
+                'hours_today' => round(intval($powerToday['total_minutes']) / 60, 1)
+            ]
+        ],
+        
         'execution_time_ms' => $executionTime
     ];
     
