@@ -187,7 +187,11 @@ try {
             'h2s_content' => round(floatval($stats1hr['avg_h2s']), 2),
             'dew_point' => round(floatval($stats1hr['avg_dew_point']), 2),
             'sample_count' => intval($stats1hr['sample_count']),
-            'expected_samples' => 60
+            'valid_samples' => intval($stats1hr['raw_biogas_samples']),
+            'expected_samples' => 60,
+            'data_quality' => intval($stats1hr['sample_count']) > 0 
+                ? round((intval($stats1hr['raw_biogas_samples']) / intval($stats1hr['sample_count'])) * 100, 1) 
+                : 0
         ],
         
         // 12-hour averages
@@ -201,7 +205,11 @@ try {
             'h2s_content' => round(floatval($stats12hr['avg_h2s']), 2),
             'dew_point' => round(floatval($stats12hr['avg_dew_point']), 2),
             'sample_count' => intval($stats12hr['sample_count']),
-            'expected_samples' => 720
+            'valid_samples' => intval($stats12hr['raw_biogas_samples']),
+            'expected_samples' => 720,
+            'data_quality' => intval($stats12hr['sample_count']) > 0 
+                ? round((intval($stats12hr['raw_biogas_samples']) / intval($stats12hr['sample_count'])) * 100, 1) 
+                : 0
         ],
         
         // 24-hour totalizers
@@ -214,7 +222,11 @@ try {
             'fresh_water' => round(floatval($stats24hr['totalizer_fresh_water']), 2),
             'recycle_water' => round(floatval($stats24hr['totalizer_recycle_water']), 2),
             'sample_count' => intval($stats24hr['sample_count']),
-            'expected_samples' => 1440
+            'valid_samples' => intval($stats24hr['raw_biogas_samples']),
+            'expected_samples' => 1440,
+            'data_quality' => intval($stats24hr['sample_count']) > 0 
+                ? round((intval($stats24hr['raw_biogas_samples']) / intval($stats24hr['sample_count'])) * 100, 1) 
+                : 0
         ],
         
         'execution_time_ms' => $executionTime
