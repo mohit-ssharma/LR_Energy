@@ -100,7 +100,8 @@ try {
     ");
     $stats12hr = $stmt12hr->fetch();
     
-    // Get 24-hour totalizer differences (COALESCE handles NULLs - returns 0 if NULL)
+    // Get TODAY's totalizer differences (Midnight-to-Midnight: 00:00 AM to 11:59 PM)
+    // Resets at midnight for daily production tracking
     $stmt24hr = $pdo->query("
         SELECT 
             COUNT(*) as sample_count,
@@ -116,7 +117,7 @@ try {
             COALESCE(MAX(recycle_water_totalizer) - MIN(recycle_water_totalizer), 0) as totalizer_recycle_water
         FROM scada_readings 
         WHERE plant_id = '" . PLANT_ID . "' 
-        AND timestamp >= DATE_SUB(NOW(), INTERVAL 24 HOUR)
+        AND DATE(timestamp) = CURDATE()
     ");
     $stats24hr = $stmt24hr->fetch();
     
