@@ -106,12 +106,13 @@ CREATE TABLE IF NOT EXISTS `scada_readings` (
     `recycle_water_totalizer` DECIMAL(15,2) DEFAULT NULL COMMENT 'Cumulative total in m³',
     
     -- ==========================================
-    -- EQUIPMENT STATUS (3 fields)
+    -- EQUIPMENT STATUS (4 fields)
     -- ==========================================
     
+    `psa_status` TINYINT(1) DEFAULT 0 COMMENT '0=Off, 1=Running - PSA Unit Status from SCADA',
     `psa_efficiency` DECIMAL(5,2) DEFAULT NULL COMMENT 'PSA efficiency in %',
-    `lt_panel_power` DECIMAL(10,2) DEFAULT NULL COMMENT 'LT Panel power in kW',
-    `compressor_status` TINYINT(1) DEFAULT 0 COMMENT '0=Off, 1=Running',
+    `lt_panel_power` DECIMAL(10,2) DEFAULT NULL COMMENT 'LT Panel current load in kW',
+    `compressor_status` TINYINT(1) DEFAULT 0 COMMENT '0=Off, 1=Running - Compressor Status',
     
     -- ==========================================
     -- METADATA
