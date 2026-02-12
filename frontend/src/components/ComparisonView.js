@@ -130,15 +130,24 @@ const ComparisonView = () => {
     const summary = comparisonData.summary || {};
     const metrics = comparisonData.metrics || {};
     
-    // Create a hidden container for PDF generation
+    // Create a visible container for PDF generation
     const container = document.createElement('div');
-    container.style.position = 'absolute';
-    container.style.left = '-9999px';
-    container.style.top = '0';
-    container.style.width = '210mm';
-    container.style.padding = '20px';
-    container.style.background = '#ffffff';
-    container.style.fontFamily = 'Arial, sans-serif';
+    container.id = 'pdf-comparison-content';
+    container.style.cssText = 'position: fixed; top: 0; left: 0; width: 210mm; padding: 20px; background: #ffffff; font-family: Arial, sans-serif; z-index: 9999;';
+    
+    const metricsRows = Object.entries(metrics).map(([key, m], idx) => {
+      const bgColor = idx % 2 === 0 ? '#ffffff' : '#f8fafc';
+      const statusColor = m.status === 'improved' ? '#059669' : m.status === 'declined' ? '#dc2626' : m.status === 'warning' ? '#d97706' : '#2563eb';
+      return `
+        <tr style="background: ${bgColor};">
+          <td style="border: 1px solid #e2e8f0; padding: 8px;">${m.label} (${m.unit})</td>
+          <td style="border: 1px solid #e2e8f0; padding: 8px; text-align: right; font-weight: 500;">${m.current}</td>
+          <td style="border: 1px solid #e2e8f0; padding: 8px; text-align: right; color: #64748b;">${m.previous}</td>
+          <td style="border: 1px solid #e2e8f0; padding: 8px; text-align: right;">${m.change > 0 ? '+' : ''}${m.change} (${m.change_percent > 0 ? '+' : ''}${m.change_percent}%)</td>
+          <td style="border: 1px solid #e2e8f0; padding: 8px; text-align: center; color: ${statusColor}; font-weight: 500;">${m.status.charAt(0).toUpperCase() + m.status.slice(1)}</td>
+        </tr>
+      `;
+    }).join('');
     
     container.innerHTML = `
       <div style="border-bottom: 3px solid #6366f1; padding-bottom: 15px; margin-bottom: 20px;">
@@ -147,29 +156,31 @@ const ComparisonView = () => {
       </div>
       
       <div style="margin-bottom: 20px;">
-        <p style="margin: 5px 0;"><strong>Period:</strong> ${comparisonData.period_label}</p>
+        <p style="margin: 5px 0;"><strong>Period:</strong> ${comparisonData.period_label || 'Today vs Yesterday'}</p>
         <p style="margin: 5px 0;"><strong>Generated:</strong> ${new Date().toLocaleString('en-IN')}</p>
       </div>
       
       <h2 style="color: #475569; font-size: 16px; margin: 20px 0 10px 0; border-bottom: 1px solid #e2e8f0; padding-bottom: 5px;">Summary</h2>
-      <div style="display: flex; gap: 15px; margin-bottom: 25px;">
-        <div style="flex: 1; padding: 15px; border-radius: 8px; text-align: center; background: #d1fae5; color: #065f46;">
-          <div style="font-size: 28px; font-weight: bold;">${summary.improved || 0}</div>
-          <div style="font-size: 12px; font-weight: 500;">Improved</div>
-        </div>
-        <div style="flex: 1; padding: 15px; border-radius: 8px; text-align: center; background: #dbeafe; color: #1e40af;">
-          <div style="font-size: 28px; font-weight: bold;">${summary.stable || 0}</div>
-          <div style="font-size: 12px; font-weight: 500;">Stable</div>
-        </div>
-        <div style="flex: 1; padding: 15px; border-radius: 8px; text-align: center; background: #fef3c7; color: #92400e;">
-          <div style="font-size: 28px; font-weight: bold;">${summary.warning || 0}</div>
-          <div style="font-size: 12px; font-weight: 500;">Warning</div>
-        </div>
-        <div style="flex: 1; padding: 15px; border-radius: 8px; text-align: center; background: #fee2e2; color: #991b1b;">
-          <div style="font-size: 28px; font-weight: bold;">${summary.declined || 0}</div>
-          <div style="font-size: 12px; font-weight: 500;">Declined</div>
-        </div>
-      </div>
+      <table style="width: 100%; margin-bottom: 25px; border-collapse: collapse;">
+        <tr>
+          <td style="width: 25%; padding: 15px; border-radius: 8px; text-align: center; background: #d1fae5; color: #065f46;">
+            <div style="font-size: 28px; font-weight: bold;">${summary.improved || 0}</div>
+            <div style="font-size: 12px; font-weight: 500;">Improved</div>
+          </td>
+          <td style="width: 25%; padding: 15px; border-radius: 8px; text-align: center; background: #dbeafe; color: #1e40af;">
+            <div style="font-size: 28px; font-weight: bold;">${summary.stable || 0}</div>
+            <div style="font-size: 12px; font-weight: 500;">Stable</div>
+          </td>
+          <td style="width: 25%; padding: 15px; border-radius: 8px; text-align: center; background: #fef3c7; color: #92400e;">
+            <div style="font-size: 28px; font-weight: bold;">${summary.warning || 0}</div>
+            <div style="font-size: 12px; font-weight: 500;">Warning</div>
+          </td>
+          <td style="width: 25%; padding: 15px; border-radius: 8px; text-align: center; background: #fee2e2; color: #991b1b;">
+            <div style="font-size: 28px; font-weight: bold;">${summary.declined || 0}</div>
+            <div style="font-size: 12px; font-weight: 500;">Declined</div>
+          </td>
+        </tr>
+      </table>
       
       <h2 style="color: #475569; font-size: 16px; margin: 20px 0 10px 0; border-bottom: 1px solid #e2e8f0; padding-bottom: 5px;">Detailed Metrics</h2>
       <table style="width: 100%; border-collapse: collapse; font-size: 11px;">
@@ -183,19 +194,7 @@ const ComparisonView = () => {
           </tr>
         </thead>
         <tbody>
-          ${Object.entries(metrics).map(([key, m], idx) => {
-            const bgColor = idx % 2 === 0 ? '#ffffff' : '#f8fafc';
-            const statusColor = m.status === 'improved' ? '#059669' : m.status === 'declined' ? '#dc2626' : m.status === 'warning' ? '#d97706' : '#2563eb';
-            return `
-              <tr style="background: ${bgColor};">
-                <td style="border: 1px solid #e2e8f0; padding: 8px;">${m.label} (${m.unit})</td>
-                <td style="border: 1px solid #e2e8f0; padding: 8px; text-align: right; font-weight: 500;">${m.current}</td>
-                <td style="border: 1px solid #e2e8f0; padding: 8px; text-align: right; color: #64748b;">${m.previous}</td>
-                <td style="border: 1px solid #e2e8f0; padding: 8px; text-align: right;">${m.change > 0 ? '+' : ''}${m.change} (${m.change_percent > 0 ? '+' : ''}${m.change_percent}%)</td>
-                <td style="border: 1px solid #e2e8f0; padding: 8px; text-align: center; color: ${statusColor}; font-weight: 500;">${m.status.charAt(0).toUpperCase() + m.status.slice(1)}</td>
-              </tr>
-            `;
-          }).join('')}
+          ${metricsRows}
         </tbody>
       </table>
       
@@ -207,14 +206,22 @@ const ComparisonView = () => {
     document.body.appendChild(container);
     
     const opt = {
-      margin: 10,
+      margin: [10, 10, 10, 10],
       filename: `comparison_${comparisonPeriod}_${new Date().toISOString().split('T')[0]}.pdf`,
       image: { type: 'jpeg', quality: 0.98 },
-      html2canvas: { scale: 2, useCORS: true },
+      html2canvas: { 
+        scale: 2, 
+        useCORS: true,
+        logging: false,
+        windowWidth: 800
+      },
       jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
     };
     
     html2pdf().set(opt).from(container).save().then(() => {
+      document.body.removeChild(container);
+    }).catch((err) => {
+      console.error('PDF generation error:', err);
       document.body.removeChild(container);
     });
     
