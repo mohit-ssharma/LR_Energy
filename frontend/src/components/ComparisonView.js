@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { TrendingUp, TrendingDown, Minus, ChevronDown, ChevronUp, BarChart3, RefreshCw, WifiOff, Wifi, AlertTriangle, Download, FileText, FileSpreadsheet } from 'lucide-react';
 import { getComparisonData, formatNumber } from '../services/api';
+import html2pdf from 'html2pdf.js';
 
 // Comparison Card Component
 const ComparisonCard = ({ title, unit, todayValue, yesterdayValue, goodDirection, status, changePercent }) => {
