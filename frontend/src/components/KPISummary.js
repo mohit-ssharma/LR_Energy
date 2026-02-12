@@ -4,7 +4,7 @@ import { LineChart, Line, ResponsiveContainer } from 'recharts';
 import { getDashboardData, formatNumber } from '../services/api';
 
 // Connection Status Component
-const ConnectionStatus = ({ isConnected, isDemo, dataStatus, lastUpdate, onRetry }) => {
+const ConnectionStatus = ({ isConnected, isDemo, dataStatus, lastUpdate, lastKnownTime, onRetry }) => {
   const getStatusInfo = () => {
     if (isDemo) {
       return {
@@ -19,7 +19,7 @@ const ConnectionStatus = ({ isConnected, isDemo, dataStatus, lastUpdate, onRetry
       return {
         icon: <WifiOff className="w-4 h-4" />,
         text: 'OFFLINE',
-        subtext: 'Connection lost',
+        subtext: lastKnownTime ? `Last data: ${new Date(lastKnownTime).toLocaleTimeString()}` : 'Reconnecting...',
         color: 'bg-red-100 text-red-700 border-red-200'
       };
     }
@@ -45,6 +45,13 @@ const ConnectionStatus = ({ isConnected, isDemo, dataStatus, lastUpdate, onRetry
           text: 'STALE',
           subtext: 'Data is >5 min old',
           color: 'bg-red-100 text-red-700 border-red-200'
+        };
+      case 'NO_DATA':
+        return {
+          icon: <AlertCircle className="w-4 h-4" />,
+          text: 'NO NEW DATA',
+          subtext: 'Waiting for sync...',
+          color: 'bg-amber-100 text-amber-700 border-amber-200'
         };
       default:
         return {
