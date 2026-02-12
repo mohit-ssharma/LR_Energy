@@ -1,6 +1,6 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { LineChart, Line, AreaChart, Area, ResponsiveContainer, XAxis, YAxis, CartesianGrid, Tooltip, Legend } from 'recharts';
-import { TrendingUp, Calendar, BarChart3, Eye, X, Maximize2, Download, FileText, FileSpreadsheet, RefreshCw, WifiOff } from 'lucide-react';
+import { TrendingUp, Calendar, BarChart3, Eye, X, Maximize2, Download, FileText, FileSpreadsheet, RefreshCw, WifiOff, Wifi, AlertTriangle } from 'lucide-react';
 import { generatePDFReport, generateCSVDownload } from '../utils/pdfUtils';
 import { getTrendsData } from '../services/api';
 
@@ -14,6 +14,39 @@ function TrendsPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [dataStats, setDataStats] = useState(null);
+  const [isConnected, setIsConnected] = useState(false);
+  const [isDemo, setIsDemo] = useState(false);
+  
+  // Store last known good data
+  const lastKnownDataRef = useRef(null);
+  const lastKnownStatsRef = useRef(null);
+
+  // Transform API data to chart format
+  const transformApiData = (apiData) => {
+    return (apiData || []).map((row, index) => ({
+      time: row.timestamp ? new Date(row.timestamp).toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' }) : `${index}`,
+      rawBiogas: parseFloat(row.raw_biogas_flow) || 0,
+      purifiedGas: parseFloat(row.purified_gas_flow) || 0,
+      productGas: parseFloat(row.product_gas_flow) || 0,
+      ch4: parseFloat(row.ch4_concentration) || 0,
+      co2: parseFloat(row.co2_level) || 0,
+      o2: parseFloat(row.o2_concentration) || 0,
+      h2s: parseFloat(row.h2s_content) || 0,
+      dewPoint: parseFloat(row.dew_point) || 0,
+      digester1Temp: parseFloat(row.d1_temp_bottom) || 0,
+      digester2Temp: parseFloat(row.d2_temp_bottom) || 0,
+      digester1GasPressure: parseFloat(row.d1_gas_pressure) || 0,
+      digester2GasPressure: parseFloat(row.d2_gas_pressure) || 0,
+      digester1AirPressure: parseFloat(row.d1_air_pressure) || 0,
+      digester2AirPressure: parseFloat(row.d2_air_pressure) || 0,
+      digester1SlurryHeight: parseFloat(row.d1_slurry_height) || 0,
+      digester2SlurryHeight: parseFloat(row.d2_slurry_height) || 0,
+      bufferTank: parseFloat(row.buffer_tank_level) || 0,
+      lagoonTank: parseFloat(row.lagoon_tank_level) || 0,
+      psaEfficiency: parseFloat(row.psa_efficiency) || 0,
+      ltPanelPower: parseFloat(row.lt_panel_power) || 0
+    }));
+  };
 
   // Fetch trends data from API
   const fetchData = useCallback(async () => {
@@ -22,53 +55,58 @@ function TrendsPage() {
       const hours = timeRange === '1h' ? 1 : timeRange === '12h' ? 12 : timeRange === '24h' ? 24 : 168;
       const result = await getTrendsData(hours);
       
-      if (result.success) {
-        // Transform API data to chart format
-        const transformedData = (result.data.data || []).map((row, index) => ({
-          time: row.timestamp ? new Date(row.timestamp).toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' }) : `${index}`,
-          rawBiogas: parseFloat(row.raw_biogas_flow) || 0,
-          purifiedGas: parseFloat(row.purified_gas_flow) || 0,
-          productGas: parseFloat(row.product_gas_flow) || 0,
-          ch4: parseFloat(row.ch4_concentration) || 0,
-          co2: parseFloat(row.co2_level) || 0,
-          o2: parseFloat(row.o2_concentration) || 0,
-          h2s: parseFloat(row.h2s_content) || 0,
-          dewPoint: parseFloat(row.dew_point) || 0,
-          digester1Temp: parseFloat(row.d1_temp_bottom) || 0,
-          digester2Temp: parseFloat(row.d2_temp_bottom) || 0,
-          digester1GasPressure: parseFloat(row.d1_gas_pressure) || 0,
-          digester2GasPressure: parseFloat(row.d2_gas_pressure) || 0,
-          digester1AirPressure: parseFloat(row.d1_air_pressure) || 0,
-          digester2AirPressure: parseFloat(row.d2_air_pressure) || 0,
-          digester1SlurryHeight: parseFloat(row.d1_slurry_height) || 0,
-          digester2SlurryHeight: parseFloat(row.d2_slurry_height) || 0,
-          bufferTank: parseFloat(row.buffer_tank_level) || 0,
-          lagoonTank: parseFloat(row.lagoon_tank_level) || 0,
-          psaEfficiency: parseFloat(row.psa_efficiency) || 0,
-          ltPanelPower: parseFloat(row.lt_panel_power) || 0
-        }));
-        
-        setTrendData(transformedData);
-        setDataStats({
+      if (result.success && result.data?.data) {
+        // ✅ Valid data received - Connection is LIVE
+        const transformedData = transformApiData(result.data.data);
+        const stats = {
           dataPoints: result.data.data_points,
           totalRecords: result.data.total_records,
           expectedRecords: result.data.expected_records,
           coveragePercent: result.data.coverage_percent,
           intervalMinutes: result.data.query?.interval_minutes
-        });
+        };
+        
+        setTrendData(transformedData);
+        setDataStats(stats);
+        
+        // Store as last known good data
+        lastKnownDataRef.current = transformedData;
+        lastKnownStatsRef.current = stats;
+        
         setError(null);
+        setIsConnected(true);
+        setIsDemo(false);
       } else {
-        setError(result.error);
-        // Generate fallback mock data
-        setTrendData(generateMockData(timeRange));
+        // API call failed
+        handleConnectionLost(result.error || 'Failed to fetch data');
       }
     } catch (err) {
-      setError(err.message);
-      setTrendData(generateMockData(timeRange));
+      // Network error
+      console.error('Trends API error:', err.message);
+      handleConnectionLost(err.message);
     } finally {
       setLoading(false);
     }
   }, [timeRange]);
+
+  // Handle connection lost - KEEP LAST KNOWN DATA
+  const handleConnectionLost = (errorMsg) => {
+    setIsConnected(false);
+    
+    if (lastKnownDataRef.current && lastKnownDataRef.current.length > 0) {
+      // ✅ We have last known real data - KEEP SHOWING IT
+      setTrendData(lastKnownDataRef.current);
+      setDataStats(lastKnownStatsRef.current);
+      setError('Connection lost - showing last known data');
+      setIsDemo(false);
+    } else {
+      // ❌ No previous data - show demo
+      setTrendData(generateMockData(timeRange));
+      setDataStats(null);
+      setError('API not connected - showing demo data');
+      setIsDemo(true);
+    }
+  };
 
   // Generate mock data as fallback
   function generateMockData(range) {
@@ -236,6 +274,24 @@ function TrendsPage() {
           <p className="text-slate-500 mt-1">Historical data visualization and analysis</p>
         </div>
         <div className="flex items-center space-x-3">
+          {/* Connection Status Badge */}
+          {isDemo ? (
+            <span className="flex items-center space-x-1 px-2 py-1 bg-amber-100 text-amber-700 rounded text-xs font-medium">
+              <WifiOff className="w-3 h-3" />
+              <span>DEMO</span>
+            </span>
+          ) : !isConnected && error ? (
+            <span className="flex items-center space-x-1 px-2 py-1 bg-red-100 text-red-700 rounded text-xs font-medium">
+              <WifiOff className="w-3 h-3" />
+              <span>OFFLINE</span>
+            </span>
+          ) : (
+            <span className="flex items-center space-x-1 px-2 py-1 bg-emerald-100 text-emerald-700 rounded text-xs font-medium">
+              <Wifi className="w-3 h-3" />
+              <span>LIVE</span>
+            </span>
+          )}
+          
           {/* Data Coverage Badge */}
           {dataStats && (
             <div className="px-3 py-1 bg-slate-100 rounded-full text-xs text-slate-600">
@@ -284,11 +340,30 @@ function TrendsPage() {
         </div>
       </div>
 
-      {/* Error Banner */}
+      {/* Connection Status & Error Banner */}
       {error && (
-        <div className="flex items-center p-3 bg-amber-50 border border-amber-200 rounded-lg">
-          <WifiOff className="w-5 h-5 text-amber-500 mr-2" />
-          <span className="text-amber-700 text-sm">Could not load live data. Showing sample data.</span>
+        <div className={`flex items-center justify-between p-3 rounded-lg ${
+          isDemo ? 'bg-amber-50 border border-amber-200' : 'bg-orange-50 border border-orange-200'
+        }`}>
+          <div className="flex items-center">
+            <AlertTriangle className={`w-5 h-5 mr-2 ${isDemo ? 'text-amber-500' : 'text-orange-500'}`} />
+            <div>
+              <span className={`font-medium ${isDemo ? 'text-amber-700' : 'text-orange-700'}`}>
+                {isDemo ? 'Demo Mode' : 'Connection Lost'}
+              </span>
+              <span className={`text-sm ml-2 ${isDemo ? 'text-amber-600' : 'text-orange-600'}`}>
+                {isDemo ? '- Showing sample data. Connect to API for live data.' : '- Showing last known data. Attempting to reconnect...'}
+              </span>
+            </div>
+          </div>
+          <button 
+            onClick={fetchData}
+            className={`px-3 py-1 text-sm font-medium rounded ${
+              isDemo ? 'bg-amber-200 text-amber-800 hover:bg-amber-300' : 'bg-orange-200 text-orange-800 hover:bg-orange-300'
+            }`}
+          >
+            Retry Now
+          </button>
         </div>
       )}
 
