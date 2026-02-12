@@ -1,7 +1,8 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { LineChart, Line, AreaChart, Area, ResponsiveContainer, XAxis, YAxis, CartesianGrid, Tooltip, Legend } from 'recharts';
-import { TrendingUp, Calendar, BarChart3, Eye, X, Maximize2, Download, FileText, FileSpreadsheet } from 'lucide-react';
+import { TrendingUp, Calendar, BarChart3, Eye, X, Maximize2, Download, FileText, FileSpreadsheet, RefreshCw, WifiOff } from 'lucide-react';
 import { generatePDFReport, generateCSVDownload } from '../utils/pdfUtils';
+import { getTrendsData } from '../services/api';
 
 function TrendsPage() {
   const [timeRange, setTimeRange] = useState('24h');
@@ -9,12 +10,73 @@ function TrendsPage() {
   const [selectedCategory, setSelectedCategory] = useState('all');
   const [maximizedChart, setMaximizedChart] = useState(null);
   const [showDownloadMenu, setShowDownloadMenu] = useState(false);
+  const [trendData, setTrendData] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+  const [dataStats, setDataStats] = useState(null);
 
-  function generateTrendData(hours) {
+  // Fetch trends data from API
+  const fetchData = useCallback(async () => {
+    setLoading(true);
+    try {
+      const hours = timeRange === '1h' ? 1 : timeRange === '12h' ? 12 : timeRange === '24h' ? 24 : 168;
+      const result = await getTrendsData(hours);
+      
+      if (result.success) {
+        // Transform API data to chart format
+        const transformedData = (result.data.data || []).map((row, index) => ({
+          time: row.timestamp ? new Date(row.timestamp).toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' }) : `${index}`,
+          rawBiogas: parseFloat(row.raw_biogas_flow) || 0,
+          purifiedGas: parseFloat(row.purified_gas_flow) || 0,
+          productGas: parseFloat(row.product_gas_flow) || 0,
+          ch4: parseFloat(row.ch4_concentration) || 0,
+          co2: parseFloat(row.co2_level) || 0,
+          o2: parseFloat(row.o2_concentration) || 0,
+          h2s: parseFloat(row.h2s_content) || 0,
+          dewPoint: parseFloat(row.dew_point) || 0,
+          digester1Temp: parseFloat(row.d1_temp_bottom) || 0,
+          digester2Temp: parseFloat(row.d2_temp_bottom) || 0,
+          digester1GasPressure: parseFloat(row.d1_gas_pressure) || 0,
+          digester2GasPressure: parseFloat(row.d2_gas_pressure) || 0,
+          digester1AirPressure: parseFloat(row.d1_air_pressure) || 0,
+          digester2AirPressure: parseFloat(row.d2_air_pressure) || 0,
+          digester1SlurryHeight: parseFloat(row.d1_slurry_height) || 0,
+          digester2SlurryHeight: parseFloat(row.d2_slurry_height) || 0,
+          bufferTank: parseFloat(row.buffer_tank_level) || 0,
+          lagoonTank: parseFloat(row.lagoon_tank_level) || 0,
+          psaEfficiency: parseFloat(row.psa_efficiency) || 0,
+          ltPanelPower: parseFloat(row.lt_panel_power) || 0
+        }));
+        
+        setTrendData(transformedData);
+        setDataStats({
+          dataPoints: result.data.data_points,
+          totalRecords: result.data.total_records,
+          expectedRecords: result.data.expected_records,
+          coveragePercent: result.data.coverage_percent,
+          intervalMinutes: result.data.query?.interval_minutes
+        });
+        setError(null);
+      } else {
+        setError(result.error);
+        // Generate fallback mock data
+        setTrendData(generateMockData(timeRange));
+      }
+    } catch (err) {
+      setError(err.message);
+      setTrendData(generateMockData(timeRange));
+    } finally {
+      setLoading(false);
+    }
+  }, [timeRange]);
+
+  // Generate mock data as fallback
+  function generateMockData(range) {
+    const hours = range === '1h' ? 60 : range === '12h' ? 12 : range === '24h' ? 24 : 168;
     const data = [];
     for (let i = 0; i < hours; i++) {
       data.push({
-        time: i,
+        time: `${i}h`,
         rawBiogas: 1250 + (Math.random() * 100 - 50),
         purifiedGas: 1180 + (Math.random() * 80 - 40),
         productGas: 1150 + (Math.random() * 70 - 35),
@@ -27,23 +89,17 @@ function TrendsPage() {
         digester2Temp: 36.5 + (Math.random() * 2 - 1),
         digester1GasPressure: 32 + (Math.random() * 4 - 2),
         digester2GasPressure: 30 + (Math.random() * 4 - 2),
-        digester1AirPressure: 18 + (Math.random() * 2 - 1),
-        digester2AirPressure: 17 + (Math.random() * 2 - 1),
-        digester1SlurryHeight: 7.6 + (Math.random() * 0.4 - 0.2),
-        digester2SlurryHeight: 7.3 + (Math.random() * 0.4 - 0.2),
         bufferTank: 82 + (Math.random() * 6 - 3),
-        lagoonTank: 76 + (Math.random() * 6 - 3),
-        feedFM1: 42 + (Math.random() * 4 - 2),
-        feedFM2: 38 + (Math.random() * 4 - 2),
-        freshWaterFM: 12 + (Math.random() * 2 - 1),
-        recycleWaterFM: 26 + (Math.random() * 3 - 1.5)
+        lagoonTank: 76 + (Math.random() * 6 - 3)
       });
     }
     return data;
   }
 
-  const hours = timeRange === '1h' ? 60 : timeRange === '12h' ? 12 : timeRange === '24h' ? 24 : 168;
-  const trendData = generateTrendData(hours);
+  // Fetch on mount and when time range changes
+  useEffect(() => {
+    fetchData();
+  }, [fetchData]);
 
   const parameterCategories = {
     'Gas Flow': [
@@ -73,12 +129,6 @@ function TrendsPage() {
     'Tank Levels': [
       { key: 'bufferTank', label: 'Buffer Tank Level', color: '#f59e0b', unit: '%' },
       { key: 'lagoonTank', label: 'Lagoon Tank Level', color: '#8b5cf6', unit: '%' }
-    ],
-    'Water Flow': [
-      { key: 'feedFM1', label: 'Feed FM-I', color: '#10b981', unit: 'm³/hr' },
-      { key: 'feedFM2', label: 'Feed FM-II', color: '#f59e0b', unit: 'm³/hr' },
-      { key: 'freshWaterFM', label: 'Fresh Water FM', color: '#8b5cf6', unit: 'm³/hr' },
-      { key: 'recycleWaterFM', label: 'Recycle Water FM', color: '#06b6d4', unit: 'm³/hr' }
     ]
   };
 
@@ -99,500 +149,251 @@ function TrendsPage() {
     if (allSelected) {
       setSelectedParams(selectedParams.filter(function(k) { return !categoryParams.includes(k); }));
     } else {
-      const newParams = [...selectedParams];
-      categoryParams.forEach(function(key) {
-        if (!newParams.includes(key)) {
-          newParams.push(key);
-        }
-      });
-      setSelectedParams(newParams);
+      setSelectedParams([...selectedParams, ...categoryParams.filter(function(k) { return !selectedParams.includes(k); })]);
     }
   }
 
-  const allParameters = [];
-  Object.values(parameterCategories).forEach(function(params) {
-    params.forEach(function(p) { allParameters.push(p); });
-  });
-
-  function getStatistics(paramKey) {
-    const values = trendData.map(function(d) { return d[paramKey]; });
-    const sum = values.reduce(function(a, b) { return a + b; }, 0);
-    const avg = sum / values.length;
-    const min = Math.min.apply(null, values);
-    const max = Math.max.apply(null, values);
-    
-    // Simulate 12hr and 24hr averages with sample counts
-    const avg12hr = avg + (Math.random() * 2 - 1);
-    const avg24hr = avg + (Math.random() * 3 - 1.5);
-    
-    // Simulate sample counts (some data might be missing)
-    const samples12hr = Math.floor(680 + Math.random() * 40); // out of 720
-    const samples24hr = Math.floor(1350 + Math.random() * 90); // out of 1440
-    
-    return { 
-      avg12hr: avg12hr, 
-      avg24hr: avg24hr, 
-      min: min, 
-      max: max,
-      samples12hr: samples12hr,
-      expected12hr: 720,
-      samples24hr: samples24hr,
-      expected24hr: 1440
-    };
-  }
-
-  function getFilteredCategories() {
-    if (selectedCategory === 'all') {
-      return parameterCategories;
-    }
-    const result = {};
-    result[selectedCategory] = parameterCategories[selectedCategory];
-    return result;
-  }
-
-  const filteredCategories = getFilteredCategories();
-
-  // Get categories to display based on selected parameters
-  function getCategoriesToDisplay() {
-    const categories = [];
-    Object.keys(parameterCategories).forEach(function(categoryName) {
-      const params = parameterCategories[categoryName];
-      const hasSelected = params.some(function(p) { return selectedParams.includes(p.key); });
-      if (hasSelected && (selectedCategory === 'all' || selectedCategory === categoryName)) {
-        categories.push({ name: categoryName, params: params });
-      }
-    });
-    return categories;
-  }
-
-  const categoriesToDisplay = getCategoriesToDisplay();
-
-  function handleDownloadCSV() {
-    const headers = ['Time'];
-    const paramList = [];
-    selectedParams.forEach(function(key) {
-      const param = allParameters.find(function(p) { return p.key === key; });
-      if (param) {
-        headers.push(param.label + ' (' + param.unit + ')');
-        paramList.push(key);
-      }
-    });
-    
-    const rows = trendData.map(function(d) {
-      const row = [d.time];
-      paramList.forEach(function(key) {
-        row.push(d[key].toFixed(2));
-      });
-      return row;
-    });
-    
-    generateCSVDownload({
-      title: 'Trends_Data_' + timeRange,
-      headers: headers,
-      data: rows
-    });
-    setShowDownloadMenu(false);
-  }
-
-  async function handleDownloadPDF() {
-    const tableHeaders = ['Time'];
-    const paramList = [];
-    selectedParams.slice(0, 5).forEach(function(key) {
-      const param = allParameters.find(function(p) { return p.key === key; });
-      if (param) {
-        tableHeaders.push(param.label);
-        paramList.push(key);
-      }
-    });
-    
-    const tableData = trendData.slice(0, 15).map(function(d) {
-      const row = [d.time + 'h'];
-      paramList.forEach(function(key) {
-        row.push(d[key].toFixed(2));
-      });
-      return row;
-    });
-    
-    await generatePDFReport({
-      title: 'Historical Trends Report',
-      subtitle: 'LR Energy Biogas Plant - Karnal',
-      period: 'Time Range: ' + timeRange,
-      summaryData: {
-        'Parameters': selectedParams.length.toString(),
-        'Time Range': timeRange,
-        'Data Points': trendData.length.toString(),
-        'Report Type': 'Trends Analysis'
-      },
-      tableHeaders: tableHeaders,
-      tableData: tableData
-    });
-    setShowDownloadMenu(false);
-  }
-
-  // Render chart for a category
-  function renderCategoryChart(categoryName, params, isMaximized) {
-    const categorySelectedParams = params.filter(function(p) { return selectedParams.includes(p.key); });
-    if (categorySelectedParams.length === 0) return null;
-
-    const ChartComp = chartType === 'area' ? AreaChart : LineChart;
-    const height = isMaximized ? 500 : 250;
+  function renderChart(category, params, height = 300) {
+    const ChartComponent = chartType === 'line' ? LineChart : AreaChart;
+    const DataComponent = chartType === 'line' ? Line : Area;
 
     return (
-      <div 
-        key={categoryName}
-        className={'bg-white rounded-lg border border-slate-200 p-4 shadow-sm ' + (isMaximized ? '' : 'cursor-pointer hover:shadow-md transition-shadow')}
-        onClick={function() { if (!isMaximized) setMaximizedChart(categoryName); }}
-      >
-        <div className="flex items-center justify-between mb-3">
-          <h4 className="text-sm font-semibold text-slate-700">{categoryName}</h4>
-          {!isMaximized && (
-            <Maximize2 className="w-4 h-4 text-slate-400" />
-          )}
+      <div className="bg-white rounded-lg border border-slate-200 p-4 shadow-sm" key={category}>
+        <div className="flex justify-between items-center mb-4">
+          <h3 className="font-semibold text-slate-700">{category}</h3>
+          <div className="flex space-x-2">
+            <button 
+              onClick={() => setMaximizedChart(category)} 
+              className="p-1.5 text-slate-400 hover:text-slate-600 hover:bg-slate-100 rounded"
+              title="Maximize"
+            >
+              <Maximize2 className="w-4 h-4" />
+            </button>
+          </div>
         </div>
         <ResponsiveContainer width="100%" height={height}>
-          <ChartComp data={trendData} margin={{ top: 5, right: 20, left: 0, bottom: 5 }}>
+          <ChartComponent data={trendData}>
             <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
             <XAxis 
               dataKey="time" 
-              stroke="#94a3b8" 
-              style={{ fontSize: '10px' }}
-              tickFormatter={function(value) { return timeRange === '1h' ? value + 'm' : value + 'h'; }}
+              tick={{ fontSize: 10 }} 
+              stroke="#94a3b8"
+              interval="preserveStartEnd"
             />
-            <YAxis stroke="#94a3b8" style={{ fontSize: '10px' }} />
+            <YAxis tick={{ fontSize: 10 }} stroke="#94a3b8" />
             <Tooltip 
               contentStyle={{ 
                 backgroundColor: 'white', 
                 border: '1px solid #e2e8f0',
-                borderRadius: '6px',
-                fontSize: '11px'
+                borderRadius: '8px',
+                fontSize: '12px'
               }}
             />
-            {isMaximized && <Legend wrapperStyle={{ fontSize: '11px' }} />}
-            {categorySelectedParams.map(function(param) {
-              if (chartType === 'area') {
-                return (
-                  <Area
-                    key={param.key}
-                    type="monotone"
-                    dataKey={param.key}
-                    stroke={param.color}
-                    fill={param.color}
-                    fillOpacity={0.2}
-                    strokeWidth={2}
-                    name={param.label}
-                  />
-                );
-              } else {
-                return (
-                  <Line
-                    key={param.key}
-                    type="monotone"
-                    dataKey={param.key}
-                    stroke={param.color}
-                    strokeWidth={2}
-                    dot={false}
-                    name={param.label}
-                  />
-                );
-              }
-            })}
-          </ChartComp>
+            <Legend />
+            {params.map(param => (
+              <DataComponent
+                key={param.key}
+                type="monotone"
+                dataKey={param.key}
+                name={param.label}
+                stroke={param.color}
+                fill={chartType === 'area' ? param.color : undefined}
+                fillOpacity={chartType === 'area' ? 0.1 : undefined}
+                strokeWidth={2}
+                dot={false}
+              />
+            ))}
+          </ChartComponent>
         </ResponsiveContainer>
-        {/* Legend for small charts */}
-        {!isMaximized && (
-          <div className="flex flex-wrap gap-2 mt-2">
-            {categorySelectedParams.map(function(param) {
-              return (
-                <div key={param.key} className="flex items-center space-x-1">
-                  <div className="w-2 h-2 rounded-full" style={{ backgroundColor: param.color }}></div>
-                  <span className="text-xs text-slate-600">{param.label}</span>
-                </div>
-              );
-            })}
-          </div>
-        )}
       </div>
     );
   }
 
-  // Maximized chart modal
-  function renderMaximizedModal() {
-    if (!maximizedChart) return null;
-    
-    const params = parameterCategories[maximizedChart];
-    
+  // Loading state
+  if (loading && trendData.length === 0) {
     return (
-      <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-        <div className="bg-white rounded-xl shadow-2xl w-full max-w-6xl max-h-[90vh] overflow-hidden">
-          <div className="bg-gradient-to-r from-emerald-600 to-teal-600 text-white p-4 flex justify-between items-center">
-            <h3 className="text-xl font-bold">{maximizedChart} - Detailed View</h3>
-            <button 
-              onClick={function() { setMaximizedChart(null); }}
-              className="p-2 hover:bg-white/20 rounded-lg transition-colors"
-            >
-              <X className="w-5 h-5" />
-            </button>
+      <div className="space-y-6">
+        <div className="flex justify-between items-center">
+          <div>
+            <h1 className="text-2xl font-bold text-slate-900">Trends & Analytics</h1>
+            <p className="text-slate-500 mt-1">Historical data visualization and analysis</p>
           </div>
-          <div className="p-6">
-            {renderCategoryChart(maximizedChart, params, true)}
-          </div>
+        </div>
+        <div className="flex items-center justify-center p-12 bg-white rounded-lg border border-slate-200">
+          <RefreshCw className="w-8 h-8 text-slate-400 animate-spin mr-3" />
+          <span className="text-slate-500 text-lg">Loading trend data...</span>
         </div>
       </div>
     );
   }
-
-  // Build time range buttons
-  const timeRangeButtons = [];
-  ['1h', '12h', '24h', '7d'].forEach(function(range) {
-    timeRangeButtons.push(
-      <button
-        key={range}
-        onClick={function() { setTimeRange(range); }}
-        data-testid={'time-range-' + range}
-        className={'px-4 py-2 rounded-md text-sm font-medium transition-all ' +
-          (timeRange === range
-            ? 'bg-emerald-600 text-white shadow-sm'
-            : 'bg-slate-100 text-slate-600 hover:bg-slate-200')}
-      >
-        {range}
-      </button>
-    );
-  });
-
-  // Build chart type buttons
-  const chartTypeButtons = [];
-  ['line', 'area'].forEach(function(type) {
-    chartTypeButtons.push(
-      <button
-        key={type}
-        onClick={function() { setChartType(type); }}
-        data-testid={'chart-type-' + type}
-        className={'flex-1 px-4 py-2 rounded-md text-sm font-medium transition-all capitalize ' +
-          (chartType === type
-            ? 'bg-violet-700 text-white shadow-sm'
-            : 'bg-slate-100 text-slate-600 hover:bg-slate-200')}
-      >
-        {type}
-      </button>
-    );
-  });
-
-  // Build category options
-  const categoryOptions = [<option key="all" value="all">All Categories</option>];
-  Object.keys(parameterCategories).forEach(function(cat) {
-    categoryOptions.push(<option key={cat} value={cat}>{cat}</option>);
-  });
-
-  // Build parameter toggles
-  const parameterToggles = [];
-  Object.keys(filteredCategories).forEach(function(category) {
-    const params = filteredCategories[category];
-    const categoryParams = params.map(function(p) { return p.key; });
-    const selectedCount = categoryParams.filter(function(key) { return selectedParams.includes(key); }).length;
-    
-    const paramItems = params.map(function(param) {
-      return (
-        <label
-          key={param.key}
-          className="flex items-center space-x-2 p-2 rounded hover:bg-slate-50 cursor-pointer transition-colors"
-          data-testid={'param-toggle-' + param.key}
-        >
-          <input
-            type="checkbox"
-            checked={selectedParams.includes(param.key)}
-            onChange={function() { toggleParameter(param.key); }}
-            className="w-3.5 h-3.5 rounded border-slate-300"
-          />
-          <div className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: param.color }}></div>
-          <span className="text-xs text-slate-600 flex-1">{param.label}</span>
-        </label>
-      );
-    });
-
-    parameterToggles.push(
-      <div key={category} className="border-b border-slate-100 pb-3 last:border-0">
-        <button
-          onClick={function() { toggleCategory(category); }}
-          className="w-full text-left mb-2 px-2 py-1 rounded hover:bg-slate-50 flex items-center justify-between"
-        >
-          <span className="text-sm font-semibold text-slate-700">{category}</span>
-          <span className="text-xs bg-slate-100 text-slate-600 px-2 py-0.5 rounded-full">
-            {selectedCount}/{params.length}
-          </span>
-        </button>
-        <div className="space-y-1 ml-2">
-          {paramItems}
-        </div>
-      </div>
-    );
-  });
-
-  // Build statistics cards - show only: 12Hr Avg, 24Hr Avg, Min, Max with sample counts
-  const statisticsCards = [];
-  selectedParams.slice(0, 12).forEach(function(paramKey) {
-    const param = allParameters.find(function(p) { return p.key === paramKey; });
-    if (!param) return;
-    const stats = getStatistics(paramKey);
-    
-    // Calculate coverage percentages
-    const coverage12hr = (stats.samples12hr / stats.expected12hr) * 100;
-    const coverage24hr = (stats.samples24hr / stats.expected24hr) * 100;
-    
-    // Determine status colors
-    const getStatusColor = function(coverage) {
-      if (coverage >= 95) return 'text-emerald-600';
-      if (coverage >= 80) return 'text-slate-500';
-      if (coverage >= 50) return 'text-amber-600';
-      return 'text-orange-600';
-    };
-
-    statisticsCards.push(
-      <div key={paramKey} className="bg-gradient-to-br from-slate-50 to-slate-100/50 rounded-lg p-3 border border-slate-200">
-        <div className="flex items-center space-x-2 mb-2">
-          <div className="w-2 h-2 rounded-full" style={{ backgroundColor: param.color }}></div>
-          <span className="text-xs font-semibold text-slate-700 truncate">{param.label}</span>
-        </div>
-        <div className="space-y-1 text-xs">
-          <div className="flex justify-between items-center">
-            <span className="text-slate-500">12-Hr Avg:</span>
-            <span className="font-bold font-mono text-slate-800">{stats.avg12hr.toFixed(2)}</span>
-          </div>
-          <div className={`text-xs font-mono ${getStatusColor(coverage12hr)} bg-white/50 rounded px-1`}>
-            {stats.samples12hr}/{stats.expected12hr} ({coverage12hr.toFixed(0)}%)
-          </div>
-          <div className="flex justify-between items-center pt-1">
-            <span className="text-slate-500">24-Hr Avg:</span>
-            <span className="font-semibold font-mono text-slate-700">{stats.avg24hr.toFixed(2)}</span>
-          </div>
-          <div className={`text-xs font-mono ${getStatusColor(coverage24hr)} bg-white/50 rounded px-1`}>
-            {stats.samples24hr}/{stats.expected24hr} ({coverage24hr.toFixed(0)}%)
-          </div>
-          <div className="flex justify-between pt-1 border-t border-slate-200 mt-1">
-            <span className="text-slate-500">Min:</span>
-            <span className="font-semibold font-mono text-emerald-600">{stats.min.toFixed(2)}</span>
-          </div>
-          <div className="flex justify-between">
-            <span className="text-slate-500">Max:</span>
-            <span className="font-semibold font-mono text-rose-600">{stats.max.toFixed(2)}</span>
-          </div>
-          <div className="text-xs text-slate-400 pt-1 border-t border-slate-200">{param.unit}</div>
-        </div>
-      </div>
-    );
-  });
-
-  // Build category charts
-  const categoryCharts = categoriesToDisplay.map(function(cat) {
-    return renderCategoryChart(cat.name, cat.params, false);
-  });
 
   return (
-    <div className="max-w-[1920px] mx-auto p-4 md:p-6 lg:p-8 bg-slate-50 min-h-screen" data-testid="trends-page">
-      {renderMaximizedModal()}
-      
-      <div className="mb-6 flex items-center justify-between">
+    <div className="space-y-6">
+      {/* Header */}
+      <div className="flex justify-between items-center">
         <div>
-          <h1 className="text-2xl font-bold tracking-tight text-slate-800 mb-2 flex items-center space-x-3">
-            <TrendingUp className="w-7 h-7 text-emerald-600" />
-            <span>Historical Trends Analysis</span>
-          </h1>
-          <p className="text-slate-600">Analyze historical data patterns and performance metrics across all SCADA parameters</p>
+          <h1 className="text-2xl font-bold text-slate-900">Trends & Analytics</h1>
+          <p className="text-slate-500 mt-1">Historical data visualization and analysis</p>
         </div>
-        
-        {/* Download Buttons */}
-        <div className="relative">
-          <button
-            onClick={function() { setShowDownloadMenu(!showDownloadMenu); }}
-            className="flex items-center space-x-2 px-4 py-2 bg-emerald-600 text-white rounded-lg font-medium hover:bg-emerald-700 transition-colors shadow-sm"
-          >
-            <Download className="w-4 h-4" />
-            <span>Download</span>
-          </button>
-          {showDownloadMenu && (
-            <div className="absolute top-full right-0 mt-2 bg-white border border-slate-200 rounded-lg shadow-lg z-10 min-w-[160px]">
-              <button 
-                onClick={handleDownloadCSV}
-                className="w-full px-4 py-3 text-left hover:bg-slate-50 flex items-center space-x-2 text-slate-700"
-              >
-                <FileSpreadsheet className="w-4 h-4 text-cyan-600" />
-                <span>Download CSV</span>
-              </button>
-              <button 
-                onClick={handleDownloadPDF}
-                className="w-full px-4 py-3 text-left hover:bg-slate-50 flex items-center space-x-2 text-slate-700 border-t border-slate-100"
-              >
-                <FileText className="w-4 h-4 text-rose-600" />
-                <span>Download PDF</span>
-              </button>
+        <div className="flex items-center space-x-3">
+          {/* Data Coverage Badge */}
+          {dataStats && (
+            <div className="px-3 py-1 bg-slate-100 rounded-full text-xs text-slate-600">
+              {dataStats.totalRecords}/{dataStats.expectedRecords} records ({dataStats.coveragePercent}%)
             </div>
           )}
+          
+          {/* Refresh Button */}
+          <button 
+            onClick={fetchData}
+            className={`flex items-center space-x-1 px-3 py-1.5 text-sm text-slate-600 hover:bg-slate-100 rounded-lg border border-slate-200 ${loading ? 'opacity-50' : ''}`}
+            disabled={loading}
+          >
+            <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} />
+            <span>Refresh</span>
+          </button>
+          
+          {/* Download Menu */}
+          <div className="relative">
+            <button 
+              onClick={() => setShowDownloadMenu(!showDownloadMenu)}
+              className="flex items-center space-x-1 px-3 py-1.5 text-sm bg-indigo-600 text-white hover:bg-indigo-700 rounded-lg"
+            >
+              <Download className="w-4 h-4" />
+              <span>Export</span>
+            </button>
+            {showDownloadMenu && (
+              <div className="absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg border border-slate-200 z-10">
+                <button 
+                  onClick={() => { generatePDFReport(trendData, selectedParams, timeRange); setShowDownloadMenu(false); }}
+                  className="flex items-center w-full px-4 py-2 text-sm text-slate-700 hover:bg-slate-50"
+                >
+                  <FileText className="w-4 h-4 mr-2" />
+                  Download PDF
+                </button>
+                <button 
+                  onClick={() => { generateCSVDownload(trendData, selectedParams); setShowDownloadMenu(false); }}
+                  className="flex items-center w-full px-4 py-2 text-sm text-slate-700 hover:bg-slate-50"
+                >
+                  <FileSpreadsheet className="w-4 h-4 mr-2" />
+                  Download CSV
+                </button>
+              </div>
+            )}
+          </div>
         </div>
       </div>
+
+      {/* Error Banner */}
+      {error && (
+        <div className="flex items-center p-3 bg-amber-50 border border-amber-200 rounded-lg">
+          <WifiOff className="w-5 h-5 text-amber-500 mr-2" />
+          <span className="text-amber-700 text-sm">Could not load live data. Showing sample data.</span>
+        </div>
+      )}
 
       {/* Controls */}
-      <div className="bg-white rounded-lg border border-slate-200 p-5 mb-6 shadow-sm">
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <div>
-            <div className="flex items-center space-x-2 mb-3">
-              <Calendar className="w-4 h-4 text-slate-600" />
-              <span className="text-sm font-semibold text-slate-700">Time Range</span>
-            </div>
-            <div className="flex flex-wrap gap-2">
-              {timeRangeButtons}
+      <div className="bg-white rounded-lg border border-slate-200 p-4 shadow-sm">
+        <div className="flex flex-wrap gap-4 items-center">
+          {/* Time Range */}
+          <div className="flex items-center space-x-2">
+            <Calendar className="w-4 h-4 text-slate-500" />
+            <span className="text-sm font-medium text-slate-600">Time Range:</span>
+            <div className="flex rounded-lg border border-slate-200 overflow-hidden">
+              {['1h', '12h', '24h', '7d'].map(range => (
+                <button
+                  key={range}
+                  onClick={() => setTimeRange(range)}
+                  className={`px-3 py-1.5 text-sm font-medium transition-colors ${
+                    timeRange === range 
+                      ? 'bg-indigo-600 text-white' 
+                      : 'bg-white text-slate-600 hover:bg-slate-50'
+                  }`}
+                >
+                  {range}
+                </button>
+              ))}
             </div>
           </div>
 
-          <div>
-            <div className="flex items-center space-x-2 mb-3">
-              <BarChart3 className="w-4 h-4 text-slate-600" />
-              <span className="text-sm font-semibold text-slate-700">Chart Type</span>
+          {/* Chart Type */}
+          <div className="flex items-center space-x-2">
+            <BarChart3 className="w-4 h-4 text-slate-500" />
+            <span className="text-sm font-medium text-slate-600">Chart:</span>
+            <div className="flex rounded-lg border border-slate-200 overflow-hidden">
+              {['area', 'line'].map(type => (
+                <button
+                  key={type}
+                  onClick={() => setChartType(type)}
+                  className={`px-3 py-1.5 text-sm font-medium capitalize transition-colors ${
+                    chartType === type 
+                      ? 'bg-indigo-600 text-white' 
+                      : 'bg-white text-slate-600 hover:bg-slate-50'
+                  }`}
+                >
+                  {type}
+                </button>
+              ))}
             </div>
-            <div className="flex gap-2">
-              {chartTypeButtons}
-            </div>
-          </div>
-
-          <div>
-            <div className="flex items-center space-x-2 mb-3">
-              <Eye className="w-4 h-4 text-slate-600" />
-              <span className="text-sm font-semibold text-slate-700">Category Filter</span>
-            </div>
-            <select
-              value={selectedCategory}
-              onChange={function(e) { setSelectedCategory(e.target.value); }}
-              className="w-full px-4 py-2 rounded-md text-sm font-medium bg-slate-100 text-slate-600 border border-slate-200 focus:outline-none focus:ring-2 focus:ring-cyan-500"
-            >
-              {categoryOptions}
-            </select>
           </div>
         </div>
-      </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 mb-6">
         {/* Parameter Selection */}
-        <div className="lg:col-span-3 bg-white rounded-lg border border-slate-200 p-5 shadow-sm max-h-[600px] overflow-y-auto">
-          <h3 className="text-lg font-semibold text-slate-800 mb-4">Parameters ({selectedParams.length})</h3>
-          <div className="space-y-4">
-            {parameterToggles}
+        <div className="mt-4 border-t border-slate-100 pt-4">
+          <div className="flex items-center space-x-2 mb-2">
+            <Eye className="w-4 h-4 text-slate-500" />
+            <span className="text-sm font-medium text-slate-600">Parameters:</span>
           </div>
-        </div>
-
-        {/* Chart Visualization - Split by Category */}
-        <div className="lg:col-span-9 space-y-4">
-          <h3 className="text-lg font-semibold text-slate-800">Data Visualization <span className="text-sm font-normal text-slate-500">(Click chart to maximize)</span></h3>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            {categoryCharts}
+          <div className="flex flex-wrap gap-2">
+            {Object.entries(parameterCategories).map(([category, params]) => (
+              <button
+                key={category}
+                onClick={() => toggleCategory(category)}
+                className={`px-3 py-1 text-xs font-medium rounded-full border transition-colors ${
+                  params.every(p => selectedParams.includes(p.key))
+                    ? 'bg-indigo-100 border-indigo-300 text-indigo-700'
+                    : 'bg-slate-50 border-slate-200 text-slate-600 hover:bg-slate-100'
+                }`}
+              >
+                {category}
+              </button>
+            ))}
           </div>
         </div>
       </div>
 
-      {/* Statistics Grid */}
-      <div className="bg-white rounded-lg border border-slate-200 p-5 shadow-sm">
-        <h4 className="text-lg font-semibold text-slate-700 mb-4">Selected Parameter Statistics</h4>
-        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-3">
-          {statisticsCards}
-        </div>
+      {/* Charts Grid */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        {Object.entries(parameterCategories).map(([category, params]) => {
+          const activeParams = params.filter(p => selectedParams.includes(p.key));
+          if (activeParams.length === 0) return null;
+          return renderChart(category, activeParams);
+        })}
       </div>
+
+      {/* Maximized Chart Modal */}
+      {maximizedChart && (
+        <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
+          <div className="bg-white rounded-xl w-full max-w-6xl max-h-[90vh] overflow-auto">
+            <div className="flex justify-between items-center p-4 border-b border-slate-200">
+              <h3 className="font-semibold text-lg text-slate-800">{maximizedChart}</h3>
+              <button 
+                onClick={() => setMaximizedChart(null)}
+                className="p-2 hover:bg-slate-100 rounded-lg"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+            <div className="p-6">
+              {renderChart(
+                maximizedChart, 
+                parameterCategories[maximizedChart]?.filter(p => selectedParams.includes(p.key)) || [],
+                500
+              )}
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
