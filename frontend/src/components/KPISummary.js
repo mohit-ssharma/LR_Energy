@@ -359,20 +359,14 @@ const KPISummary = () => {
     );
   }
 
-  // Error state
-  if (error) {
+  // Error state - show demo data indicator instead of blocking
+  if (error && !dashboardData) {
     return (
       <div className="mb-6" data-testid="kpi-summary-section">
         <h2 className="text-xl font-semibold tracking-tight text-slate-800 mb-4">KPI Summary</h2>
-        <div className="flex items-center justify-center p-8 bg-red-50 rounded-lg border border-red-200">
-          <WifiOff className="w-6 h-6 text-red-400 mr-2" />
-          <span className="text-red-600">Failed to load data: {error}</span>
-          <button 
-            onClick={fetchData}
-            className="ml-4 px-3 py-1 bg-red-100 hover:bg-red-200 text-red-700 rounded-md text-sm"
-          >
-            Retry
-          </button>
+        <div className="flex items-center justify-center p-8 bg-amber-50 rounded-lg border border-amber-200">
+          <WifiOff className="w-6 h-6 text-amber-500 mr-2" />
+          <span className="text-amber-700">API not connected - Loading demo data...</span>
         </div>
       </div>
     );
