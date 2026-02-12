@@ -8,6 +8,41 @@ const EquipmentStatus = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
+  // Mock data for when API is unavailable
+  const getMockEquipmentData = () => ({
+    psa: {
+      status: 'Running',
+      status_code: 1,
+      running_hours_today: 22.5,
+      running_minutes_today: 1350,
+      running_hours_month: 680.5,
+      efficiency: 94.4,
+      calculated_efficiency: 94.4
+    },
+    compressor: {
+      status: 'Running',
+      status_code: 1,
+      running_hours_today: 22.8,
+      running_hours_month: 685.2
+    },
+    lt_panel: {
+      status: 'Active',
+      current_load_kw: 245,
+      avg_power_today_kw: 242.5,
+      max_power_today_kw: 280,
+      min_power_today_kw: 210,
+      consumption_today_kwh: 5820,
+      consumption_month_kwh: 174600,
+      hours_recorded_today: 24,
+      hours_recorded_month: 720
+    }
+  });
+
+  const getMockCurrentValues = () => ({
+    raw_biogas_flow: 1250.5,
+    purified_gas_flow: 1180.2
+  });
+
   // Fetch equipment data from dashboard API
   const fetchData = useCallback(async () => {
     try {
@@ -18,10 +53,18 @@ const EquipmentStatus = () => {
         setCurrentValues(result.data.current);
         setError(null);
       } else {
-        setError(result.error);
+        // Use mock data when API fails
+        console.log('API unavailable, using demo equipment data');
+        setEquipmentData(getMockEquipmentData());
+        setCurrentValues(getMockCurrentValues());
+        setError('demo');
       }
     } catch (err) {
-      setError(err.message);
+      // Use mock data on error
+      console.log('API error, using demo equipment data');
+      setEquipmentData(getMockEquipmentData());
+      setCurrentValues(getMockCurrentValues());
+      setError('demo');
     } finally {
       setLoading(false);
     }
