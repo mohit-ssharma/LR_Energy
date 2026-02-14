@@ -40,11 +40,14 @@ if ($is_local) {
 // API SECURITY
 // ============================================
 
-// API Key for sync script authentication
-define('API_KEY', 'sk_test_local_development_key_123');
+// API Key for sync script authentication (Production)
+define('API_KEY', 'sk_prod_LREnergy_283669e54e512351a5bde265e20da2149fd4b54569a7e12b1ee8226746a6a2a7');
 
 // Optional: Whitelist IP (leave empty to allow all)
 define('ALLOWED_IP', '');
+
+// API Timeout (seconds) - ensures execution < 5 seconds
+define('API_TIMEOUT', 5);
 
 // ============================================
 // APPLICATION SETTINGS
