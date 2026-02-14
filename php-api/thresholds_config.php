@@ -5,19 +5,9 @@
  * =====================================================
  * 
  * File: thresholds_config.php
- * Purpose: Central configuration for all alert thresholds
  * 
- * INSTRUCTIONS FOR ENGINEER:
- * --------------------------
- * 1. Review each threshold value below
- * 2. Update min/max values as needed
- * 3. Set appropriate severity: 'INFO', 'WARNING', 'CRITICAL'
- * 4. Save file and copy to server
- * 
- * SEVERITY LEVELS:
- * - INFO: Informational, no action needed
- * - WARNING: Attention needed, not urgent
- * - CRITICAL: Immediate action required
+ * After engineer confirms values in THRESHOLD_VALUES_FOR_ENGINEER.txt,
+ * update the min/max values below.
  * 
  * Last Updated: [DATE]
  * Confirmed By: [ENGINEER NAME]
@@ -27,243 +17,287 @@
 return [
     
     // =====================================================
-    // GAS COMPOSITION THRESHOLDS
+    // GAS COMPOSITION
     // =====================================================
     
     'ch4_concentration' => [
         'name' => 'CH₄ (Methane) Concentration',
         'unit' => '%',
-        'min' => 96,          // TODO: Confirm minimum acceptable CH₄ %
-        'max' => 100,         // Maximum possible
+        'min' => 96,
+        'max' => 100,
         'severity' => 'WARNING',
-        'notes' => 'Below 96% affects gas quality and revenue'
     ],
     
     'co2_level' => [
         'name' => 'CO₂ (Carbon Dioxide) Level',
         'unit' => '%',
         'min' => 0,
-        'max' => 5,           // TODO: Confirm maximum acceptable CO₂ %
+        'max' => 5,
         'severity' => 'WARNING',
-        'notes' => 'High CO₂ indicates poor purification'
     ],
     
     'o2_concentration' => [
         'name' => 'O₂ (Oxygen) Concentration',
         'unit' => '%',
         'min' => 0,
-        'max' => 0.5,         // TODO: Confirm - currently <0.5% = Normal
+        'max' => 0.5,
         'severity' => 'WARNING',
-        'notes' => 'High O₂ is explosion risk'
     ],
     
     'o2_concentration_critical' => [
         'name' => 'O₂ (Oxygen) - CRITICAL',
         'unit' => '%',
         'min' => null,
-        'max' => 2,           // TODO: Confirm critical O₂ threshold
+        'max' => 2,
         'severity' => 'CRITICAL',
-        'notes' => 'EXPLOSION RISK - Immediate shutdown required'
     ],
     
     'h2s_content' => [
         'name' => 'H₂S (Hydrogen Sulfide) Content',
         'unit' => 'ppm',
         'min' => 0,
-        'max' => 500,         // TODO: Confirm - currently shown limit is 500 ppm
+        'max' => 500,
         'severity' => 'WARNING',
-        'notes' => 'High H₂S is toxic and corrosive'
     ],
     
     'h2s_content_critical' => [
         'name' => 'H₂S - CRITICAL',
         'unit' => 'ppm',
         'min' => null,
-        'max' => 1000,        // TODO: Confirm critical H₂S threshold
+        'max' => 1000,
         'severity' => 'CRITICAL',
-        'notes' => 'SAFETY HAZARD - Evacuate area'
     ],
     
     'dew_point' => [
         'name' => 'Dew Point',
         'unit' => 'mg/m³',
-        'min' => -80,         // TODO: Confirm minimum dew point
-        'max' => -40,         // TODO: Confirm maximum dew point
+        'min' => -80,
+        'max' => -40,
         'severity' => 'WARNING',
-        'notes' => 'Outside range indicates moisture issue'
     ],
     
     // =====================================================
-    // GAS FLOW THRESHOLDS
+    // GAS FLOW
     // =====================================================
     
     'raw_biogas_flow' => [
         'name' => 'Raw Biogas Flow',
         'unit' => 'Nm³/hr',
-        'min' => 500,         // TODO: Confirm minimum flow rate
-        'max' => 2000,        // TODO: Confirm maximum flow rate
+        'min' => 500,
+        'max' => 2000,
         'severity' => 'WARNING',
-        'notes' => 'Normal operation ~1250 Nm³/hr'
     ],
     
     'purified_gas_flow' => [
         'name' => 'Purified Gas Flow',
         'unit' => 'Nm³/hr',
-        'min' => 400,         // TODO: Confirm
-        'max' => 1800,        // TODO: Confirm
+        'min' => 400,
+        'max' => 1800,
         'severity' => 'WARNING',
-        'notes' => 'Normal operation ~1180 Nm³/hr (~94% of raw)'
     ],
     
     'product_gas_flow' => [
         'name' => 'Product Gas Flow',
         'unit' => 'Nm³/hr',
-        'min' => 350,         // TODO: Confirm
-        'max' => 1700,        // TODO: Confirm
+        'min' => 350,
+        'max' => 1700,
         'severity' => 'WARNING',
-        'notes' => 'Normal operation ~1150 Nm³/hr (~92% of raw)'
     ],
     
     // =====================================================
-    // DIGESTER 1 THRESHOLDS
+    // DIGESTER 1
     // =====================================================
     
     'd1_temp_bottom' => [
-        'name' => 'Digester 1 Temperature (Bottom)',
+        'name' => 'Digester 1 Bottom Temperature',
         'unit' => '°C',
-        'min' => 30,          // TODO: Confirm minimum safe temperature
-        'max' => 45,          // TODO: Confirm maximum safe temperature
+        'min' => 30,
+        'max' => 45,
         'severity' => 'WARNING',
-        'notes' => 'Normal operation ~37°C'
+    ],
+    
+    'd1_temp_top' => [
+        'name' => 'Digester 1 Top Temperature',
+        'unit' => '°C',
+        'min' => 30,
+        'max' => 45,
+        'severity' => 'WARNING',
     ],
     
     'd1_temp_critical' => [
         'name' => 'Digester 1 Temperature - CRITICAL',
         'unit' => '°C',
         'min' => null,
-        'max' => 50,          // TODO: Confirm - bacteria death temperature
+        'max' => 50,
         'severity' => 'CRITICAL',
-        'notes' => 'Bacteria death above this temperature'
     ],
     
     'd1_gas_pressure' => [
-        'name' => 'Digester 1 Gas Pressure',
+        'name' => 'Digester 1 Balloon Gas Pressure',
         'unit' => 'mbar',
-        'min' => 10,          // TODO: Confirm - low pressure = possible leak
-        'max' => 50,          // TODO: Confirm - high pressure = blockage
+        'min' => 10,
+        'max' => 50,
         'severity' => 'WARNING',
-        'notes' => 'Normal operation ~32 mbar'
+    ],
+    
+    'd1_air_pressure' => [
+        'name' => 'Digester 1 Balloon Air Pressure',
+        'unit' => 'mbar',
+        'min' => 5,
+        'max' => 30,
+        'severity' => 'WARNING',
     ],
     
     'd1_slurry_height' => [
         'name' => 'Digester 1 Slurry Height',
         'unit' => 'm',
-        'min' => 2,           // TODO: Confirm minimum height
-        'max' => 8,           // TODO: Confirm maximum height
+        'min' => 2,
+        'max' => 8,
         'severity' => 'WARNING',
-        'notes' => 'Normal operation ~7.6 m'
     ],
     
     'd1_gas_level' => [
         'name' => 'Digester 1 Gas Level',
         'unit' => '%',
-        'min' => 30,          // TODO: Confirm
-        'max' => 90,          // TODO: Confirm
+        'min' => 30,
+        'max' => 90,
         'severity' => 'WARNING',
-        'notes' => 'Normal operation ~75%'
     ],
     
     // =====================================================
-    // DIGESTER 2 THRESHOLDS
+    // DIGESTER 2
     // =====================================================
     
     'd2_temp_bottom' => [
-        'name' => 'Digester 2 Temperature (Bottom)',
+        'name' => 'Digester 2 Bottom Temperature',
         'unit' => '°C',
-        'min' => 30,          // TODO: Confirm
-        'max' => 45,          // TODO: Confirm
+        'min' => 30,
+        'max' => 45,
         'severity' => 'WARNING',
-        'notes' => 'Normal operation ~36.5°C'
+    ],
+    
+    'd2_temp_top' => [
+        'name' => 'Digester 2 Top Temperature',
+        'unit' => '°C',
+        'min' => 30,
+        'max' => 45,
+        'severity' => 'WARNING',
     ],
     
     'd2_temp_critical' => [
         'name' => 'Digester 2 Temperature - CRITICAL',
         'unit' => '°C',
         'min' => null,
-        'max' => 50,          // TODO: Confirm
+        'max' => 50,
         'severity' => 'CRITICAL',
-        'notes' => 'Bacteria death above this temperature'
     ],
     
     'd2_gas_pressure' => [
-        'name' => 'Digester 2 Gas Pressure',
+        'name' => 'Digester 2 Balloon Gas Pressure',
         'unit' => 'mbar',
-        'min' => 10,          // TODO: Confirm
-        'max' => 50,          // TODO: Confirm
+        'min' => 10,
+        'max' => 50,
         'severity' => 'WARNING',
-        'notes' => 'Normal operation ~30 mbar'
+    ],
+    
+    'd2_air_pressure' => [
+        'name' => 'Digester 2 Balloon Air Pressure',
+        'unit' => 'mbar',
+        'min' => 5,
+        'max' => 30,
+        'severity' => 'WARNING',
     ],
     
     'd2_slurry_height' => [
         'name' => 'Digester 2 Slurry Height',
         'unit' => 'm',
-        'min' => 2,           // TODO: Confirm
-        'max' => 8,           // TODO: Confirm
+        'min' => 2,
+        'max' => 8,
         'severity' => 'WARNING',
-        'notes' => 'Normal operation ~7.3 m'
     ],
     
     'd2_gas_level' => [
         'name' => 'Digester 2 Gas Level',
         'unit' => '%',
-        'min' => 30,          // TODO: Confirm
-        'max' => 90,          // TODO: Confirm
+        'min' => 30,
+        'max' => 90,
         'severity' => 'WARNING',
-        'notes' => 'Normal operation ~72%'
     ],
     
     // =====================================================
-    // TANK LEVEL THRESHOLDS
+    // TANK LEVELS
     // =====================================================
     
     'buffer_tank_level' => [
         'name' => 'Buffer Tank Level',
         'unit' => '%',
-        'min' => 20,          // TODO: Confirm minimum safe level
-        'max' => 95,          // TODO: Confirm maximum before overflow
+        'min' => 20,
+        'max' => 95,
         'severity' => 'WARNING',
-        'notes' => 'Normal operation ~82%'
     ],
     
     'lagoon_tank_level' => [
         'name' => 'Lagoon Tank Level',
         'unit' => '%',
-        'min' => 20,          // TODO: Confirm
-        'max' => 95,          // TODO: Confirm
+        'min' => 20,
+        'max' => 95,
         'severity' => 'WARNING',
-        'notes' => 'Normal operation ~76%'
     ],
     
     // =====================================================
-    // EQUIPMENT THRESHOLDS
+    // WATER FLOW
+    // =====================================================
+    
+    'feed_fm1_flow' => [
+        'name' => 'Feed FM-I Flow',
+        'unit' => 'm³/hr',
+        'min' => 10,
+        'max' => 80,
+        'severity' => 'WARNING',
+    ],
+    
+    'feed_fm2_flow' => [
+        'name' => 'Feed FM-II Flow',
+        'unit' => 'm³/hr',
+        'min' => 10,
+        'max' => 80,
+        'severity' => 'WARNING',
+    ],
+    
+    'fresh_water_flow' => [
+        'name' => 'Fresh Water Flow',
+        'unit' => 'm³/hr',
+        'min' => 0,
+        'max' => 30,
+        'severity' => 'WARNING',
+    ],
+    
+    'recycle_water_flow' => [
+        'name' => 'Recycle Water Flow',
+        'unit' => 'm³/hr',
+        'min' => 5,
+        'max' => 50,
+        'severity' => 'WARNING',
+    ],
+    
+    // =====================================================
+    // EQUIPMENT
     // =====================================================
     
     'psa_efficiency' => [
         'name' => 'PSA Efficiency',
         'unit' => '%',
-        'min' => 85,          // TODO: Confirm minimum acceptable efficiency
+        'min' => 85,
         'max' => 100,
         'severity' => 'WARNING',
-        'notes' => 'Normal operation ~94.4%'
     ],
     
     'lt_panel_power' => [
-        'name' => 'LT Panel Power Consumption',
+        'name' => 'LT Panel Power',
         'unit' => 'kW',
-        'min' => 50,          // TODO: Confirm minimum expected power
-        'max' => 400,         // TODO: Confirm maximum safe power
+        'min' => 50,
+        'max' => 400,
         'severity' => 'WARNING',
-        'notes' => 'Normal operation ~245 kW'
     ],
     
 ];
