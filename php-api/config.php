@@ -159,7 +159,4 @@ function handleCORS() {
         exit;
     }
 }
-
-// Handle CORS for all requests
-handleCORS();
 ?>
