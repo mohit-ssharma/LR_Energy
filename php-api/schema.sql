@@ -125,8 +125,16 @@ CREATE TABLE IF NOT EXISTS `scada_readings` (
     -- INDEXES for faster queries
     -- ==========================================
     
+    -- Primary index for duplicate protection (plant_id + timestamp must be unique)
+    UNIQUE KEY `idx_unique_plant_timestamp` (`plant_id`, `timestamp`),
+    
+    -- Index for timestamp-based queries (daily reports, trends)
     INDEX `idx_timestamp` (`timestamp`),
+    
+    -- Index for date-based queries (DATE(timestamp) = CURDATE())
     INDEX `idx_plant_timestamp` (`plant_id`, `timestamp`),
+    
+    -- Index for record creation tracking
     INDEX `idx_created_at` (`created_at`)
     
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
