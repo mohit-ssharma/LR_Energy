@@ -239,16 +239,27 @@ CREATE TABLE IF NOT EXISTS `alerts` (
 -- ============================================
 -- INSERT DEFAULT USERS
 -- ============================================
--- Default passwords need to be hashed with password_hash()
--- IMPORTANT: Change these passwords after first login!
+-- IMPORTANT: You MUST generate password hashes before inserting!
+-- 
+-- Step 1: Create a file called "generate_hash.php" with this content:
+--   <?php echo password_hash('qwerty@1234', PASSWORD_DEFAULT); ?>
+--
+-- Step 2: Run it in browser or command line to get the hash
+--
+-- Step 3: Replace <HASH_HERE> below with the generated hash
+
+-- For ho@lrenergy.in (password: qwerty@1234)
+-- For mnre@lrenergy.in (password: qwerty@1234)
 
 INSERT INTO `users` (`email`, `password`, `role`, `name`) VALUES
-('ho@lrenergy.in', '$2y$10$YourHashedPasswordHere1234567890', 'HEAD_OFFICE', 'Head Office Admin'),
-('mnre@lrenergy.in', '$2y$10$YourHashedPasswordHere1234567890', 'MNRE', 'MNRE User');
+('ho@lrenergy.in', '<HASH_HERE>', 'HEAD_OFFICE', 'Head Office Admin'),
+('mnre@lrenergy.in', '<HASH_HERE>', 'MNRE', 'MNRE User');
 
--- Note: Replace the password hashes above with actual hashed passwords
--- Run this PHP code to generate the hash for 'qwerty@1234':
--- echo password_hash('qwerty@1234', PASSWORD_DEFAULT);
+-- QUICK METHOD: Run this in phpMyAdmin SQL tab to insert users directly:
+-- INSERT INTO users (email, password, role, name) VALUES 
+-- ('ho@lrenergy.in', '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', 'HEAD_OFFICE', 'Head Office Admin'),
+-- ('mnre@lrenergy.in', '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', 'MNRE', 'MNRE User');
+-- NOTE: This uses a sample hash - change passwords after first login!
 
 
 -- ============================================
