@@ -343,48 +343,70 @@ function checkAndCreateAlerts($pdo, $plantId, $data) {
     ];
     
     try {
+        // Check WARNING thresholds
         foreach ($thresholds as $field => $config) {
             if (!isset($data[$field]) || $data[$field] === null) continue;
             
             $value = floatval($data[$field]);
             $alertMessage = null;
             $thresholdValue = null;
+            $severity = $config['severity'];
             
             if ($value < $config['min']) {
-                $alertMessage = "{$config['name']} is below minimum threshold";
+                $alertMessage = "{$config['name']} is below minimum ({$value} < {$config['min']})";
                 $thresholdValue = $config['min'];
             } elseif ($value > $config['max']) {
-                $alertMessage = "{$config['name']} exceeds maximum threshold";
+                $alertMessage = "{$config['name']} exceeds maximum ({$value} > {$config['max']})";
                 $thresholdValue = $config['max'];
             }
             
             if ($alertMessage) {
-                // Check if similar active alert exists
-                $checkSql = "SELECT id FROM alerts 
-                             WHERE plant_id = ? AND parameter = ? AND status = 'ACTIVE' 
-                             AND created_at > DATE_SUB(NOW(), INTERVAL 1 HOUR)
-                             LIMIT 1";
-                $checkStmt = $pdo->prepare($checkSql);
-                $checkStmt->execute([$plantId, $field]);
-                
-                if (!$checkStmt->fetch()) {
-                    // Create new alert
-                    $insertSql = "INSERT INTO alerts (plant_id, parameter, current_value, threshold_value, severity, message) 
-                                  VALUES (?, ?, ?, ?, ?, ?)";
-                    $insertStmt = $pdo->prepare($insertSql);
-                    $insertStmt->execute([
-                        $plantId,
-                        $field,
-                        $value,
-                        $thresholdValue,
-                        $config['severity'],
-                        $alertMessage
-                    ]);
-                }
+                createAlert($pdo, $plantId, $field, $value, $thresholdValue, $severity, $alertMessage);
             }
         }
+        
+        // Check CRITICAL thresholds (higher priority)
+        foreach ($criticalThresholds as $field => $config) {
+            if (!isset($data[$field]) || $data[$field] === null) continue;
+            
+            $value = floatval($data[$field]);
+            
+            if (isset($config['max']) && $value > $config['max']) {
+                $alertMessage = "🚨 CRITICAL: {$config['name']} ({$value} > {$config['max']})";
+                createAlert($pdo, $plantId, $field . '_critical', $value, $config['max'], 'CRITICAL', $alertMessage);
+            }
+            if (isset($config['min']) && $value < $config['min']) {
+                $alertMessage = "🚨 CRITICAL: {$config['name']} ({$value} < {$config['min']})";
+                createAlert($pdo, $plantId, $field . '_critical', $value, $config['min'], 'CRITICAL', $alertMessage);
+            }
+        }
+        
     } catch (Exception $e) {
         error_log("Failed to check alerts: " . $e->getMessage());
+    }
+}
+
+/**
+ * Create alert if not duplicate
+ */
+function createAlert($pdo, $plantId, $parameter, $value, $threshold, $severity, $message) {
+    try {
+        // Check if similar active alert exists in last hour
+        $checkSql = "SELECT id FROM alerts 
+                     WHERE plant_id = ? AND parameter = ? AND status = 'ACTIVE' 
+                     AND created_at > DATE_SUB(NOW(), INTERVAL 1 HOUR)
+                     LIMIT 1";
+        $checkStmt = $pdo->prepare($checkSql);
+        $checkStmt->execute([$plantId, $parameter]);
+        
+        if (!$checkStmt->fetch()) {
+            $insertSql = "INSERT INTO alerts (plant_id, parameter, current_value, threshold_value, severity, message) 
+                          VALUES (?, ?, ?, ?, ?, ?)";
+            $insertStmt = $pdo->prepare($insertSql);
+            $insertStmt->execute([$plantId, $parameter, $value, $threshold, $severity, $message]);
+        }
+    } catch (Exception $e) {
+        error_log("Failed to create alert: " . $e->getMessage());
     }
 }
 ?>
