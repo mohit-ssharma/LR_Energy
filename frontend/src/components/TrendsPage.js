@@ -1,7 +1,8 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { LineChart, Line, AreaChart, Area, ResponsiveContainer, XAxis, YAxis, CartesianGrid, Tooltip, Legend } from 'recharts';
-import { TrendingUp, Calendar, BarChart3, Eye, X, Maximize2, Download, FileText, FileSpreadsheet } from 'lucide-react';
+import { TrendingUp, Calendar, BarChart3, Eye, X, Maximize2, Download, FileText, FileSpreadsheet, RefreshCw, Wifi, WifiOff } from 'lucide-react';
 import { generatePDFReport, generateCSVDownload } from '../utils/pdfUtils';
+import { getTrendsData } from '../services/api';
 
 function TrendsPage() {
   const [timeRange, setTimeRange] = useState('24h');
@@ -9,12 +10,17 @@ function TrendsPage() {
   const [selectedCategory, setSelectedCategory] = useState('all');
   const [maximizedChart, setMaximizedChart] = useState(null);
   const [showDownloadMenu, setShowDownloadMenu] = useState(false);
+  const [trendData, setTrendData] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [isConnected, setIsConnected] = useState(false);
+  const [apiStats, setApiStats] = useState(null);
 
-  function generateTrendData(hours) {
+  // Generate mock data as fallback
+  function generateMockData(hours) {
     const data = [];
     for (let i = 0; i < hours; i++) {
       data.push({
-        time: i,
+        time: i + 'h',
         rawBiogas: 1250 + (Math.random() * 100 - 50),
         purifiedGas: 1180 + (Math.random() * 80 - 40),
         productGas: 1150 + (Math.random() * 70 - 35),
@@ -42,8 +48,80 @@ function TrendsPage() {
     return data;
   }
 
-  const hours = timeRange === '1h' ? 60 : timeRange === '12h' ? 12 : timeRange === '24h' ? 24 : 168;
-  const trendData = generateTrendData(hours);
+  // Transform API data to chart format
+  const transformApiData = (apiData) => {
+    return (apiData || []).map((row) => ({
+      time: row.timestamp ? new Date(row.timestamp).toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' }) : '',
+      rawBiogas: parseFloat(row.raw_biogas_flow) || 0,
+      purifiedGas: parseFloat(row.purified_gas_flow) || 0,
+      productGas: parseFloat(row.product_gas_flow) || 0,
+      ch4: parseFloat(row.ch4_concentration) || 0,
+      co2: parseFloat(row.co2_level) || 0,
+      o2: parseFloat(row.o2_concentration) || 0,
+      h2s: parseFloat(row.h2s_content) || 0,
+      dewPoint: parseFloat(row.dew_point) || 0,
+      digester1Temp: parseFloat(row.d1_temp_bottom) || 0,
+      digester2Temp: parseFloat(row.d2_temp_bottom) || 0,
+      digester1GasPressure: parseFloat(row.d1_gas_pressure) || 0,
+      digester2GasPressure: parseFloat(row.d2_gas_pressure) || 0,
+      digester1AirPressure: parseFloat(row.d1_air_pressure) || 0,
+      digester2AirPressure: parseFloat(row.d2_air_pressure) || 0,
+      digester1SlurryHeight: parseFloat(row.d1_slurry_height) || 0,
+      digester2SlurryHeight: parseFloat(row.d2_slurry_height) || 0,
+      bufferTank: parseFloat(row.buffer_tank_level) || 0,
+      lagoonTank: parseFloat(row.lagoon_tank_level) || 0,
+      feedFM1: parseFloat(row.feed_fm1_flow) || 0,
+      feedFM2: parseFloat(row.feed_fm2_flow) || 0,
+      freshWaterFM: parseFloat(row.fresh_water_flow) || 0,
+      recycleWaterFM: parseFloat(row.recycle_water_flow) || 0
+    }));
+  };
+
+  // Fetch data from API
+  const fetchData = useCallback(async () => {
+    setLoading(true);
+    try {
+      const hours = timeRange === '1h' ? 1 : timeRange === '12h' ? 12 : timeRange === '24h' ? 24 : 168;
+      const result = await getTrendsData(hours);
+      
+      if (result.success && result.data?.data) {
+        const transformedData = transformApiData(result.data.data);
+        setTrendData(transformedData);
+        setApiStats({
+          dataPoints: result.data.data_points,
+          totalRecords: result.data.total_records,
+          expectedRecords: result.data.expected_records,
+          coveragePercent: result.data.coverage_percent
+        });
+        setIsConnected(true);
+      } else {
+        // API failed - use mock data
+        const mockHours = timeRange === '1h' ? 60 : timeRange === '12h' ? 12 : timeRange === '24h' ? 24 : 168;
+        setTrendData(generateMockData(mockHours));
+        setApiStats(null);
+        setIsConnected(false);
+      }
+    } catch (err) {
+      console.error('Trends API error:', err);
+      const mockHours = timeRange === '1h' ? 60 : timeRange === '12h' ? 12 : timeRange === '24h' ? 24 : 168;
+      setTrendData(generateMockData(mockHours));
+      setApiStats(null);
+      setIsConnected(false);
+    } finally {
+      setLoading(false);
+    }
+  }, [timeRange]);
+
+  // Fetch on mount and when time range changes
+  useEffect(() => {
+    fetchData();
+  }, [fetchData]);
+
+  // Auto-refresh every 60 seconds
+  useEffect(() => {
+    const interval = setInterval(fetchData, 60000);
+    return () => clearInterval(interval);
+  }, [fetchData]);
 
   const parameterCategories = {
     'Gas Flow': [
@@ -115,17 +193,15 @@ function TrendsPage() {
   });
 
   function getStatistics(paramKey) {
-    const values = trendData.map(function(d) { return d[paramKey]; });
+    const values = trendData.map(function(d) { return d[paramKey] || 0; }).filter(v => v !== 0);
+    if (values.length === 0) return { avg12hr: 0, avg24hr: 0, min: 0, max: 0 };
+    
     const sum = values.reduce(function(a, b) { return a + b; }, 0);
     const avg = sum / values.length;
     const min = Math.min.apply(null, values);
     const max = Math.max.apply(null, values);
     
-    // Simulate 12hr and 24hr averages
-    const avg12hr = avg + (Math.random() * 2 - 1);
-    const avg24hr = avg + (Math.random() * 3 - 1.5);
-    
-    return { avg12hr: avg12hr, avg24hr: avg24hr, min: min, max: max };
+    return { avg12hr: avg, avg24hr: avg, min: min, max: max };
   }
 
   function getFilteredCategories() {
@@ -139,7 +215,6 @@ function TrendsPage() {
 
   const filteredCategories = getFilteredCategories();
 
-  // Get categories to display based on selected parameters
   function getCategoriesToDisplay() {
     const categories = [];
     Object.keys(parameterCategories).forEach(function(categoryName) {
@@ -168,7 +243,7 @@ function TrendsPage() {
     const rows = trendData.map(function(d) {
       const row = [d.time];
       paramList.forEach(function(key) {
-        row.push(d[key].toFixed(2));
+        row.push((d[key] || 0).toFixed(2));
       });
       return row;
     });
@@ -193,9 +268,9 @@ function TrendsPage() {
     });
     
     const tableData = trendData.slice(0, 15).map(function(d) {
-      const row = [d.time + 'h'];
+      const row = [d.time];
       paramList.forEach(function(key) {
-        row.push(d[key].toFixed(2));
+        row.push((d[key] || 0).toFixed(2));
       });
       return row;
     });
@@ -216,7 +291,6 @@ function TrendsPage() {
     setShowDownloadMenu(false);
   }
 
-  // Render chart for a category
   function renderCategoryChart(categoryName, params, isMaximized) {
     const categorySelectedParams = params.filter(function(p) { return selectedParams.includes(p.key); });
     if (categorySelectedParams.length === 0) return null;
@@ -243,7 +317,6 @@ function TrendsPage() {
               dataKey="time" 
               stroke="#94a3b8" 
               style={{ fontSize: '10px' }}
-              tickFormatter={function(value) { return timeRange === '1h' ? value + 'm' : value + 'h'; }}
             />
             <YAxis stroke="#94a3b8" style={{ fontSize: '10px' }} />
             <Tooltip 
@@ -285,7 +358,6 @@ function TrendsPage() {
             })}
           </ChartComp>
         </ResponsiveContainer>
-        {/* Legend for small charts */}
         {!isMaximized && (
           <div className="flex flex-wrap gap-2 mt-2">
             {categorySelectedParams.map(function(param) {
@@ -302,7 +374,6 @@ function TrendsPage() {
     );
   }
 
-  // Maximized chart modal
   function renderMaximizedModal() {
     if (!maximizedChart) return null;
     
@@ -328,10 +399,8 @@ function TrendsPage() {
     );
   }
 
-  // Build time range buttons
-  const timeRangeButtons = [];
-  ['1h', '12h', '24h', '7d'].forEach(function(range) {
-    timeRangeButtons.push(
+  const timeRangeButtons = ['1h', '12h', '24h', '7d'].map(function(range) {
+    return (
       <button
         key={range}
         onClick={function() { setTimeRange(range); }}
@@ -346,10 +415,8 @@ function TrendsPage() {
     );
   });
 
-  // Build chart type buttons
-  const chartTypeButtons = [];
-  ['line', 'area'].forEach(function(type) {
-    chartTypeButtons.push(
+  const chartTypeButtons = ['line', 'area'].map(function(type) {
+    return (
       <button
         key={type}
         onClick={function() { setChartType(type); }}
@@ -364,13 +431,11 @@ function TrendsPage() {
     );
   });
 
-  // Build category options
   const categoryOptions = [<option key="all" value="all">All Categories</option>];
   Object.keys(parameterCategories).forEach(function(cat) {
     categoryOptions.push(<option key={cat} value={cat}>{cat}</option>);
   });
 
-  // Build parameter toggles
   const parameterToggles = [];
   Object.keys(filteredCategories).forEach(function(category) {
     const params = filteredCategories[category];
@@ -414,7 +479,6 @@ function TrendsPage() {
     );
   });
 
-  // Build statistics cards - show only: 12Hr Avg, 24Hr Avg, Min, Max
   const statisticsCards = [];
   selectedParams.slice(0, 12).forEach(function(paramKey) {
     const param = allParameters.find(function(p) { return p.key === paramKey; });
@@ -450,10 +514,20 @@ function TrendsPage() {
     );
   });
 
-  // Build category charts
   const categoryCharts = categoriesToDisplay.map(function(cat) {
     return renderCategoryChart(cat.name, cat.params, false);
   });
+
+  if (loading && trendData.length === 0) {
+    return (
+      <div className="max-w-[1920px] mx-auto p-4 md:p-6 lg:p-8 bg-slate-50 min-h-screen" data-testid="trends-page">
+        <div className="flex items-center justify-center p-12 bg-white rounded-lg border border-slate-200">
+          <RefreshCw className="w-8 h-8 text-slate-400 animate-spin mr-3" />
+          <span className="text-slate-500 text-lg">Loading trend data...</span>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="max-w-[1920px] mx-auto p-4 md:p-6 lg:p-8 bg-slate-50 min-h-screen" data-testid="trends-page">
@@ -468,33 +542,65 @@ function TrendsPage() {
           <p className="text-slate-600">Analyze historical data patterns and performance metrics across all SCADA parameters</p>
         </div>
         
-        {/* Download Buttons */}
-        <div className="relative">
-          <button
-            onClick={function() { setShowDownloadMenu(!showDownloadMenu); }}
-            className="flex items-center space-x-2 px-4 py-2 bg-emerald-600 text-white rounded-lg font-medium hover:bg-emerald-700 transition-colors shadow-sm"
-          >
-            <Download className="w-4 h-4" />
-            <span>Download</span>
-          </button>
-          {showDownloadMenu && (
-            <div className="absolute top-full right-0 mt-2 bg-white border border-slate-200 rounded-lg shadow-lg z-10 min-w-[160px]">
-              <button 
-                onClick={handleDownloadCSV}
-                className="w-full px-4 py-3 text-left hover:bg-slate-50 flex items-center space-x-2 text-slate-700"
-              >
-                <FileSpreadsheet className="w-4 h-4 text-cyan-600" />
-                <span>Download CSV</span>
-              </button>
-              <button 
-                onClick={handleDownloadPDF}
-                className="w-full px-4 py-3 text-left hover:bg-slate-50 flex items-center space-x-2 text-slate-700 border-t border-slate-100"
-              >
-                <FileText className="w-4 h-4 text-rose-600" />
-                <span>Download PDF</span>
-              </button>
-            </div>
+        <div className="flex items-center space-x-3">
+          {/* Connection Status */}
+          {isConnected ? (
+            <span className="flex items-center space-x-1 px-2 py-1 bg-emerald-100 text-emerald-700 rounded text-xs font-medium">
+              <Wifi className="w-3 h-3" />
+              <span>LIVE</span>
+            </span>
+          ) : (
+            <span className="flex items-center space-x-1 px-2 py-1 bg-amber-100 text-amber-700 rounded text-xs font-medium">
+              <WifiOff className="w-3 h-3" />
+              <span>DEMO</span>
+            </span>
           )}
+
+          {/* API Stats */}
+          {apiStats && (
+            <span className="px-3 py-1 bg-slate-100 rounded-full text-xs text-slate-600">
+              {apiStats.totalRecords}/{apiStats.expectedRecords} records ({apiStats.coveragePercent}%)
+            </span>
+          )}
+
+          {/* Refresh Button */}
+          <button
+            onClick={fetchData}
+            className="flex items-center space-x-1 px-3 py-1.5 text-sm text-slate-600 hover:bg-slate-100 rounded-lg border border-slate-200"
+            disabled={loading}
+          >
+            <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} />
+            <span>Refresh</span>
+          </button>
+
+          {/* Download Buttons */}
+          <div className="relative">
+            <button
+              onClick={function() { setShowDownloadMenu(!showDownloadMenu); }}
+              className="flex items-center space-x-2 px-4 py-2 bg-emerald-600 text-white rounded-lg font-medium hover:bg-emerald-700 transition-colors shadow-sm"
+            >
+              <Download className="w-4 h-4" />
+              <span>Download</span>
+            </button>
+            {showDownloadMenu && (
+              <div className="absolute top-full right-0 mt-2 bg-white border border-slate-200 rounded-lg shadow-lg z-10 min-w-[160px]">
+                <button 
+                  onClick={handleDownloadCSV}
+                  className="w-full px-4 py-3 text-left hover:bg-slate-50 flex items-center space-x-2 text-slate-700"
+                >
+                  <FileSpreadsheet className="w-4 h-4 text-cyan-600" />
+                  <span>Download CSV</span>
+                </button>
+                <button 
+                  onClick={handleDownloadPDF}
+                  className="w-full px-4 py-3 text-left hover:bg-slate-50 flex items-center space-x-2 text-slate-700 border-t border-slate-100"
+                >
+                  <FileText className="w-4 h-4 text-rose-600" />
+                  <span>Download PDF</span>
+                </button>
+              </div>
+            )}
+          </div>
         </div>
       </div>
 
@@ -546,7 +652,7 @@ function TrendsPage() {
           </div>
         </div>
 
-        {/* Chart Visualization - Split by Category */}
+        {/* Chart Visualization */}
         <div className="lg:col-span-9 space-y-4">
           <h3 className="text-lg font-semibold text-slate-800">Data Visualization <span className="text-sm font-normal text-slate-500">(Click chart to maximize)</span></h3>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
