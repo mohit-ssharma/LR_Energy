@@ -8,17 +8,17 @@ export const ROLES = {
 
 // User credentials (in production, this would be in backend)
 const USERS = {
-  'it@lrenergy.in': {
-    password: 'qwerty',
+  'ho@lrenergy.in': {
+    password: 'qwerty@1234',
     role: ROLES.HEAD_OFFICE,
     name: 'Head Office Admin',
-    email: 'it@lrenergy.in'
+    email: 'ho@lrenergy.in'
   },
-  'it1@lrenergy.in': {
-    password: 'qwerty',
+  'mnre@lrenergy.in': {
+    password: 'qwerty@1234',
     role: ROLES.MNRE,
     name: 'MNRE User',
-    email: 'it1@lrenergy.in'
+    email: 'mnre@lrenergy.in'
   }
 };
 
