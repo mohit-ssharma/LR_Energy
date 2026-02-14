@@ -102,8 +102,8 @@ Build a web-based SCADA (Supervisory Control and Data Acquisition) monitoring sy
 ## User Roles & Access
 
 ### HEAD_OFFICE
-- **Username**: it@lrenergy.in
-- **Password**: qwerty
+- **Username**: ho@lrenergy.in
+- **Password**: qwerty@1234
 - **Access**: ALL dashboards and ALL trends
 - **Features**:
   - Dashboard selection (Karnal/Vrindavan)
@@ -112,8 +112,8 @@ Build a web-based SCADA (Supervisory Control and Data Acquisition) monitoring sy
   - Reports page with PDF/CSV downloads
 
 ### MNRE
-- **Username**: it1@lrenergy.in
-- **Password**: qwerty
+- **Username**: mnre@lrenergy.in
+- **Password**: qwerty@1234
 - **Access**: ONLY MNRE dashboard and related trends
 - **Visible Parameters**:
   1. Raw Bio Gas Flow
