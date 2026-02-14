@@ -275,17 +275,71 @@ function logApiRequest($endpoint, $method, $responseCode, $message, $executionTi
 
 /**
  * Check thresholds and create alerts
+ * 
+ * THRESHOLD REFERENCE:
+ * ====================
+ * Gas Composition:
+ *   - CH4: ≥96% = Accepted, <96% = Warning
+ *   - CO2: <5% = Normal, ≥5% = Warning
+ *   - O2: <0.5% = Normal, ≥0.5% = Warning, ≥2% = Critical (explosion risk)
+ *   - H2S: <500 ppm = Normal, ≥500 = Warning, ≥1000 = Critical (safety hazard)
+ *   - Dew Point: -80 to -40 mg/m³ = Normal
+ * 
+ * Digester:
+ *   - Temperature: 30-45°C = Normal, >50°C = Critical (bacteria death)
+ *   - Gas Pressure: 10-50 mbar = Normal
+ *   - Slurry Height: 2-8 m = Normal
+ *   - Gas Level: 30-90% = Normal
+ * 
+ * Tanks:
+ *   - Buffer/Lagoon: 20-95% = Normal
+ * 
+ * Equipment:
+ *   - PSA Efficiency: ≥85% = Normal
+ *   - LT Panel Power: 50-400 kW = Normal
  */
 function checkAndCreateAlerts($pdo, $plantId, $data) {
-    // Define thresholds
+    // Define all thresholds
     $thresholds = [
-        'ch4_concentration' => ['min' => 90, 'max' => 100, 'severity' => 'WARNING', 'name' => 'CH4 Concentration'],
-        'h2s_content' => ['min' => 0, 'max' => 500, 'severity' => 'CRITICAL', 'name' => 'H2S Content'],
-        'o2_concentration' => ['min' => 0, 'max' => 1, 'severity' => 'WARNING', 'name' => 'O2 Concentration'],
+        // ========== GAS COMPOSITION ==========
+        'ch4_concentration' => ['min' => 96, 'max' => 100, 'severity' => 'WARNING', 'name' => 'CH₄ Concentration'],
+        'co2_level' => ['min' => 0, 'max' => 5, 'severity' => 'WARNING', 'name' => 'CO₂ Level'],
+        'o2_concentration' => ['min' => 0, 'max' => 0.5, 'severity' => 'WARNING', 'name' => 'O₂ Concentration'],
+        'h2s_content' => ['min' => 0, 'max' => 500, 'severity' => 'WARNING', 'name' => 'H₂S Content'],
+        'dew_point' => ['min' => -80, 'max' => -40, 'severity' => 'WARNING', 'name' => 'Dew Point'],
+        
+        // ========== GAS FLOW ==========
+        'raw_biogas_flow' => ['min' => 500, 'max' => 2000, 'severity' => 'WARNING', 'name' => 'Raw Biogas Flow'],
+        'purified_gas_flow' => ['min' => 400, 'max' => 1800, 'severity' => 'WARNING', 'name' => 'Purified Gas Flow'],
+        'product_gas_flow' => ['min' => 350, 'max' => 1700, 'severity' => 'WARNING', 'name' => 'Product Gas Flow'],
+        
+        // ========== DIGESTER 1 ==========
         'd1_temp_bottom' => ['min' => 30, 'max' => 45, 'severity' => 'WARNING', 'name' => 'Digester 1 Temperature'],
+        'd1_gas_pressure' => ['min' => 10, 'max' => 50, 'severity' => 'WARNING', 'name' => 'Digester 1 Gas Pressure'],
+        'd1_slurry_height' => ['min' => 2, 'max' => 8, 'severity' => 'WARNING', 'name' => 'Digester 1 Slurry Height'],
+        'd1_gas_level' => ['min' => 30, 'max' => 90, 'severity' => 'WARNING', 'name' => 'Digester 1 Gas Level'],
+        
+        // ========== DIGESTER 2 ==========
         'd2_temp_bottom' => ['min' => 30, 'max' => 45, 'severity' => 'WARNING', 'name' => 'Digester 2 Temperature'],
+        'd2_gas_pressure' => ['min' => 10, 'max' => 50, 'severity' => 'WARNING', 'name' => 'Digester 2 Gas Pressure'],
+        'd2_slurry_height' => ['min' => 2, 'max' => 8, 'severity' => 'WARNING', 'name' => 'Digester 2 Slurry Height'],
+        'd2_gas_level' => ['min' => 30, 'max' => 90, 'severity' => 'WARNING', 'name' => 'Digester 2 Gas Level'],
+        
+        // ========== TANK LEVELS ==========
         'buffer_tank_level' => ['min' => 20, 'max' => 95, 'severity' => 'WARNING', 'name' => 'Buffer Tank Level'],
+        'lagoon_tank_level' => ['min' => 20, 'max' => 95, 'severity' => 'WARNING', 'name' => 'Lagoon Tank Level'],
+        
+        // ========== EQUIPMENT ==========
         'psa_efficiency' => ['min' => 85, 'max' => 100, 'severity' => 'WARNING', 'name' => 'PSA Efficiency'],
+        'lt_panel_power' => ['min' => 50, 'max' => 400, 'severity' => 'WARNING', 'name' => 'LT Panel Power'],
+    ];
+    
+    // Critical thresholds (override severity for extreme values)
+    $criticalThresholds = [
+        'h2s_content' => ['max' => 1000, 'name' => 'H₂S Content - DANGER'],
+        'o2_concentration' => ['max' => 2, 'name' => 'O₂ Concentration - Explosion Risk'],
+        'd1_temp_bottom' => ['max' => 50, 'name' => 'Digester 1 Temperature - Critical'],
+        'd2_temp_bottom' => ['max' => 50, 'name' => 'Digester 2 Temperature - Critical'],
     ];
     
     try {
