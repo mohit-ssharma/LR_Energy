@@ -1,4 +1,6 @@
 <?php
+require_once 'cors.php';  // CORS headers - MUST BE FIRST!
+
 /**
  * Trends API Endpoint
  * URL: /api/trends.php

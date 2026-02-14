@@ -1,4 +1,6 @@
 <?php
+require_once 'cors.php';  // CORS headers - MUST BE FIRST!
+
 /**
  * Receive Data API Endpoint
  * URL: /api/receive_data.php

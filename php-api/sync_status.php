@@ -1,4 +1,6 @@
 <?php
+require_once 'cors.php';  // CORS headers - MUST BE FIRST!
+
 /**
  * Last Sync Status API Endpoint
  * URL: /api/sync_status.php

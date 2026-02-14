@@ -1,4 +1,6 @@
 <?php
+require_once 'cors.php';  // CORS headers - MUST BE FIRST!
+
 /**
  * Performance Comparison API Endpoint
  * URL: /api/comparison.php
