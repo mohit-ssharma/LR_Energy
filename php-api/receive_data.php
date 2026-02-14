@@ -6,18 +6,13 @@ require_once 'cors.php';  // CORS headers - MUST BE FIRST!
  * URL: /api/receive_data.php
  * Method: POST
  * 
- * Receives SCADA data from sync script every 60 seconds
+ * Receives SCADA data from PLC every 60 seconds
  * 
- * Security Features:
+ * Features:
  * - API Key authentication
  * - JSON validation
  * - Duplicate timestamp protection
- * - Execution time < 5 seconds
- * - Rate limiting ready
- * 
- * Headers:
- * - X-API-Key: Your API key
- * - Content-Type: application/json
+ * - Auto-populates: sync_status, api_logs, alerts
  */
 
 require_once 'config.php';
@@ -29,13 +24,13 @@ set_time_limit(API_TIMEOUT);
 
 // Only allow POST requests
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+    logApiRequest('receive_data.php', 'POST', 405, 'Method not allowed');
     sendError('Method not allowed. Use POST.', 405);
 }
 
 // Validate API Key
 $apiKey = $_SERVER['HTTP_X_API_KEY'] ?? '';
 if (empty($apiKey)) {
-    // Also check Authorization header
     $authHeader = $_SERVER['HTTP_AUTHORIZATION'] ?? '';
     if (preg_match('/Bearer\s+(.*)$/i', $authHeader, $matches)) {
         $apiKey = $matches[1];
@@ -49,39 +44,38 @@ validateIP();
 // Get and validate JSON input
 $rawInput = file_get_contents('php://input');
 
-// Check if input is empty
 if (empty($rawInput)) {
+    logApiRequest('receive_data.php', 'POST', 400, 'Empty request body');
     sendError('Empty request body', 400);
 }
 
-// Validate JSON format
 $data = json_decode($rawInput, true);
 
 if (json_last_error() !== JSON_ERROR_NONE) {
+    logApiRequest('receive_data.php', 'POST', 400, 'Invalid JSON');
     sendError('Invalid JSON: ' . json_last_error_msg(), 400);
 }
 
 // Validate required fields
 if (!isset($data['timestamp'])) {
+    logApiRequest('receive_data.php', 'POST', 400, 'Missing timestamp');
     sendError('Missing required field: timestamp', 400);
 }
 
-// Validate timestamp format (YYYY-MM-DD HH:MM:SS)
+// Validate timestamp format
 $timestamp = $data['timestamp'];
 if (!preg_match('/^\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}$/', $timestamp)) {
+    logApiRequest('receive_data.php', 'POST', 400, 'Invalid timestamp format');
     sendError('Invalid timestamp format. Use: YYYY-MM-DD HH:MM:SS', 400);
 }
 
-// Validate timestamp is a real date
 $dateTime = DateTime::createFromFormat('Y-m-d H:i:s', $timestamp);
 if (!$dateTime || $dateTime->format('Y-m-d H:i:s') !== $timestamp) {
     sendError('Invalid timestamp value', 400);
 }
 
-// Get plant_id (default to configured PLANT_ID)
 $plantId = isset($data['plant_id']) ? $data['plant_id'] : PLANT_ID;
 
-// Validate plant_id length
 if (strlen($plantId) > 50) {
     sendError('plant_id too long (max 50 characters)', 400);
 }
@@ -89,13 +83,12 @@ if (strlen($plantId) > 50) {
 // Connect to database
 $pdo = getDBConnection();
 if (!$pdo) {
+    logApiRequest('receive_data.php', 'POST', 500, 'Database connection failed');
     sendError('Database connection failed', 500);
 }
 
 try {
-    // ============================================
-    // DUPLICATE TIMESTAMP PROTECTION
-    // ============================================
+    // Check for duplicate
     $checkDuplicate = $pdo->prepare("
         SELECT id FROM scada_readings 
         WHERE plant_id = ? AND timestamp = ?
@@ -104,8 +97,8 @@ try {
     $checkDuplicate->execute([$plantId, $timestamp]);
     
     if ($checkDuplicate->fetch()) {
-        // Duplicate found - return success but indicate it was a duplicate
         $executionTime = round((microtime(true) - $startTime) * 1000);
+        logApiRequest('receive_data.php', 'POST', 200, 'Duplicate data', $executionTime);
         sendResponse([
             'status' => 'duplicate',
             'message' => 'Data for this timestamp already exists',
@@ -115,9 +108,7 @@ try {
         ], 200);
     }
 
-    // ============================================
-    // VALIDATE NUMERIC FIELDS
-    // ============================================
+    // Validate numeric fields
     $numericFields = [
         'raw_biogas_flow', 'raw_biogas_totalizer',
         'purified_gas_flow', 'purified_gas_totalizer',
@@ -133,7 +124,6 @@ try {
 
     $booleanFields = ['psa_status', 'compressor_status'];
 
-    // Validate numeric fields
     foreach ($numericFields as $field) {
         if (isset($data[$field]) && $data[$field] !== null) {
             if (!is_numeric($data[$field])) {
@@ -142,7 +132,6 @@ try {
         }
     }
 
-    // Validate boolean fields (0 or 1)
     foreach ($booleanFields as $field) {
         if (isset($data[$field]) && $data[$field] !== null) {
             if (!in_array($data[$field], [0, 1, '0', '1'], true)) {
@@ -151,11 +140,7 @@ try {
         }
     }
 
-    // ============================================
-    // INSERT DATA
-    // ============================================
-    
-    // Define all fields in order
+    // Define all fields
     $allFields = [
         'plant_id', 'timestamp',
         'raw_biogas_flow', 'raw_biogas_totalizer',
@@ -179,7 +164,7 @@ try {
         $values[] = isset($data[$field]) ? $data[$field] : null;
     }
 
-    // Build SQL
+    // Insert data
     $placeholders = implode(', ', array_fill(0, count($allFields), '?'));
     $fieldList = implode(', ', $allFields);
     
@@ -193,12 +178,6 @@ try {
     // Calculate execution time
     $executionTime = round((microtime(true) - $startTime) * 1000);
     
-    // Check if execution time exceeded threshold
-    $warning = null;
-    if ($executionTime > (API_TIMEOUT * 1000 * 0.8)) {
-        $warning = 'Execution time approaching limit';
-    }
-    
     // Count non-null fields received
     $fieldsReceived = 0;
     foreach (array_slice($allFields, 2) as $field) {
@@ -206,6 +185,21 @@ try {
             $fieldsReceived++;
         }
     }
+
+    // ============================================
+    // UPDATE SYNC STATUS
+    // ============================================
+    updateSyncStatus($pdo, $plantId, 'SUCCESS', 1);
+
+    // ============================================
+    // CHECK ALERTS (Threshold monitoring)
+    // ============================================
+    checkAndCreateAlerts($pdo, $plantId, $data);
+
+    // ============================================
+    // LOG API REQUEST
+    // ============================================
+    logApiRequest('receive_data.php', 'POST', 201, 'Data stored', $executionTime);
 
     // Send success response
     $response = [
@@ -219,16 +213,12 @@ try {
         'execution_time_ms' => $executionTime
     ];
     
-    if ($warning) {
-        $response['warning'] = $warning;
-    }
-    
     sendResponse($response, 201);
 
 } catch (PDOException $e) {
     error_log("Database error in receive_data.php: " . $e->getMessage());
+    logApiRequest('receive_data.php', 'POST', 500, $e->getMessage());
     
-    // Check for duplicate entry error
     if ($e->getCode() == 23000) {
         sendError('Duplicate entry for this timestamp', 409);
     }
@@ -237,19 +227,110 @@ try {
 }
 
 // ============================================
-// UPDATE SYNC STATUS
+// HELPER FUNCTIONS
 // ============================================
-try {
-    $syncSql = "INSERT INTO sync_status (plant_id, last_sync_time, records_synced, sync_status) 
-                VALUES (?, NOW(), 1, 'success')
+
+/**
+ * Update sync_status table
+ */
+function updateSyncStatus($pdo, $plantId, $status, $recordCount) {
+    try {
+        $sql = "INSERT INTO sync_status (plant_id, last_sync_time, last_sync_status, records_synced, ip_address) 
+                VALUES (?, NOW(), ?, ?, ?)
                 ON DUPLICATE KEY UPDATE 
                 last_sync_time = NOW(), 
-                records_synced = records_synced + 1,
-                sync_status = 'success'";
-    $syncStmt = $pdo->prepare($syncSql);
-    $syncStmt->execute([$plantId]);
-} catch (Exception $e) {
-    // Log but don't fail the request
-    error_log("Failed to update sync status: " . $e->getMessage());
+                last_sync_status = VALUES(last_sync_status),
+                records_synced = records_synced + VALUES(records_synced),
+                ip_address = VALUES(ip_address)";
+        $stmt = $pdo->prepare($sql);
+        $stmt->execute([$plantId, $status, $recordCount, $_SERVER['REMOTE_ADDR'] ?? null]);
+    } catch (Exception $e) {
+        error_log("Failed to update sync status: " . $e->getMessage());
+    }
+}
+
+/**
+ * Log API request
+ */
+function logApiRequest($endpoint, $method, $responseCode, $message, $executionTime = null) {
+    global $pdo;
+    if (!$pdo) return;
+    
+    try {
+        $sql = "INSERT INTO api_logs (endpoint, method, ip_address, response_code, response_message, execution_time_ms) 
+                VALUES (?, ?, ?, ?, ?, ?)";
+        $stmt = $pdo->prepare($sql);
+        $stmt->execute([
+            $endpoint,
+            $method,
+            $_SERVER['REMOTE_ADDR'] ?? null,
+            $responseCode,
+            substr($message, 0, 255),
+            $executionTime
+        ]);
+    } catch (Exception $e) {
+        error_log("Failed to log API request: " . $e->getMessage());
+    }
+}
+
+/**
+ * Check thresholds and create alerts
+ */
+function checkAndCreateAlerts($pdo, $plantId, $data) {
+    // Define thresholds
+    $thresholds = [
+        'ch4_concentration' => ['min' => 90, 'max' => 100, 'severity' => 'WARNING', 'name' => 'CH4 Concentration'],
+        'h2s_content' => ['min' => 0, 'max' => 500, 'severity' => 'CRITICAL', 'name' => 'H2S Content'],
+        'o2_concentration' => ['min' => 0, 'max' => 1, 'severity' => 'WARNING', 'name' => 'O2 Concentration'],
+        'd1_temp_bottom' => ['min' => 30, 'max' => 45, 'severity' => 'WARNING', 'name' => 'Digester 1 Temperature'],
+        'd2_temp_bottom' => ['min' => 30, 'max' => 45, 'severity' => 'WARNING', 'name' => 'Digester 2 Temperature'],
+        'buffer_tank_level' => ['min' => 20, 'max' => 95, 'severity' => 'WARNING', 'name' => 'Buffer Tank Level'],
+        'psa_efficiency' => ['min' => 85, 'max' => 100, 'severity' => 'WARNING', 'name' => 'PSA Efficiency'],
+    ];
+    
+    try {
+        foreach ($thresholds as $field => $config) {
+            if (!isset($data[$field]) || $data[$field] === null) continue;
+            
+            $value = floatval($data[$field]);
+            $alertMessage = null;
+            $thresholdValue = null;
+            
+            if ($value < $config['min']) {
+                $alertMessage = "{$config['name']} is below minimum threshold";
+                $thresholdValue = $config['min'];
+            } elseif ($value > $config['max']) {
+                $alertMessage = "{$config['name']} exceeds maximum threshold";
+                $thresholdValue = $config['max'];
+            }
+            
+            if ($alertMessage) {
+                // Check if similar active alert exists
+                $checkSql = "SELECT id FROM alerts 
+                             WHERE plant_id = ? AND parameter = ? AND status = 'ACTIVE' 
+                             AND created_at > DATE_SUB(NOW(), INTERVAL 1 HOUR)
+                             LIMIT 1";
+                $checkStmt = $pdo->prepare($checkSql);
+                $checkStmt->execute([$plantId, $field]);
+                
+                if (!$checkStmt->fetch()) {
+                    // Create new alert
+                    $insertSql = "INSERT INTO alerts (plant_id, parameter, current_value, threshold_value, severity, message) 
+                                  VALUES (?, ?, ?, ?, ?, ?)";
+                    $insertStmt = $pdo->prepare($insertSql);
+                    $insertStmt->execute([
+                        $plantId,
+                        $field,
+                        $value,
+                        $thresholdValue,
+                        $config['severity'],
+                        $alertMessage
+                    ]);
+                }
+            }
+        }
+    } catch (Exception $e) {
+        error_log("Failed to check alerts: " . $e->getMessage());
+    }
 }
 ?>
