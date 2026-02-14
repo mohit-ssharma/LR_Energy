@@ -1,0 +1,141 @@
+================================================================================
+                    SCADA ALERT THRESHOLDS - FOR ENGINEER REVIEW
+================================================================================
+
+Plant: LR Energy Biogas Plant - Karnal
+Document Purpose: Please review and fill in the correct threshold values
+Date: ____________
+Reviewed By: ____________
+
+
+INSTRUCTIONS:
+-------------
+1. Review each parameter below
+2. Fill in the MIN and MAX values in the blank columns
+3. Mark SEVERITY as: WARNING or CRITICAL
+4. Add any notes if needed
+5. Return this document after completion
+
+
+================================================================================
+                              GAS COMPOSITION
+================================================================================
+
+Parameter               | Unit    | MIN Value | MAX Value | Severity | Notes
+------------------------|---------|-----------|-----------|----------|-------
+CH₄ (Methane)           | %       | _________ | 100       | WARNING  | Currently: 96
+CO₂ (Carbon Dioxide)    | %       | 0         | _________ | WARNING  | Currently: 5
+O₂ (Oxygen)             | %       | 0         | _________ | WARNING  | Currently: 0.5
+O₂ (Oxygen) - CRITICAL  | %       | -         | _________ | CRITICAL | Explosion risk
+H₂S (Hydrogen Sulfide)  | ppm     | 0         | _________ | WARNING  | Currently: 500
+H₂S - CRITICAL          | ppm     | -         | _________ | CRITICAL | Safety hazard
+Dew Point               | mg/m³   | _________ | _________ | WARNING  | Currently: -80 to -40
+
+
+================================================================================
+                              GAS FLOW
+================================================================================
+
+Parameter               | Unit    | MIN Value | MAX Value | Severity | Notes
+------------------------|---------|-----------|-----------|----------|-------
+Raw Biogas Flow         | Nm³/hr  | _________ | _________ | WARNING  | Normal: ~1250
+Purified Gas Flow       | Nm³/hr  | _________ | _________ | WARNING  | Normal: ~1180
+Product Gas Flow        | Nm³/hr  | _________ | _________ | WARNING  | Normal: ~1150
+
+
+================================================================================
+                              DIGESTER 1
+================================================================================
+
+Parameter               | Unit    | MIN Value | MAX Value | Severity | Notes
+------------------------|---------|-----------|-----------|----------|-------
+D1 Bottom Temperature   | °C      | _________ | _________ | WARNING  | Normal: ~37
+D1 Top Temperature      | °C      | _________ | _________ | WARNING  | Normal: ~36.5
+D1 Temperature CRITICAL | °C      | -         | _________ | CRITICAL | Bacteria death
+D1 Balloon Gas Pressure | mbar    | _________ | _________ | WARNING  | Normal: ~32
+D1 Balloon Air Pressure | mbar    | _________ | _________ | WARNING  | Normal: ~18
+D1 Slurry Height        | m       | _________ | _________ | WARNING  | Normal: ~7.6
+D1 Gas Level            | %       | _________ | _________ | WARNING  | Normal: ~75
+
+
+================================================================================
+                              DIGESTER 2
+================================================================================
+
+Parameter               | Unit    | MIN Value | MAX Value | Severity | Notes
+------------------------|---------|-----------|-----------|----------|-------
+D2 Bottom Temperature   | °C      | _________ | _________ | WARNING  | Normal: ~36.5
+D2 Top Temperature      | °C      | _________ | _________ | WARNING  | Normal: ~36
+D2 Temperature CRITICAL | °C      | -         | _________ | CRITICAL | Bacteria death
+D2 Balloon Gas Pressure | mbar    | _________ | _________ | WARNING  | Normal: ~30
+D2 Balloon Air Pressure | mbar    | _________ | _________ | WARNING  | Normal: ~17
+D2 Slurry Height        | m       | _________ | _________ | WARNING  | Normal: ~7.3
+D2 Gas Level            | %       | _________ | _________ | WARNING  | Normal: ~72
+
+
+================================================================================
+                              TANK LEVELS
+================================================================================
+
+Parameter               | Unit    | MIN Value | MAX Value | Severity | Notes
+------------------------|---------|-----------|-----------|----------|-------
+Buffer Tank Level       | %       | _________ | _________ | WARNING  | Normal: ~82
+Lagoon Tank Level       | %       | _________ | _________ | WARNING  | Normal: ~76
+
+
+================================================================================
+                              WATER FLOW
+================================================================================
+
+Parameter               | Unit    | MIN Value | MAX Value | Severity | Notes
+------------------------|---------|-----------|-----------|----------|-------
+Feed FM-I Flow          | m³/hr   | _________ | _________ | WARNING  | Normal: ~42
+Feed FM-II Flow         | m³/hr   | _________ | _________ | WARNING  | Normal: ~38
+Fresh Water Flow        | m³/hr   | _________ | _________ | WARNING  | Normal: ~12
+Recycle Water Flow      | m³/hr   | _________ | _________ | WARNING  | Normal: ~26
+
+
+================================================================================
+                              EQUIPMENT
+================================================================================
+
+Parameter               | Unit    | MIN Value | MAX Value | Severity | Notes
+------------------------|---------|-----------|-----------|----------|-------
+PSA Efficiency          | %       | _________ | 100       | WARNING  | Normal: ~94.4
+LT Panel Power          | kW      | _________ | _________ | WARNING  | Normal: ~245
+
+
+================================================================================
+                         SEVERITY LEVELS EXPLANATION
+================================================================================
+
+WARNING  = Attention needed, not urgent. Operator should be notified.
+CRITICAL = Immediate action required. May require plant shutdown.
+
+
+================================================================================
+                              ADDITIONAL PARAMETERS
+================================================================================
+
+If there are any other parameters that need monitoring, please list them below:
+
+Parameter               | Unit    | MIN Value | MAX Value | Severity | Notes
+------------------------|---------|-----------|-----------|----------|-------
+________________________|_________|___________|___________|__________|_______
+________________________|_________|___________|___________|__________|_______
+________________________|_________|___________|___________|__________|_______
+________________________|_________|___________|___________|__________|_______
+
+
+================================================================================
+                              SIGN-OFF
+================================================================================
+
+Engineer Name: ________________________________
+
+Signature: ____________________________________
+
+Date: ________________________________________
+
+
+================================================================================
