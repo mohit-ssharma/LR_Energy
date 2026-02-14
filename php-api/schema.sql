@@ -231,16 +231,16 @@ CREATE TABLE IF NOT EXISTS `alerts` (
 -- ============================================
 -- INSERT DEFAULT USERS
 -- ============================================
--- Default passwords: 'qwerty' (hashed with password_hash)
+-- Default passwords need to be hashed with password_hash()
 -- IMPORTANT: Change these passwords after first login!
 
 INSERT INTO `users` (`email`, `password`, `role`, `name`) VALUES
-('it@lrenergy.in', '$2y$10$YourHashedPasswordHere1234567890', 'HEAD_OFFICE', 'Head Office Admin'),
-('it1@lrenergy.in', '$2y$10$YourHashedPasswordHere1234567890', 'MNRE', 'MNRE User');
+('ho@lrenergy.in', '$2y$10$YourHashedPasswordHere1234567890', 'HEAD_OFFICE', 'Head Office Admin'),
+('mnre@lrenergy.in', '$2y$10$YourHashedPasswordHere1234567890', 'MNRE', 'MNRE User');
 
 -- Note: Replace the password hashes above with actual hashed passwords
--- You can generate password hashes using PHP:
--- echo password_hash('qwerty', PASSWORD_DEFAULT);
+-- Run this PHP code to generate the hash for 'qwerty@1234':
+-- echo password_hash('qwerty@1234', PASSWORD_DEFAULT);
 
 
 -- ============================================
