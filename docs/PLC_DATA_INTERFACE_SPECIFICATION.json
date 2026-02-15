@@ -485,7 +485,8 @@
 
   "_sample_json_payload": {
     "description": "This is the exact JSON format to send to the API every 60 seconds",
-    "api_key_header": "X-API-Key: sk_prod_LREnergy_283669e54e512351a5bde265e20da2149fd4b54569a7e12b1ee8226746a6a2a7",
+    "note": "API key is passed in URL, not in JSON body or headers",
+    "full_url": "https://karnal.lrenergy.in/scada-api/receive_data.php?api_key=SCADA_LR_ENERGY_2026_SECURE_KEY",
     "content_type": "application/json",
     "method": "POST",
     "payload": {
@@ -500,7 +501,7 @@
       "ch4_concentration": 96.80,
       "co2_level": 2.90,
       "o2_concentration": 0.30,
-      "h2s_content": 180.00,
+      "h2s_content": 3.00,
       "dew_point": -68.00,
       "d1_temp_bottom": 37.00,
       "d1_temp_top": 36.50,
