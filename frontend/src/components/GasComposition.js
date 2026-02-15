@@ -1,12 +1,21 @@
 import React from 'react';
 import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip } from 'recharts';
 import { Activity } from 'lucide-react';
+import { formatNumber } from '../services/api';
 
-const GasComposition = () => {
+const GasComposition = ({ dashboardData }) => {
+  // Get current values from API data or use defaults
+  const current = dashboardData?.current || {};
+  
+  const ch4Value = current.ch4_concentration ?? 96.8;
+  const co2Value = current.co2_level ?? 2.9;
+  const o2Value = current.o2_concentration ?? 0.3;
+  const h2sValue = current.h2s_content ?? 3;
+  
   const compositionData = [
-    { name: 'CH₄', value: 96.8, color: '#10b981', unit: '%' },
-    { name: 'CO₂', value: 2.9, color: '#8b5cf6', unit: '%' },
-    { name: 'O₂', value: 0.3, color: '#f59e0b', unit: '%' },
+    { name: 'CH₄', value: ch4Value, color: '#10b981', unit: '%' },
+    { name: 'CO₂', value: co2Value, color: '#8b5cf6', unit: '%' },
+    { name: 'O₂', value: o2Value, color: '#f59e0b', unit: '%' },
   ];
 
   // Status logic based on requirements:
@@ -31,10 +40,10 @@ const GasComposition = () => {
   };
 
   const detailedData = [
-    { label: 'CH₄', value: '96.8', unit: '%', current: 96.8, target: 100, status: getStatus('CH₄', 96.8), color: 'emerald' },
-    { label: 'CO₂', value: '2.9', unit: '%', current: 2.9, target: 100, status: getStatus('CO₂', 2.9), color: 'violet' },
-    { label: 'O₂', value: '0.3', unit: '%', current: 0.3, target: 100, status: getStatus('O₂', 0.3), color: 'amber' },
-    { label: 'H₂S', value: '3', unit: 'ppm', current: 3, limit: 105, status: getStatus('H₂S', 3), color: 'rose' },
+    { label: 'CH₄', value: formatNumber(ch4Value, 1), unit: '%', current: ch4Value, target: 100, status: getStatus('CH₄', ch4Value), color: 'emerald' },
+    { label: 'CO₂', value: formatNumber(co2Value, 1), unit: '%', current: co2Value, target: 100, status: getStatus('CO₂', co2Value), color: 'violet' },
+    { label: 'O₂', value: formatNumber(o2Value, 2), unit: '%', current: o2Value, target: 100, status: getStatus('O₂', o2Value), color: 'amber' },
+    { label: 'H₂S', value: Math.round(h2sValue), unit: 'ppm', current: h2sValue, limit: 105, status: getStatus('H₂S', h2sValue), color: 'rose' },
   ];
 
   const getStatusStyle = (status) => {
@@ -46,6 +55,15 @@ const GasComposition = () => {
       default: return 'bg-slate-100 text-slate-700 border-slate-200';
     }
   };
+
+  // Format timestamp
+  const formatTime = (timestamp) => {
+    if (!timestamp) return '--:--:--';
+    const date = new Date(timestamp);
+    return date.toLocaleTimeString('en-IN', { hour12: false });
+  };
+
+  const lastUpdate = dashboardData?.last_update;
 
   return (
     <div className="mb-6" data-testid="gas-composition-section">
@@ -90,15 +108,16 @@ const GasComposition = () => {
                     <div className="w-2 h-2 rounded-full" style={{ backgroundColor: item.color }}></div>
                     <span className="text-xs font-medium text-slate-600">{item.name}</span>
                   </div>
-                  <div className="text-lg font-bold font-mono text-slate-900">{item.value}%</div>
+                  <div className="text-lg font-bold font-mono text-slate-900">{formatNumber(item.value, 1)}%</div>
                 </div>
               ))}
             </div>
           </div>
           
           <div className="lg:col-span-3 p-5 bg-gradient-to-br from-emerald-50/20 to-white">
-            <div className="flex items-center space-x-2 mb-4">
+            <div className="flex items-center justify-between mb-4">
               <span className="text-sm font-semibold uppercase tracking-wider text-slate-600">Detailed Parameters</span>
+              <span className="text-xs text-slate-400 font-mono">{formatTime(lastUpdate)}</span>
             </div>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
               {detailedData.map((item, index) => (
@@ -119,7 +138,7 @@ const GasComposition = () => {
                   <div className="relative pt-1">
                     <div className="flex mb-1 items-center justify-between">
                       <span className="text-xs font-medium text-slate-500">
-                        {item.limit ? `${item.current}/${item.limit}` : `${item.current}%`}
+                        {item.limit ? `${item.current}/${item.limit}` : `${formatNumber(item.current, 1)}%`}
                       </span>
                     </div>
                     <div className="overflow-hidden h-1.5 text-xs flex rounded-full bg-slate-200">
