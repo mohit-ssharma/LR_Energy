@@ -244,7 +244,10 @@ const MNREDashboard = () => {
     current: {
       raw_biogas_flow: 1250.5,
       purified_gas_flow: 1180.2,
-      product_gas_flow: 1150.8
+      product_gas_flow: 1150.8,
+      raw_biogas_totalizer: 150061,
+      purified_gas_totalizer: 142350,
+      product_gas_totalizer: 138200
     },
     totalizer_24hr: {
       raw_biogas: 30000,
