@@ -43,7 +43,7 @@ function generateData($mode) {
         'ch4_concentration' => 96.8 + (rand(-10, 10) / 10),
         'co2_level' => 2.9 + (rand(-5, 5) / 10),
         'o2_concentration' => 0.3 + (rand(-2, 2) / 10),
-        'h2s_content' => 180 + rand(-30, 30),
+        'h2s_content' => 3 + (rand(0, 2) / 10),  // Normal: < 5 ppm, Max: 105
         'dew_point' => -68 + rand(-5, 5),
         
         // Digester 1
