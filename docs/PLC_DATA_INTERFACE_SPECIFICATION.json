@@ -581,7 +581,6 @@
       "compressor_status": {"address": "<<FILL>>", "plc_type": "BOOL", "example": "DB10.DBX142.0"}
     }
   },
-  },
 
   "_field_summary_table": {
     "description": "Quick reference of all 37 fields",
