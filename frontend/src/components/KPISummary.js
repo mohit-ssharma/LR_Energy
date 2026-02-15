@@ -373,13 +373,14 @@ const KPISummary = () => {
     setLastRefresh(new Date());
   };
 
-  // Initial fetch and auto-refresh every 60 seconds
+  // Initial fetch and auto-refresh every 30 seconds
   useEffect(() => {
     fetchData();
     
     const interval = setInterval(() => {
+      console.log('Auto-refresh triggered at:', new Date().toLocaleTimeString());
       fetchData();
-    }, 60000); // 60 seconds
+    }, 30000); // 30 seconds for faster updates
     
     return () => clearInterval(interval);
   }, [fetchData]);
