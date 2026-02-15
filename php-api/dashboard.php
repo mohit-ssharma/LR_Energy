@@ -292,7 +292,7 @@ try {
                 : 0
         ],
         
-        // 24-hour totalizers
+        // 24-hour totalizers (daily production = MAX - MIN of meter readings)
         'totalizer_24hr' => [
             'raw_biogas' => round(floatval($stats24hr['totalizer_raw_biogas']), 2),
             'purified_gas' => round(floatval($stats24hr['totalizer_purified_gas']), 2),
@@ -306,7 +306,14 @@ try {
             'expected_samples' => 1440,
             'data_quality' => intval($stats24hr['sample_count']) > 0 
                 ? round((intval($stats24hr['raw_biogas_samples']) / intval($stats24hr['sample_count'])) * 100, 1) 
-                : 0
+                : 0,
+            // Debug: Actual MIN/MAX totalizer readings for today
+            '_debug_raw_biogas_min' => round(floatval($stats24hr['min_raw_biogas_totalizer']), 2),
+            '_debug_raw_biogas_max' => round(floatval($stats24hr['max_raw_biogas_totalizer']), 2),
+            '_debug_purified_gas_min' => round(floatval($stats24hr['min_purified_gas_totalizer']), 2),
+            '_debug_purified_gas_max' => round(floatval($stats24hr['max_purified_gas_totalizer']), 2),
+            '_debug_product_gas_min' => round(floatval($stats24hr['min_product_gas_totalizer']), 2),
+            '_debug_product_gas_max' => round(floatval($stats24hr['max_product_gas_totalizer']), 2)
         ],
         
         // Equipment Status - PSA, Compressor & LT Panel
