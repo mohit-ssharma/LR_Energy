@@ -131,14 +131,14 @@ function generateRealisticData($readingNumber) {
         $data['ch4_concentration'] = 94.5; // Below 96%
         $issueDescription = '⚠️ Low CH₄ concentration';
     } elseif ($issueType == 2) {
-        $data['h2s_content'] = 550; // Above 500
-        $issueDescription = '⚠️ High H₂S content';
+        $data['h2s_content'] = 10; // Above 5 ppm = Critical
+        $issueDescription = '🚨 High H₂S content (Critical)';
     } elseif ($issueType == 3) {
         $data['d1_temp_bottom'] = 46; // Above 45
         $issueDescription = '⚠️ Digester 1 temperature high';
     } elseif ($issueType == 4) {
-        $data['buffer_tank_level'] = 96; // Above 95
-        $issueDescription = '⚠️ Buffer tank level high';
+        $data['buffer_tank_level'] = 92; // Above 90% = Critical
+        $issueDescription = '🚨 Buffer tank level critical';
     }
     
     return ['data' => $data, 'issue' => $issueDescription];
