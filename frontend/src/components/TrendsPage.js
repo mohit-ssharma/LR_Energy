@@ -3,7 +3,7 @@ import { LineChart, Line, AreaChart, Area, ResponsiveContainer, XAxis, YAxis, Ca
 import { TrendingUp, Calendar, BarChart3, Eye, X, Maximize2, RefreshCw, Wifi, WifiOff, Database, AlertTriangle } from 'lucide-react';
 import { getTrendsData } from '../services/api';
 
-function TrendsPage() {
+function TrendsPage({ userRole = 'HEAD_OFFICE' }) {
   const [timeRange, setTimeRange] = useState('24h');
   const [chartType, setChartType] = useState('area');
   const [selectedCategory, setSelectedCategory] = useState('all');
@@ -14,6 +14,9 @@ function TrendsPage() {
   const [apiStats, setApiStats] = useState(null);
   const [apiStatistics, setApiStatistics] = useState(null);
   const [error, setError] = useState(null);
+
+  // Check if user is HEAD_OFFICE to show stats bar
+  const showStatsBar = userRole === 'HEAD_OFFICE';
 
   // Transform API data to chart format
   const transformApiData = (apiData, hours) => {
@@ -539,45 +542,47 @@ function TrendsPage() {
         <p className="text-slate-600">Analyze historical data patterns and parameter trends from database</p>
       </div>
 
-      {/* Connection Status & Stats */}
-      <div className="flex items-center justify-between mb-4 flex-wrap gap-2">
-        <div className="flex items-center space-x-3 flex-wrap gap-2">
-          {isConnected ? (
-            <span className="flex items-center space-x-1 px-2 py-1 bg-emerald-100 text-emerald-700 rounded text-xs font-medium">
-              <Wifi className="w-3 h-3" />
-              <span>LIVE</span>
-            </span>
-          ) : (
-            <span className="flex items-center space-x-1 px-2 py-1 bg-rose-100 text-rose-700 rounded text-xs font-medium">
-              <WifiOff className="w-3 h-3" />
-              <span>OFFLINE</span>
-            </span>
-          )}
-          {apiStats && (
-            <>
-              <span className="text-xs text-slate-500 bg-slate-100 px-2 py-1 rounded">
-                {apiStats.dataPoints}/{apiStats.expectedIntervals} intervals
+      {/* Connection Status & Stats - Only visible for HEAD_OFFICE */}
+      {showStatsBar && (
+        <div className="flex items-center justify-between mb-4 flex-wrap gap-2" data-testid="trends-stats-bar">
+          <div className="flex items-center space-x-3 flex-wrap gap-2">
+            {isConnected ? (
+              <span className="flex items-center space-x-1 px-2 py-1 bg-emerald-100 text-emerald-700 rounded text-xs font-medium">
+                <Wifi className="w-3 h-3" />
+                <span>LIVE</span>
               </span>
-              <span className="text-xs text-slate-500 bg-slate-100 px-2 py-1 rounded">
-                {apiStats.totalRecords} total records
+            ) : (
+              <span className="flex items-center space-x-1 px-2 py-1 bg-rose-100 text-rose-700 rounded text-xs font-medium">
+                <WifiOff className="w-3 h-3" />
+                <span>OFFLINE</span>
               </span>
-              {apiStats.intervalLabel && (
-                <span className="text-xs text-slate-500 bg-blue-50 px-2 py-1 rounded">
-                  Interval: {apiStats.intervalLabel}
+            )}
+            {apiStats && (
+              <>
+                <span className="text-xs text-slate-500 bg-slate-100 px-2 py-1 rounded">
+                  {apiStats.dataPoints}/{apiStats.expectedIntervals} intervals
                 </span>
-              )}
-            </>
-          )}
+                <span className="text-xs text-slate-500 bg-slate-100 px-2 py-1 rounded">
+                  {apiStats.totalRecords} total records
+                </span>
+                {apiStats.intervalLabel && (
+                  <span className="text-xs text-slate-500 bg-blue-50 px-2 py-1 rounded">
+                    Interval: {apiStats.intervalLabel}
+                  </span>
+                )}
+              </>
+            )}
+          </div>
+          <button 
+            onClick={fetchData}
+            disabled={loading}
+            className="flex items-center space-x-1 px-3 py-1.5 bg-emerald-600 text-white rounded text-sm font-medium hover:bg-emerald-700 disabled:opacity-50"
+          >
+            <RefreshCw className={`w-3 h-3 ${loading ? 'animate-spin' : ''}`} />
+            <span>Refresh</span>
+          </button>
         </div>
-        <button 
-          onClick={fetchData}
-          disabled={loading}
-          className="flex items-center space-x-1 px-3 py-1.5 bg-emerald-600 text-white rounded text-sm font-medium hover:bg-emerald-700 disabled:opacity-50"
-        >
-          <RefreshCw className={`w-3 h-3 ${loading ? 'animate-spin' : ''}`} />
-          <span>Refresh</span>
-        </button>
-      </div>
+      )}
 
       {/* Error Banner */}
       {error && (
