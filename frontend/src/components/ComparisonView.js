@@ -191,31 +191,6 @@ const ComparisonView = () => {
     }
   };
 
-  // Mock data for when API is unavailable (first load only)
-  // Shows Today's CURRENT vs Yesterday's AVERAGE
-  const getMockComparisonData = () => ({
-    period: 'today_vs_yesterday',
-    period_label: 'Today (Current) vs Yesterday (Avg) - Demo',
-    generated_at: new Date().toISOString(),
-    comparison_note: 'Today = Current/Latest reading, Yesterday = Average of all readings',
-    summary: { improved: 4, stable: 3, warning: 1, declined: 1 },
-    data_quality: { current_samples: 120, previous_samples: 1440 },
-    metrics: {
-      raw_biogas_flow: { label: 'Raw Biogas Flow', unit: 'Nm³/hr', category: 'gas_production', current: 1250.5, previous: 1180.2, change: 70.3, change_percent: 5.9, status: 'improved' },
-      purified_gas_flow: { label: 'Purified Gas Flow', unit: 'Nm³/hr', category: 'gas_production', current: 1180.2, previous: 1150.5, change: 29.7, change_percent: 2.6, status: 'improved' },
-      product_gas_flow: { label: 'Product Gas Flow', unit: 'Nm³/hr', category: 'gas_production', current: 1150.8, previous: 1140.2, change: 10.6, change_percent: 0.9, status: 'stable' },
-      ch4: { label: 'CH₄', unit: '%', category: 'gas_composition', current: 96.8, previous: 96.5, change: 0.3, change_percent: 0.3, status: 'stable' },
-      // CO2: Lower is better. Current 2.5 < Previous 3.1 = IMPROVED (change = -0.6)
-      co2: { label: 'CO₂', unit: '%', category: 'gas_composition', current: 2.5, previous: 3.1, change: -0.6, change_percent: -19.4, status: 'improved' },
-      // O2: Lower is better. Current 0.35 > Previous 0.28 = WARNING (change = +0.07)
-      o2: { label: 'O₂', unit: '%', category: 'gas_composition', current: 0.35, previous: 0.28, change: 0.07, change_percent: 25.0, status: 'declined' },
-      // H2S: Lower is better. Current 3 < Previous 5 = IMPROVED (change = -2)
-      h2s: { label: 'H₂S', unit: 'ppm', category: 'gas_composition', current: 3, previous: 5, change: -2, change_percent: -40.0, status: 'improved' },
-      buffer_tank: { label: 'Buffer Tank', unit: '%', category: 'equipment', current: 82, previous: 80, change: 2, change_percent: 2.5, status: 'improved' },
-      psa_efficiency: { label: 'PSA Efficiency', unit: '%', category: 'equipment', current: 94.4, previous: 94.2, change: 0.2, change_percent: 0.2, status: 'stable' }
-    }
-  });
-
   // Fetch comparison data
   const fetchData = useCallback(async () => {
     setLoading(true);
