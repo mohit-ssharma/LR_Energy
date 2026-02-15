@@ -24,7 +24,6 @@ set_time_limit(API_TIMEOUT);
 
 // Only allow POST requests
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
-    logApiRequest('receive_data.php', 'POST', 405, 'Method not allowed');
     sendError('Method not allowed. Use POST.', 405);
 }
 
