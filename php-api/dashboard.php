@@ -348,7 +348,7 @@ try {
             // LT Panel - Consumption calculated from current load (lt_panel_power)
             'lt_panel' => [
                 'status' => floatval($latest['lt_panel_power']) > 0 ? 'Active' : 'Inactive',
-                'current_load_kw' => floatval($latest['lt_panel_power']),
+                'current_load_kw' => round(floatval($latest['lt_panel_power']), 2),
                 'avg_power_today_kw' => round(floatval($powerToday['avg_power_kw']), 2),
                 'max_power_today_kw' => round(floatval($powerToday['max_power_kw']), 2),
                 'min_power_today_kw' => round(floatval($powerToday['min_power_kw']), 2),
