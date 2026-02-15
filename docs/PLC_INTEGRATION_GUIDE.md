@@ -372,23 +372,27 @@ LIMIT 10;
 
 ### Before PLC Connection:
 - [ ] Deploy PHP API to GoDaddy
+- [ ] Verify SSL certificate is active on domain
 - [ ] Create MySQL database and tables
 - [ ] Test API with simulate.php
 - [ ] Verify dashboard shows test data
-- [ ] Share API endpoint + Key with PLC developer
+- [ ] Export Root CA certificate for PLC developer
+- [ ] Share API endpoint + Key + Certificate with PLC developer
 
 ### During PLC Integration:
-- [ ] PLC developer configures LHTTP_Post
-- [ ] Test with single POST request
+- [ ] PLC developer imports Root CA certificate
+- [ ] PLC developer configures LHTTP_Post with TLS
+- [ ] Test with single HTTPS POST request
 - [ ] Verify data appears in database
 - [ ] Verify dashboard updates
-- [ ] Enable 60-second interval
+- [ ] Enable 60-second interval timer
 
 ### After PLC Connection:
 - [ ] Monitor api_logs for errors
 - [ ] Check data quality indicators on dashboard
 - [ ] Verify all 37 fields are populated
 - [ ] Confirm totalizer values are incrementing
+- [ ] Monitor for TLS/certificate errors
 
 ---
 
