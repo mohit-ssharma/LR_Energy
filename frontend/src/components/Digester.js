@@ -31,6 +31,14 @@ const Digester = ({ unit, data }) => {
     );
   };
 
+  // Get slurry status based on height (max 8.2m)
+  const getSlurryStatus = (height) => {
+    const percentage = (parseFloat(height) / 8.2) * 100;
+    if (percentage < 30) return { status: 'Low', color: 'bg-amber-500' };
+    if (percentage <= 85) return { status: 'Normal', color: 'bg-emerald-500' };
+    return { status: 'High', color: 'bg-rose-500' };
+  };
+
   // Tank Visualization Component (for Slurry Height and Gas Level)
   const TankVisualization = ({ label, value, maxValue, unit, status, color, testId }) => {
     const percentage = (parseFloat(value) / maxValue) * 100;
@@ -45,17 +53,22 @@ const Digester = ({ unit, data }) => {
               <span className="text-sm font-medium text-slate-500">{unit}</span>
             </div>
             <span className={`text-xs px-2 py-0.5 rounded-full border ${
-              status === 'Operational' ? 'bg-emerald-100 text-emerald-700 border-emerald-200' : 
-              status === 'Warning' ? 'bg-amber-100 text-amber-700 border-amber-200' :
-              'bg-emerald-100 text-emerald-700 border-emerald-200'
+              status === 'Normal' ? 'bg-emerald-100 text-emerald-700 border-emerald-200' : 
+              status === 'Low' ? 'bg-amber-100 text-amber-700 border-amber-200' :
+              status === 'High' ? 'bg-rose-100 text-rose-700 border-rose-200' :
+              status === 'Operational' ? 'bg-emerald-100 text-emerald-700 border-emerald-200' :
+              'bg-amber-100 text-amber-700 border-amber-200'
             }`}>
               {status}
             </span>
+            {maxValue === 8.2 && (
+              <div className="text-xs text-slate-400 mt-1">Max: {maxValue} {unit}</div>
+            )}
           </div>
           <div className="relative w-16 h-24 bg-slate-100 border-2 border-slate-300 rounded-lg overflow-hidden">
             <div 
               className={`absolute bottom-0 left-0 w-full ${color} opacity-80 transition-all duration-1000`}
-              style={{ height: `${percentage}%` }}
+              style={{ height: `${Math.min(percentage, 100)}%` }}
             >
               <div className="absolute inset-0 bg-gradient-to-t from-transparent to-white opacity-30"></div>
             </div>
