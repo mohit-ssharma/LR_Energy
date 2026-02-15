@@ -80,22 +80,39 @@ try {
         sendError('No valid parameters requested', 400);
     }
     
-    // Build SELECT clause for averages
-    $selectClauses = ["DATE_FORMAT(MIN(timestamp), '%Y-%m-%d %H:%i') as timestamp"];
-    foreach ($params as $param) {
-        $selectClauses[] = "ROUND(AVG($param), 2) as $param";
+    // Build query based on whether raw data or grouped data is requested
+    if ($rawData || $interval === 1) {
+        // RAW DATA: Return every individual record without grouping/averaging
+        $selectClauses = ["DATE_FORMAT(timestamp, '%Y-%m-%d %H:%i:%s') as timestamp"];
+        foreach ($params as $param) {
+            $selectClauses[] = "ROUND($param, 2) as $param";
+        }
+        $selectClause = implode(', ', $selectClauses);
+        
+        $sql = "
+            SELECT $selectClause
+            FROM scada_readings 
+            WHERE plant_id = '" . PLANT_ID . "' 
+            AND timestamp >= DATE_SUB(NOW(), INTERVAL $hours HOUR)
+            ORDER BY timestamp ASC
+        ";
+    } else {
+        // GROUPED DATA: Average values over interval periods
+        $selectClauses = ["DATE_FORMAT(MIN(timestamp), '%Y-%m-%d %H:%i') as timestamp"];
+        foreach ($params as $param) {
+            $selectClauses[] = "ROUND(AVG($param), 2) as $param";
+        }
+        $selectClause = implode(', ', $selectClauses);
+        
+        $sql = "
+            SELECT $selectClause
+            FROM scada_readings 
+            WHERE plant_id = '" . PLANT_ID . "' 
+            AND timestamp >= DATE_SUB(NOW(), INTERVAL $hours HOUR)
+            GROUP BY FLOOR(UNIX_TIMESTAMP(timestamp) / ($interval * 60))
+            ORDER BY timestamp ASC
+        ";
     }
-    $selectClause = implode(', ', $selectClauses);
-    
-    // Query with time-based grouping
-    $sql = "
-        SELECT $selectClause
-        FROM scada_readings 
-        WHERE plant_id = '" . PLANT_ID . "' 
-        AND timestamp >= DATE_SUB(NOW(), INTERVAL $hours HOUR)
-        GROUP BY FLOOR(UNIX_TIMESTAMP(timestamp) / ($interval * 60))
-        ORDER BY timestamp ASC
-    ";
     
     $stmt = $pdo->query($sql);
     $data = $stmt->fetchAll();
