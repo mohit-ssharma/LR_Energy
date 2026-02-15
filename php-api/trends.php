@@ -2,25 +2,29 @@
 require_once 'cors.php';  // CORS headers - MUST BE FIRST!
 
 /**
- * Trends API Endpoint
+ * Trends Data API Endpoint
  * URL: /api/trends.php
  * Method: GET
  * 
- * Returns historical data for trend charts
+ * Returns time-series data for charts with proper interval grouping.
  * 
  * Query Parameters:
- * - hours: number of hours to fetch (default: 24, max: 168)
- * - interval: data aggregation interval in minutes (default: auto)
- * - parameters: comma-separated list of parameters (optional, default: all)
+ * - hours: Number of hours to fetch (1, 12, 24, or 168 for 7 days)
+ * - parameters: Comma-separated list of parameters to fetch (optional)
  * 
- * Example: /api/trends.php?hours=24&parameters=raw_biogas_flow,ch4_concentration
+ * Interval Logic:
+ * - 1 hour: 10 intervals of 6 minutes each
+ * - 12 hours: 10 intervals of 72 minutes each
+ * - 24 hours: 10 intervals of 144 minutes each
+ * - 7 days (168 hours): 7 intervals of 1 day each
+ * 
+ * Each interval returns AVG of all readings within that time window.
  */
 
 require_once 'config.php';
 
 $startTime = microtime(true);
 
-// Only allow GET requests
 if ($_SERVER['REQUEST_METHOD'] !== 'GET') {
     sendError('Method not allowed. Use GET.', 405);
 }
@@ -31,31 +35,29 @@ $hours = min(max($hours, 1), 168);  // Limit: 1 to 168 hours (1 week)
 
 $requestedParams = isset($_GET['parameters']) ? explode(',', $_GET['parameters']) : null;
 
-// Check if raw data is requested (no grouping)
-$rawData = isset($_GET['raw']) && $_GET['raw'] === 'true';
-
-// Auto-calculate interval based on hours (only if not requesting raw data)
-if ($rawData) {
-    $interval = 1;      // 1 minute (raw data, no averaging)
-} elseif ($hours <= 1) {
-    $interval = 1;      // 1 minute (raw data)
+// Calculate interval based on hours to get exactly 10 entries (or 7 for week)
+if ($hours <= 1) {
+    // 1 hour: 10 intervals of 6 minutes each
+    $intervalSeconds = 360;  // 6 minutes
+    $numIntervals = 10;
+    $intervalLabel = '6 min';
 } elseif ($hours <= 12) {
-    $interval = 5;      // 5 minutes
+    // 12 hours: 10 intervals of 72 minutes each
+    $intervalSeconds = 4320;  // 72 minutes
+    $numIntervals = 10;
+    $intervalLabel = '72 min';
 } elseif ($hours <= 24) {
-    $interval = 10;     // 10 minutes
-} elseif ($hours <= 72) {
-    $interval = 30;     // 30 minutes
+    // 24 hours: 10 intervals of 144 minutes each
+    $intervalSeconds = 8640;  // 144 minutes
+    $numIntervals = 10;
+    $intervalLabel = '144 min';
 } else {
-    $interval = 60;     // 1 hour
+    // 7 days: 7 intervals of 1 day each
+    $intervalSeconds = 86400;  // 1 day
+    $numIntervals = 7;
+    $intervalLabel = '1 day';
 }
 
-// Override with custom interval if provided
-if (isset($_GET['interval'])) {
-    $interval = intval($_GET['interval']);
-    $interval = min(max($interval, 1), 60);
-}
-
-// Connect to database
 $pdo = getDBConnection();
 if (!$pdo) {
     sendError('Database connection failed', 500);
@@ -63,86 +65,80 @@ if (!$pdo) {
 
 try {
     // Define all available parameters
-    $allParams = [
+    $availableParams = [
         'raw_biogas_flow', 'purified_gas_flow', 'product_gas_flow',
         'ch4_concentration', 'co2_level', 'o2_concentration', 'h2s_content', 'dew_point',
         'd1_temp_bottom', 'd1_temp_top', 'd1_gas_pressure', 'd1_air_pressure', 'd1_slurry_height', 'd1_gas_level',
         'd2_temp_bottom', 'd2_temp_top', 'd2_gas_pressure', 'd2_air_pressure', 'd2_slurry_height', 'd2_gas_level',
         'buffer_tank_level', 'lagoon_tank_level',
         'feed_fm1_flow', 'feed_fm2_flow', 'fresh_water_flow', 'recycle_water_flow',
-        'psa_efficiency', 'lt_panel_power', 'compressor_status'
+        'psa_efficiency', 'lt_panel_power'
     ];
     
-    // Filter requested parameters
-    $params = $requestedParams ? array_intersect($requestedParams, $allParams) : $allParams;
+    // Filter to requested parameters or use all
+    if ($requestedParams) {
+        $params = array_intersect($requestedParams, $availableParams);
+    } else {
+        $params = $availableParams;
+    }
     
     if (empty($params)) {
         sendError('No valid parameters requested', 400);
     }
     
-    // Build query based on whether raw data or grouped data is requested
-    if ($rawData || $interval === 1) {
-        // RAW DATA: Return every individual record without grouping/averaging
-        $selectClauses = ["DATE_FORMAT(timestamp, '%Y-%m-%d %H:%i:%s') as timestamp"];
-        foreach ($params as $param) {
-            $selectClauses[] = "ROUND($param, 2) as $param";
-        }
-        $selectClause = implode(', ', $selectClauses);
-        
+    // Build SELECT clause for AVG of each parameter
+    $selectClauses = [];
+    foreach ($params as $param) {
+        $selectClauses[] = "ROUND(AVG($param), 2) as $param";
+    }
+    $selectClause = implode(', ', $selectClauses);
+    
+    // Calculate start time
+    $startTimeSQL = "DATE_SUB(NOW(), INTERVAL $hours HOUR)";
+    
+    if ($hours >= 168) {
+        // 7 days: Group by DATE
         $sql = "
-            SELECT $selectClause
+            SELECT 
+                DATE(timestamp) as date_bucket,
+                DATE_FORMAT(MIN(timestamp), '%Y-%m-%d') as timestamp,
+                DATE_FORMAT(MIN(timestamp), '%a') as day_name,
+                DATE_FORMAT(MIN(timestamp), '%d %b') as day_label,
+                COUNT(*) as records_in_interval,
+                $selectClause
             FROM scada_readings 
             WHERE plant_id = '" . PLANT_ID . "' 
-            AND timestamp >= DATE_SUB(NOW(), INTERVAL $hours HOUR)
-            ORDER BY timestamp ASC
+            AND timestamp >= DATE_SUB(NOW(), INTERVAL 7 DAY)
+            GROUP BY DATE(timestamp)
+            ORDER BY date_bucket ASC
+            LIMIT 7
         ";
     } else {
-        // GROUPED DATA: Average values over interval periods
-        $selectClauses = ["DATE_FORMAT(MIN(timestamp), '%Y-%m-%d %H:%i') as timestamp"];
-        foreach ($params as $param) {
-            $selectClauses[] = "ROUND(AVG($param), 2) as $param";
-        }
-        $selectClause = implode(', ', $selectClauses);
-        
+        // 1hr, 12hr, 24hr: Group by time bucket
         $sql = "
-            SELECT $selectClause
+            SELECT 
+                FLOOR(UNIX_TIMESTAMP(timestamp) / $intervalSeconds) as time_bucket,
+                DATE_FORMAT(FROM_UNIXTIME(FLOOR(UNIX_TIMESTAMP(timestamp) / $intervalSeconds) * $intervalSeconds), '%Y-%m-%d %H:%i:%s') as timestamp,
+                DATE_FORMAT(FROM_UNIXTIME(FLOOR(UNIX_TIMESTAMP(timestamp) / $intervalSeconds) * $intervalSeconds), '%H:%i') as time_label,
+                COUNT(*) as records_in_interval,
+                $selectClause
             FROM scada_readings 
             WHERE plant_id = '" . PLANT_ID . "' 
-            AND timestamp >= DATE_SUB(NOW(), INTERVAL $hours HOUR)
-            GROUP BY FLOOR(UNIX_TIMESTAMP(timestamp) / ($interval * 60))
-            ORDER BY timestamp ASC
+            AND timestamp >= $startTimeSQL
+            GROUP BY time_bucket
+            ORDER BY time_bucket ASC
+            LIMIT $numIntervals
         ";
     }
     
     $stmt = $pdo->query($sql);
     $data = $stmt->fetchAll();
     
-    // Get statistics for the full period requested (24hr/12hr/etc)
-    $statsSelect = [];
-    foreach ($params as $param) {
-        $statsSelect[] = "MIN($param) as min_$param";
-        $statsSelect[] = "MAX($param) as max_$param";
-        $statsSelect[] = "AVG($param) as avg_$param";
-    }
-    $statsSelectClause = implode(', ', $statsSelect);
-    
-    $statsSQL = "
-        SELECT 
-            COUNT(*) as total_records,
-            $statsSelectClause
-        FROM scada_readings 
-        WHERE plant_id = '" . PLANT_ID . "' 
-        AND timestamp >= DATE_SUB(NOW(), INTERVAL $hours HOUR)
-    ";
-    
-    $stmtStats = $pdo->query($statsSQL);
-    $stats = $stmtStats->fetch();
-    
-    // Get separate 12-hour statistics (always from last 12 hours)
+    // Get separate 12-hour statistics
     $stats12hrSQL = "
         SELECT 
             COUNT(*) as total_records,
-            $statsSelectClause
+            " . implode(', ', array_map(function($p) { return "ROUND(AVG($p), 2) as avg_$p, ROUND(MIN($p), 2) as min_$p, ROUND(MAX($p), 2) as max_$p"; }, $params)) . "
         FROM scada_readings 
         WHERE plant_id = '" . PLANT_ID . "' 
         AND timestamp >= DATE_SUB(NOW(), INTERVAL 12 HOUR)
@@ -150,11 +146,11 @@ try {
     $stmtStats12hr = $pdo->query($stats12hrSQL);
     $stats12hr = $stmtStats12hr->fetch();
     
-    // Get separate 24-hour statistics (always from last 24 hours)
+    // Get separate 24-hour statistics
     $stats24hrSQL = "
         SELECT 
             COUNT(*) as total_records,
-            $statsSelectClause
+            " . implode(', ', array_map(function($p) { return "ROUND(AVG($p), 2) as avg_$p, ROUND(MIN($p), 2) as min_$p, ROUND(MAX($p), 2) as max_$p"; }, $params)) . "
         FROM scada_readings 
         WHERE plant_id = '" . PLANT_ID . "' 
         AND timestamp >= DATE_SUB(NOW(), INTERVAL 24 HOUR)
@@ -166,13 +162,23 @@ try {
     $statistics = [];
     foreach ($params as $param) {
         $statistics[$param] = [
-            'min' => round(floatval($stats["min_$param"]), 2),
-            'max' => round(floatval($stats["max_$param"]), 2),
-            'avg' => round(floatval($stats["avg_$param"]), 2),
-            'avg_12hr' => round(floatval($stats12hr["avg_$param"]), 2),
-            'avg_24hr' => round(floatval($stats24hr["avg_$param"]), 2)
+            'min' => floatval($stats24hr["min_$param"]),
+            'max' => floatval($stats24hr["max_$param"]),
+            'avg' => floatval($stats24hr["avg_$param"]),
+            'avg_12hr' => floatval($stats12hr["avg_$param"]),
+            'avg_24hr' => floatval($stats24hr["avg_$param"])
         ];
     }
+    
+    // Count total records in the time range
+    $totalRecordsSQL = "
+        SELECT COUNT(*) as total 
+        FROM scada_readings 
+        WHERE plant_id = '" . PLANT_ID . "' 
+        AND timestamp >= $startTimeSQL
+    ";
+    $totalStmt = $pdo->query($totalRecordsSQL);
+    $totalRecords = $totalStmt->fetch()['total'];
     
     $executionTime = round((microtime(true) - $startTime) * 1000);
     
@@ -180,13 +186,15 @@ try {
         'status' => 'success',
         'query' => [
             'hours' => $hours,
-            'interval_minutes' => $interval,
+            'interval_seconds' => $intervalSeconds,
+            'interval_label' => $intervalLabel,
+            'num_intervals' => $numIntervals,
             'parameters' => $params
         ],
         'data_points' => count($data),
-        'total_records' => intval($stats['total_records']),
-        'expected_records' => $hours * 60,
-        'coverage_percent' => round((intval($stats['total_records']) / ($hours * 60)) * 100, 1),
+        'total_records' => intval($totalRecords),
+        'expected_intervals' => $numIntervals,
+        'coverage_percent' => count($data) > 0 ? round((count($data) / $numIntervals) * 100, 1) : 0,
         'statistics' => $statistics,
         'stats_12hr_records' => intval($stats12hr['total_records']),
         'stats_24hr_records' => intval($stats24hr['total_records']),
@@ -198,6 +206,6 @@ try {
     
 } catch (PDOException $e) {
     error_log("Trends query error: " . $e->getMessage());
-    sendError('Failed to fetch trends: ' . $e->getMessage(), 500);
+    sendError('Failed to fetch trends data: ' . $e->getMessage(), 500);
 }
 ?>
