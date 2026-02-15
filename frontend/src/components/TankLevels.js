@@ -1,31 +1,48 @@
 import React from 'react';
 import { Droplets, Database, AlertTriangle } from 'lucide-react';
 
-const TankLevels = () => {
-  // Updated dummy data per requirements - Both tanks with same capacity and validation rules
+const TankLevels = ({ dashboardData }) => {
+  // Get current values from API data or use defaults
+  const current = dashboardData?.current || {};
+  const lastUpdate = dashboardData?.last_update;
+
+  // Format timestamp
+  const formatTime = (timestamp) => {
+    if (!timestamp) return '--:--:--';
+    const date = new Date(timestamp);
+    return date.toLocaleTimeString('en-IN', { hour12: false });
+  };
+
+  const timeStr = formatTime(lastUpdate);
+
+  // Tank data from API
+  const bufferLevel = current.buffer_tank_level ?? 82;
+  const lagoonLevel = current.lagoon_tank_level ?? 76;
+
+  // Calculate volume based on capacity (1078 m³) and level percentage
+  const capacity = 1078;
+  const bufferVolume = Math.round((bufferLevel / 100) * capacity);
+  const lagoonVolume = Math.round((lagoonLevel / 100) * capacity);
+
   const tanks = [
     {
       id: 'buffer',
       name: 'Buffer Tank Slurry Level',
-      capacity: 1078,
+      capacity: capacity,
       capacityUnit: 'm³',
-      currentLevel: 82,
-      volume: 884,
+      currentLevel: bufferLevel,
+      volume: bufferVolume,
       volumeUnit: 'm³',
-      status: 'Warning',
-      color: 'amber',
       icon: Database
     },
     {
       id: 'lagoon',
       name: 'Lagoon Tank Water Level',
-      capacity: 1078,
+      capacity: capacity,
       capacityUnit: 'm³',
-      currentLevel: 76,
-      volume: 819,
+      currentLevel: lagoonLevel,
+      volume: lagoonVolume,
       volumeUnit: 'm³',
-      status: 'Warning',
-      color: 'amber',
       icon: Droplets
     }
   ];
@@ -107,7 +124,7 @@ const TankLevels = () => {
 
               {/* Center display */}
               <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 bg-white/90 rounded-lg px-3 py-2 shadow-lg">
-                <div className="text-2xl font-bold font-mono text-slate-900">{tank.currentLevel}%</div>
+                <div className="text-2xl font-bold font-mono text-slate-900">{Math.round(tank.currentLevel)}%</div>
               </div>
             </div>
 
@@ -116,7 +133,7 @@ const TankLevels = () => {
               <div className="bg-gradient-to-r from-slate-50 to-white rounded-lg p-4 border border-slate-200">
                 <div className="text-xs font-semibold uppercase tracking-wider text-slate-500 mb-1">Current Level</div>
                 <div className="flex items-baseline space-x-1">
-                  <span className="text-3xl font-bold font-mono text-slate-900" data-testid={`${tank.id}-level`}>{tank.currentLevel}</span>
+                  <span className="text-3xl font-bold font-mono text-slate-900" data-testid={`${tank.id}-level`}>{Math.round(tank.currentLevel)}</span>
                   <span className="text-lg font-medium text-slate-500">%</span>
                 </div>
               </div>
@@ -138,7 +155,7 @@ const TankLevels = () => {
               </div>
 
               <div className="flex items-center text-xs text-slate-400 font-mono">
-                <span>Last Updated: 08:43:41</span>
+                <span>Last Updated: {timeStr}</span>
               </div>
             </div>
           </div>
