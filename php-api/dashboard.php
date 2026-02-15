@@ -332,7 +332,7 @@ try {
                 'total_minutes_today' => intval($psaToday['total_minutes']),
                 'running_hours_month' => round(intval($psaMonth['psa_running_minutes']) / 60, 2),
                 'running_minutes_month' => intval($psaMonth['psa_running_minutes']),
-                'efficiency' => floatval($latest['psa_efficiency']),
+                'efficiency' => round(floatval($latest['psa_efficiency']), 2),
                 'calculated_efficiency' => floatval($latest['raw_biogas_flow']) > 0 
                     ? round((floatval($latest['purified_gas_flow']) / floatval($latest['raw_biogas_flow'])) * 100, 2)
                     : 0
