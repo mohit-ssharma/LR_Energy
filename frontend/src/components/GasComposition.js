@@ -13,7 +13,7 @@ const GasComposition = () => {
   // CH₄ ≥ 96% → Accepted
   // O₂ < 0.5% → Normal
   // CO₂ < 5% → Normal
-  // Else → Warning
+  // H₂S < 5 ppm → Accepted, ≥ 5 → Critical
   const getStatus = (label, value) => {
     if (label === 'CH₄') {
       return value >= 96 ? 'Accepted' : 'Warning';
@@ -25,7 +25,7 @@ const GasComposition = () => {
       return value < 5 ? 'Normal' : 'Warning';
     }
     if (label === 'H₂S') {
-      return 'Normal';
+      return value < 5 ? 'Accepted' : 'Critical';
     }
     return 'Normal';
   };
@@ -34,7 +34,7 @@ const GasComposition = () => {
     { label: 'CH₄', value: '96.8', unit: '%', current: 96.8, target: 100, status: getStatus('CH₄', 96.8), color: 'emerald' },
     { label: 'CO₂', value: '2.9', unit: '%', current: 2.9, target: 100, status: getStatus('CO₂', 2.9), color: 'violet' },
     { label: 'O₂', value: '0.3', unit: '%', current: 0.3, target: 100, status: getStatus('O₂', 0.3), color: 'amber' },
-    { label: 'H₂S', value: '180', unit: 'ppm', current: 180, limit: 500, status: getStatus('H₂S', 180), color: 'rose' },
+    { label: 'H₂S', value: '3', unit: 'ppm', current: 3, limit: 105, status: getStatus('H₂S', 3), color: 'rose' },
   ];
 
   const getStatusStyle = (status) => {
