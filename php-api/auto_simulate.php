@@ -85,7 +85,7 @@ function generateRealisticData($readingNumber) {
         'ch4_concentration' => round(96.8 + (rand(-5, 5) / 10), 2),
         'co2_level' => round(2.9 + (rand(-3, 3) / 10), 2),
         'o2_concentration' => round(0.3 + (rand(-1, 1) / 10), 2),
-        'h2s_content' => round(180 + rand(-20, 20), 2),
+        'h2s_content' => round(3 + (rand(0, 10) / 10), 2),  // Normal: < 5 ppm
         'dew_point' => round(-68 + rand(-3, 3), 2),
         
         // Digester 1
