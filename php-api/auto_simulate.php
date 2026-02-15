@@ -274,11 +274,18 @@ function generateRealisticData($readingNumber) {
 $result = generateRealisticData($readingNumber);
 $data = $result['data'];
 $issueStatus = $result['issue'];
+$scenarioNum = $result['scenario_num'];
 
-// Show issue status
-$badgeClass = $issueStatus === 'Normal operation' ? 'badge-success' : 'badge-warning';
+// Show scenario status
+$badgeClass = 'badge-success';
+if (strpos($issueStatus, '🚨') !== false) {
+    $badgeClass = 'badge-critical';
+} elseif (strpos($issueStatus, '⚠️') !== false) {
+    $badgeClass = 'badge-warning';
+}
+
 echo "<div class='card'>";
-echo "<h3>📈 Reading Status</h3>";
+echo "<h3>📈 Scenario #{$scenarioNum} of 10</h3>";
 echo "<p><span class='badge {$badgeClass}'>{$issueStatus}</span></p>";
 echo "</div>";
 
