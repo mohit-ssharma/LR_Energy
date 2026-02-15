@@ -486,7 +486,7 @@ const KPISummary = () => {
         avgSamples: { samples: avg_12hr?.sample_count || 0, expected: avg_12hr?.expected_samples || 720 },
         icon: Gauge,
         color: 'bg-rose-600',
-        trendData: generateTrendData(current?.h2s_content || 180, 15),
+        trendData: generateTrendData(current?.h2s_content || 3, 2),
         lastUpdate: last_update
       }
     ];
