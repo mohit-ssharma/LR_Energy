@@ -199,33 +199,66 @@ function TrendsPage() {
     params.forEach(function(p) { allParameters.push(p); });
   });
 
+  // Map frontend param keys to backend param names
+  const paramKeyToBackend = {
+    'rawBiogas': 'raw_biogas_flow',
+    'purifiedGas': 'purified_gas_flow',
+    'productGas': 'product_gas_flow',
+    'ch4': 'ch4_concentration',
+    'co2': 'co2_level',
+    'o2': 'o2_concentration',
+    'h2s': 'h2s_content',
+    'dewPoint': 'dew_point',
+    'digester1Temp': 'd1_temp_bottom',
+    'digester2Temp': 'd2_temp_bottom',
+    'digester1GasPressure': 'd1_gas_pressure',
+    'digester2GasPressure': 'd2_gas_pressure',
+    'digester1AirPressure': 'd1_air_pressure',
+    'digester2AirPressure': 'd2_air_pressure',
+    'digester1SlurryHeight': 'd1_slurry_height',
+    'digester2SlurryHeight': 'd2_slurry_height',
+    'bufferTank': 'buffer_tank_level',
+    'lagoonTank': 'lagoon_tank_level',
+    'feedFM1': 'feed_fm1_flow',
+    'feedFM2': 'feed_fm2_flow',
+    'freshWaterFM': 'fresh_water_flow',
+    'recycleWaterFM': 'recycle_water_flow'
+  };
+
   function getStatistics(paramKey) {
-    // Get all valid values (non-zero)
+    // First, try to get statistics from API response (more accurate)
+    const backendKey = paramKeyToBackend[paramKey];
+    if (apiStatistics && backendKey && apiStatistics[backendKey]) {
+      const apiStats = apiStatistics[backendKey];
+      return {
+        avg12hr: apiStats.avg_12hr || apiStats.avg || 0,
+        avg24hr: apiStats.avg_24hr || apiStats.avg || 0,
+        min: apiStats.min || 0,
+        max: apiStats.max || 0
+      };
+    }
+    
+    // Fallback: Calculate from local data if API stats not available
     const values = trendData.map(function(d) { return d[paramKey] || 0; }).filter(v => v !== 0);
     if (values.length === 0) return { avg12hr: 0, avg24hr: 0, min: 0, max: 0 };
     
-    // Calculate overall statistics from loaded data
     const sum = values.reduce(function(a, b) { return a + b; }, 0);
     const avg = sum / values.length;
     const min = Math.min.apply(null, values);
     const max = Math.max.apply(null, values);
     
-    // For 12hr vs 24hr: If we have enough data points, split them
-    // First half represents older data (12-24hr ago), second half represents recent (0-12hr)
+    // For 12hr vs 24hr: Split data if we have enough
     let avg12hr = avg;
     let avg24hr = avg;
     
     if (values.length >= 2) {
       const halfIndex = Math.floor(values.length / 2);
-      // Recent 12 hours (second half of data - more recent)
       const recent12hr = values.slice(halfIndex);
-      // Full 24 hours (all data)
-      const full24hr = values;
       
       if (recent12hr.length > 0) {
         avg12hr = recent12hr.reduce((a, b) => a + b, 0) / recent12hr.length;
       }
-      avg24hr = full24hr.reduce((a, b) => a + b, 0) / full24hr.length;
+      avg24hr = values.reduce((a, b) => a + b, 0) / values.length;
     }
     
     return { avg12hr: avg12hr, avg24hr: avg24hr, min: min, max: max };
