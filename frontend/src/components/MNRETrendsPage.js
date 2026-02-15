@@ -3,7 +3,7 @@ import { LineChart, Line, AreaChart, Area, ResponsiveContainer, XAxis, YAxis, Ca
 import { TrendingUp, Calendar, BarChart3, Eye, X, Maximize2, RefreshCw, Wifi, WifiOff, Database, AlertTriangle } from 'lucide-react';
 import { getTrendsData } from '../services/api';
 
-function MNRETrendsPage() {
+function MNRETrendsPage({ userRole = 'MNRE' }) {
   const [timeRange, setTimeRange] = useState('24h');
   const [chartType, setChartType] = useState('area');
   const [selectedCategory, setSelectedCategory] = useState('all');
@@ -14,6 +14,9 @@ function MNRETrendsPage() {
   const [apiStats, setApiStats] = useState(null);
   const [apiStatistics, setApiStatistics] = useState(null);
   const [error, setError] = useState(null);
+
+  // Check if user is HEAD_OFFICE to show stats bar
+  const showStatsBar = userRole === 'HEAD_OFFICE';
 
   // Transform API data to chart format
   const transformApiData = (apiData, hours) => {
@@ -488,8 +491,8 @@ function MNRETrendsPage() {
         <p className="text-slate-600">Analyze Gas Flow and Gas Composition data from database</p>
       </div>
 
-      {/* Connection Status - MNRE sees only LIVE/OFFLINE, no technical details */}
-      <div className="flex items-center justify-between mb-4 flex-wrap gap-2">
+      {/* Connection Status - Stats bar visible only for HEAD_OFFICE */}
+      <div className="flex items-center justify-between mb-4 flex-wrap gap-2" data-testid="mnre-trends-stats-bar">
         <div className="flex items-center space-x-3">
           {isConnected ? (
             <span className="flex items-center space-x-1 px-2 py-1 bg-emerald-100 text-emerald-700 rounded text-xs font-medium">
@@ -502,7 +505,22 @@ function MNRETrendsPage() {
               <span>OFFLINE</span>
             </span>
           )}
-          {/* Technical stats hidden from MNRE view */}
+          {/* Technical stats only visible for HEAD_OFFICE */}
+          {showStatsBar && apiStats && (
+            <>
+              <span className="text-xs text-slate-500 bg-slate-100 px-2 py-1 rounded">
+                {apiStats.dataPoints}/{apiStats.expectedIntervals} intervals
+              </span>
+              <span className="text-xs text-slate-500 bg-slate-100 px-2 py-1 rounded">
+                {apiStats.totalRecords} total records
+              </span>
+              {apiStats.intervalLabel && (
+                <span className="text-xs text-slate-500 bg-blue-50 px-2 py-1 rounded">
+                  Interval: {apiStats.intervalLabel}
+                </span>
+              )}
+            </>
+          )}
         </div>
         <button 
           onClick={fetchData}
