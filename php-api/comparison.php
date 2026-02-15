@@ -127,8 +127,10 @@ try {
     
     // =====================================================
     // Helper function to calculate change and status
-    // For CO2, O2, H2S: lower is better (higherIsBetter = false)
-    // If (today - yesterday) < 0, it's IMPROVED
+    // For most parameters: (today - yesterday) / yesterday * 100
+    // For CO2, O2, H2S: (yesterday - today) / yesterday * 100
+    //   - Positive result = improvement (today is lower = good)
+    //   - Negative result = decline (today is higher = bad)
     // =====================================================
     function calculateChange($currentValue, $previousAvg, $higherIsBetter = true) {
         $current = floatval($currentValue);
@@ -137,35 +139,40 @@ try {
         if ($previous == 0) {
             return [
                 'change' => $current,
-                'change_percent' => $current > 0 ? 100 : 0,
+                'change_percent' => 0,
                 'status' => 'stable'
             ];
         }
         
-        $change = $current - $previous;
-        $changePercent = round(($change / $previous) * 100, 1);
-        
-        // Determine status based on change direction
-        $absPercent = abs($changePercent);
-        
-        if ($absPercent <= 2) {
-            $status = 'stable';
-        } elseif ($higherIsBetter) {
+        if ($higherIsBetter) {
             // Higher is better (e.g., CH4, gas flow)
-            // Positive change = improved, Negative change = declined
-            if ($change > 0) {
+            // Formula: (today - yesterday) / yesterday * 100
+            // Positive = improved, Negative = declined
+            $change = $current - $previous;
+            $changePercent = round(($change / $previous) * 100, 1);
+            
+            $absPercent = abs($changePercent);
+            if ($absPercent <= 2) {
+                $status = 'stable';
+            } elseif ($change > 0) {
                 $status = 'improved';
             } else {
                 $status = $absPercent > 10 ? 'declined' : 'warning';
             }
         } else {
             // Lower is better (CO2, O2, H2S)
-            // Negative change (today < yesterday) = improved
-            // Positive change (today > yesterday) = declined
-            if ($change < 0) {
-                $status = 'improved';
+            // Formula: (yesterday - today) / yesterday * 100
+            // Positive = improved (today is lower), Negative = declined (today is higher)
+            $change = $previous - $current;  // Reversed for CO2/O2/H2S
+            $changePercent = round(($change / $previous) * 100, 1);
+            
+            $absPercent = abs($changePercent);
+            if ($absPercent <= 2) {
+                $status = 'stable';
+            } elseif ($change > 0) {
+                $status = 'improved';  // Positive means yesterday > today (decreased = good)
             } else {
-                $status = $absPercent > 10 ? 'declined' : 'warning';
+                $status = $absPercent > 10 ? 'declined' : 'warning';  // Negative means today > yesterday (increased = bad)
             }
         }
         
