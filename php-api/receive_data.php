@@ -44,7 +44,6 @@ validateIP();
 $rawInput = file_get_contents('php://input');
 
 if (empty($rawInput)) {
-    logApiRequest('receive_data.php', 'POST', 400, 'Empty request body');
     sendError('Empty request body', 400);
 }
 
