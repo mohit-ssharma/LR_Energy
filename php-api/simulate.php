@@ -13,7 +13,7 @@ header('Content-Type: text/html; charset=UTF-8');
 
 // Configuration
 $API_URL = 'http://localhost/scada-api/receive_data.php';
-$API_KEY = 'SCADA_LR_ENERGY_2026_SECURE_KEY';
+$API_KEY = 'sk_prod_LREnergy_283669e54e512351a5bde265e20da2149fd4b54569a7e12b1ee8226746a6a2a7';
 
 // Get simulation mode
 $mode = $_GET['mode'] ?? 'normal';
