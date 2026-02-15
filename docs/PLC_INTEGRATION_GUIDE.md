@@ -396,21 +396,22 @@ LIMIT 10;
 
 ---
 
-## 📞 COMMUNICATION FLOW
+## 📡 COMMUNICATION FLOW
 
 ```
 ┌─────────────────┐         ┌─────────────────┐         ┌─────────────────┐
-│  Siemens PLC    │  HTTP   │   GoDaddy       │  Query  │   Dashboard     │
+│  Siemens PLC    │  HTTPS  │   GoDaddy       │  Query  │   Dashboard     │
 │  S7-1500        │  POST   │   PHP API       │         │   (React)       │
 │                 │ ──────► │                 │ ◄────── │                 │
 │  LHTTP_Post     │  JSON   │  receive_data   │  JSON   │  Auto-refresh   │
-│  Every 60s      │         │  .php           │         │  Every 30s      │
+│  + TLS Config   │  :443   │  .php           │         │  Every 30s      │
 └─────────────────┘         └─────────────────┘         └─────────────────┘
-                                    │
-                                    ▼
-                            ┌─────────────────┐
-                            │   MySQL DB      │
-                            │   scada_readings│
+        │                           │
+        │ TLS 1.2                   │
+        │ Root CA Cert              ▼
+        │                   ┌─────────────────┐
+        └──────────────────►│   MySQL DB      │
+           Encrypted        │   scada_readings│
                             └─────────────────┘
 ```
 
@@ -418,10 +419,12 @@ LIMIT 10;
 
 ## 📁 FILES TO SHARE WITH PLC DEVELOPER
 
-1. **This document** (`PLC_INTEGRATION_GUIDE.md`)
-2. **JSON Specification** (`PLC_DATA_INTERFACE_SPECIFICATION.json`)
-3. **API Key** (share securely)
-4. **Test URL** after deployment
+| # | File | Purpose |
+|---|------|---------|
+| 1 | This document (`PLC_INTEGRATION_GUIDE.md`) | Complete setup guide |
+| 2 | JSON Specification (`PLC_DATA_INTERFACE_SPECIFICATION.json`) | All 37 fields |
+| 3 | API Key | Authentication |
+| 4 | Root CA Certificate (.crt/.pem) | For HTTPS/TLS |
 
 ---
 
