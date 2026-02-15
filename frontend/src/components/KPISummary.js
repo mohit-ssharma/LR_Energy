@@ -259,14 +259,14 @@ const KPISummary = () => {
       ch4_concentration: 96.8,
       co2_level: 2.9,
       o2_concentration: 0.3,
-      h2s_content: 180,
+      h2s_content: 3,
       dew_point: -68
     },
     avg_1hr: {
       raw_biogas_flow: 1248.5,
       ch4_concentration: 96.75,
       co2_level: 2.88,
-      h2s_content: 178,
+      h2s_content: 3,
       sample_count: 58,
       expected_samples: 60
     },
@@ -274,7 +274,7 @@ const KPISummary = () => {
       raw_biogas_flow: 1245.2,
       ch4_concentration: 96.5,
       co2_level: 2.92,
-      h2s_content: 182,
+      h2s_content: 3,
       sample_count: 700,
       expected_samples: 720
     },
