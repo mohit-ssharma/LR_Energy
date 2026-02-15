@@ -1,7 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { LineChart, Line, AreaChart, Area, ResponsiveContainer, XAxis, YAxis, CartesianGrid, Tooltip, Legend } from 'recharts';
-import { TrendingUp, Calendar, BarChart3, Eye, X, Maximize2, Download, FileText, FileSpreadsheet, RefreshCw, Wifi, WifiOff } from 'lucide-react';
-import { generatePDFReport, generateCSVDownload } from '../utils/pdfUtils';
+import { TrendingUp, Calendar, BarChart3, Eye, X, Maximize2, RefreshCw, Wifi, WifiOff, Database, AlertTriangle } from 'lucide-react';
 import { getTrendsData } from '../services/api';
 
 function TrendsPage() {
@@ -9,124 +8,108 @@ function TrendsPage() {
   const [chartType, setChartType] = useState('area');
   const [selectedCategory, setSelectedCategory] = useState('all');
   const [maximizedChart, setMaximizedChart] = useState(null);
-  const [showDownloadMenu, setShowDownloadMenu] = useState(false);
   const [trendData, setTrendData] = useState([]);
   const [loading, setLoading] = useState(true);
   const [isConnected, setIsConnected] = useState(false);
   const [apiStats, setApiStats] = useState(null);
-
-  // Generate mock data as fallback
-  function generateMockData(hours) {
-    const data = [];
-    for (let i = 0; i < hours; i++) {
-      data.push({
-        time: i + 'h',
-        rawBiogas: 1250 + (Math.random() * 100 - 50),
-        purifiedGas: 1180 + (Math.random() * 80 - 40),
-        productGas: 1150 + (Math.random() * 70 - 35),
-        ch4: 96.8 + (Math.random() * 1 - 0.5),
-        co2: 2.9 + (Math.random() * 0.5 - 0.25),
-        o2: 0.3 + (Math.random() * 0.1 - 0.05),
-        h2s: 3 + (Math.random() * 2 - 1),  // H2S should be < 5 ppm (max limit 105 ppm)
-        dewPoint: -68 + (Math.random() * 4 - 2),
-        digester1Temp: 37 + (Math.random() * 2 - 1),
-        digester2Temp: 36.5 + (Math.random() * 2 - 1),
-        digester1GasPressure: 32 + (Math.random() * 4 - 2),
-        digester2GasPressure: 30 + (Math.random() * 4 - 2),
-        digester1AirPressure: 18 + (Math.random() * 2 - 1),
-        digester2AirPressure: 17 + (Math.random() * 2 - 1),
-        digester1SlurryHeight: 7.6 + (Math.random() * 0.4 - 0.2),
-        digester2SlurryHeight: 7.3 + (Math.random() * 0.4 - 0.2),
-        bufferTank: 82 + (Math.random() * 6 - 3),
-        lagoonTank: 76 + (Math.random() * 6 - 3),
-        feedFM1: 42 + (Math.random() * 4 - 2),
-        feedFM2: 38 + (Math.random() * 4 - 2),
-        freshWaterFM: 12 + (Math.random() * 2 - 1),
-        recycleWaterFM: 26 + (Math.random() * 3 - 1.5)
-      });
-    }
-    return data;
-  }
+  const [apiStatistics, setApiStatistics] = useState(null);
+  const [error, setError] = useState(null);
 
   // Transform API data to chart format
-  const transformApiData = (apiData) => {
-    return (apiData || []).map((row) => ({
-      time: row.timestamp ? new Date(row.timestamp).toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' }) : '',
-      rawBiogas: parseFloat(row.raw_biogas_flow) || 0,
-      purifiedGas: parseFloat(row.purified_gas_flow) || 0,
-      productGas: parseFloat(row.product_gas_flow) || 0,
-      ch4: parseFloat(row.ch4_concentration) || 0,
-      co2: parseFloat(row.co2_level) || 0,
-      o2: parseFloat(row.o2_concentration) || 0,
-      h2s: parseFloat(row.h2s_content) || 0,
-      dewPoint: parseFloat(row.dew_point) || 0,
-      digester1Temp: parseFloat(row.d1_temp_bottom) || 0,
-      digester2Temp: parseFloat(row.d2_temp_bottom) || 0,
-      digester1GasPressure: parseFloat(row.d1_gas_pressure) || 0,
-      digester2GasPressure: parseFloat(row.d2_gas_pressure) || 0,
-      digester1AirPressure: parseFloat(row.d1_air_pressure) || 0,
-      digester2AirPressure: parseFloat(row.d2_air_pressure) || 0,
-      digester1SlurryHeight: parseFloat(row.d1_slurry_height) || 0,
-      digester2SlurryHeight: parseFloat(row.d2_slurry_height) || 0,
-      bufferTank: parseFloat(row.buffer_tank_level) || 0,
-      lagoonTank: parseFloat(row.lagoon_tank_level) || 0,
-      feedFM1: parseFloat(row.feed_fm1_flow) || 0,
-      feedFM2: parseFloat(row.feed_fm2_flow) || 0,
-      freshWaterFM: parseFloat(row.fresh_water_flow) || 0,
-      recycleWaterFM: parseFloat(row.recycle_water_flow) || 0
-    }));
+  const transformApiData = (apiData, hours) => {
+    if (!apiData || apiData.length === 0) return [];
+    
+    return apiData.map((row) => {
+      // Use appropriate label based on time range
+      let timeLabel;
+      if (hours >= 168) {
+        // 7 days - use day label
+        timeLabel = row.day_label || row.day_name || '';
+      } else {
+        // 1hr, 12hr, 24hr - use time label
+        timeLabel = row.time_label || '';
+      }
+      
+      return {
+        time: timeLabel,
+        timestamp: row.timestamp,
+        recordsInInterval: row.records_in_interval || 0,
+        rawBiogas: parseFloat(row.raw_biogas_flow) || 0,
+        purifiedGas: parseFloat(row.purified_gas_flow) || 0,
+        productGas: parseFloat(row.product_gas_flow) || 0,
+        ch4: parseFloat(row.ch4_concentration) || 0,
+        co2: parseFloat(row.co2_level) || 0,
+        o2: parseFloat(row.o2_concentration) || 0,
+        h2s: parseFloat(row.h2s_content) || 0,
+        dewPoint: parseFloat(row.dew_point) || 0,
+        digester1Temp: parseFloat(row.d1_temp_bottom) || 0,
+        digester2Temp: parseFloat(row.d2_temp_bottom) || 0,
+        digester1GasPressure: parseFloat(row.d1_gas_pressure) || 0,
+        digester2GasPressure: parseFloat(row.d2_gas_pressure) || 0,
+        digester1AirPressure: parseFloat(row.d1_air_pressure) || 0,
+        digester2AirPressure: parseFloat(row.d2_air_pressure) || 0,
+        digester1SlurryHeight: parseFloat(row.d1_slurry_height) || 0,
+        digester2SlurryHeight: parseFloat(row.d2_slurry_height) || 0,
+        bufferTank: parseFloat(row.buffer_tank_level) || 0,
+        lagoonTank: parseFloat(row.lagoon_tank_level) || 0,
+        feedFM1: parseFloat(row.feed_fm1_flow) || 0,
+        feedFM2: parseFloat(row.feed_fm2_flow) || 0,
+        freshWaterFM: parseFloat(row.fresh_water_flow) || 0,
+        recycleWaterFM: parseFloat(row.recycle_water_flow) || 0
+      };
+    });
   };
 
-  // State for API statistics from backend
-  const [apiStatistics, setApiStatistics] = useState(null);
-
-  // Fetch data from API
+  // Fetch data from API - NO MOCK DATA
   const fetchData = useCallback(async () => {
     setLoading(true);
+    setError(null);
     try {
       const hours = timeRange === '1h' ? 1 : timeRange === '12h' ? 12 : timeRange === '24h' ? 24 : 168;
-      const result = await getTrendsData(hours);
+      const result = await getTrendsData(hours, null, false);  // raw=false for interval grouping
       
       if (result.success && result.data?.data) {
-        const transformedData = transformApiData(result.data.data);
+        const transformedData = transformApiData(result.data.data, hours);
         setTrendData(transformedData);
         setApiStats({
           dataPoints: result.data.data_points,
           totalRecords: result.data.total_records,
-          expectedRecords: result.data.expected_records,
-          coveragePercent: result.data.coverage_percent
+          expectedIntervals: result.data.expected_intervals,
+          coveragePercent: result.data.coverage_percent,
+          intervalLabel: result.data.query?.interval_label
         });
-        // Store statistics from backend (includes 12hr and 24hr averages)
         setApiStatistics(result.data.statistics || null);
         setIsConnected(true);
       } else {
-        // API failed - use mock data
-        const mockHours = timeRange === '1h' ? 60 : timeRange === '12h' ? 12 : timeRange === '24h' ? 24 : 168;
-        setTrendData(generateMockData(mockHours));
+        // API failed - show error, NO mock data
+        setTrendData([]);
         setApiStats(null);
         setApiStatistics(null);
         setIsConnected(false);
+        setError(result.error || 'Failed to fetch data from server');
       }
     } catch (err) {
       console.error('Trends API error:', err);
-      const mockHours = timeRange === '1h' ? 60 : timeRange === '12h' ? 12 : timeRange === '24h' ? 24 : 168;
-      setTrendData(generateMockData(mockHours));
+      setTrendData([]);
       setApiStats(null);
       setApiStatistics(null);
       setIsConnected(false);
+      setError(err.message || 'Network error');
     } finally {
       setLoading(false);
     }
   }, [timeRange]);
 
-  // Fetch on mount and when time range changes
+  // Initial fetch and when timeRange changes
   useEffect(() => {
     fetchData();
   }, [fetchData]);
 
   // Auto-refresh every 60 seconds
   useEffect(() => {
-    const interval = setInterval(fetchData, 60000);
+    const interval = setInterval(() => {
+      fetchData();
+    }, 60000);
     return () => clearInterval(interval);
   }, [fetchData]);
 
@@ -140,34 +123,35 @@ function TrendsPage() {
       { key: 'ch4', label: 'CH₄ Concentration', color: '#f59e0b', unit: '%' },
       { key: 'co2', label: 'CO₂ Concentration', color: '#8b5cf6', unit: '%' },
       { key: 'o2', label: 'O₂ Concentration', color: '#10b981', unit: '%' },
-      { key: 'h2s', label: 'H₂S Content', color: '#ef4444', unit: 'ppm' },
-      { key: 'dewPoint', label: 'Dew Point', color: '#06b6d4', unit: 'mg/m³' }
+      { key: 'h2s', label: 'H₂S Content', color: '#ef4444', unit: 'ppm' }
     ],
     'Digester 1': [
-      { key: 'digester1Temp', label: 'D1 Temperature', color: '#ef4444', unit: '°C' },
-      { key: 'digester1GasPressure', label: 'D1 Balloon Gas Pressure', color: '#06b6d4', unit: '' },
-      { key: 'digester1AirPressure', label: 'D1 Balloon Air Pressure', color: '#0ea5e9', unit: '' },
+      { key: 'digester1Temp', label: 'D1 Temperature', color: '#f97316', unit: '°C' },
+      { key: 'digester1GasPressure', label: 'D1 Gas Pressure', color: '#06b6d4', unit: '' },
+      { key: 'digester1AirPressure', label: 'D1 Air Pressure', color: '#8b5cf6', unit: '' },
       { key: 'digester1SlurryHeight', label: 'D1 Slurry Height', color: '#10b981', unit: 'm' }
     ],
     'Digester 2': [
-      { key: 'digester2Temp', label: 'D2 Temperature', color: '#dc2626', unit: '°C' },
-      { key: 'digester2GasPressure', label: 'D2 Balloon Gas Pressure', color: '#0891b2', unit: '' },
-      { key: 'digester2AirPressure', label: 'D2 Balloon Air Pressure', color: '#06b6d4', unit: '' },
-      { key: 'digester2SlurryHeight', label: 'D2 Slurry Height', color: '#059669', unit: 'm' }
+      { key: 'digester2Temp', label: 'D2 Temperature', color: '#f97316', unit: '°C' },
+      { key: 'digester2GasPressure', label: 'D2 Gas Pressure', color: '#06b6d4', unit: '' },
+      { key: 'digester2AirPressure', label: 'D2 Air Pressure', color: '#8b5cf6', unit: '' },
+      { key: 'digester2SlurryHeight', label: 'D2 Slurry Height', color: '#10b981', unit: 'm' }
     ],
     'Tank Levels': [
-      { key: 'bufferTank', label: 'Buffer Tank Level', color: '#f59e0b', unit: '%' },
-      { key: 'lagoonTank', label: 'Lagoon Tank Level', color: '#8b5cf6', unit: '%' }
+      { key: 'bufferTank', label: 'Buffer Tank', color: '#06b6d4', unit: '%' },
+      { key: 'lagoonTank', label: 'Lagoon Tank', color: '#8b5cf6', unit: '%' }
     ],
     'Water Flow': [
       { key: 'feedFM1', label: 'Feed FM-I', color: '#10b981', unit: 'm³/hr' },
-      { key: 'feedFM2', label: 'Feed FM-II', color: '#f59e0b', unit: 'm³/hr' },
-      { key: 'freshWaterFM', label: 'Fresh Water FM', color: '#8b5cf6', unit: 'm³/hr' },
-      { key: 'recycleWaterFM', label: 'Recycle Water FM', color: '#06b6d4', unit: 'm³/hr' }
+      { key: 'feedFM2', label: 'Feed FM-II', color: '#06b6d4', unit: 'm³/hr' },
+      { key: 'freshWaterFM', label: 'Fresh Water', color: '#8b5cf6', unit: 'm³/hr' },
+      { key: 'recycleWaterFM', label: 'Recycle Water', color: '#f59e0b', unit: 'm³/hr' }
     ]
   };
 
-  const [selectedParams, setSelectedParams] = useState(['rawBiogas', 'purifiedGas', 'productGas', 'ch4', 'co2', 'h2s']);
+  const [selectedParams, setSelectedParams] = useState(
+    Object.values(parameterCategories).flat().map(function(p) { return p.key; })
+  );
 
   function toggleParameter(key) {
     if (selectedParams.includes(key)) {
@@ -199,7 +183,18 @@ function TrendsPage() {
     params.forEach(function(p) { allParameters.push(p); });
   });
 
-  // Map frontend param keys to backend param names
+  function getFilteredCategories() {
+    if (selectedCategory === 'all') {
+      return parameterCategories;
+    }
+    const result = {};
+    result[selectedCategory] = parameterCategories[selectedCategory];
+    return result;
+  }
+
+  const filteredCategories = getFilteredCategories();
+
+  // Map frontend param keys to backend param names for statistics
   const paramKeyToBackend = {
     'rawBiogas': 'raw_biogas_flow',
     'purifiedGas': 'purified_gas_flow',
@@ -225,258 +220,49 @@ function TrendsPage() {
     'recycleWaterFM': 'recycle_water_flow'
   };
 
+  // Get statistics from API response (database values only)
   function getStatistics(paramKey) {
-    // First, try to get statistics from API response (more accurate)
     const backendKey = paramKeyToBackend[paramKey];
     if (apiStatistics && backendKey && apiStatistics[backendKey]) {
-      const apiStats = apiStatistics[backendKey];
+      const stats = apiStatistics[backendKey];
       return {
-        avg12hr: apiStats.avg_12hr || apiStats.avg || 0,
-        avg24hr: apiStats.avg_24hr || apiStats.avg || 0,
-        min: apiStats.min || 0,
-        max: apiStats.max || 0
+        avg12hr: stats.avg_12hr || 0,
+        avg24hr: stats.avg_24hr || 0,
+        min: stats.min || 0,
+        max: stats.max || 0
       };
     }
-    
-    // Fallback: Calculate from local data if API stats not available
-    const values = trendData.map(function(d) { return d[paramKey] || 0; }).filter(v => v !== 0);
-    if (values.length === 0) return { avg12hr: 0, avg24hr: 0, min: 0, max: 0 };
-    
-    const sum = values.reduce(function(a, b) { return a + b; }, 0);
-    const avg = sum / values.length;
-    const min = Math.min.apply(null, values);
-    const max = Math.max.apply(null, values);
-    
-    // For 12hr vs 24hr: Split data if we have enough
-    let avg12hr = avg;
-    let avg24hr = avg;
-    
-    if (values.length >= 2) {
-      const halfIndex = Math.floor(values.length / 2);
-      const recent12hr = values.slice(halfIndex);
-      
-      if (recent12hr.length > 0) {
-        avg12hr = recent12hr.reduce((a, b) => a + b, 0) / recent12hr.length;
-      }
-      avg24hr = values.reduce((a, b) => a + b, 0) / values.length;
-    }
-    
-    return { avg12hr: avg12hr, avg24hr: avg24hr, min: min, max: max };
+    // No data available
+    return { avg12hr: 0, avg24hr: 0, min: 0, max: 0 };
   }
 
-  function getFilteredCategories() {
-    if (selectedCategory === 'all') {
-      return parameterCategories;
-    }
-    const result = {};
-    result[selectedCategory] = parameterCategories[selectedCategory];
-    return result;
-  }
-
-  const filteredCategories = getFilteredCategories();
-
-  function getCategoriesToDisplay() {
-    const categories = [];
-    Object.keys(parameterCategories).forEach(function(categoryName) {
-      const params = parameterCategories[categoryName];
-      const hasSelected = params.some(function(p) { return selectedParams.includes(p.key); });
-      if (hasSelected && (selectedCategory === 'all' || selectedCategory === categoryName)) {
-        categories.push({ name: categoryName, params: params });
-      }
-    });
-    return categories;
-  }
-
-  const categoriesToDisplay = getCategoriesToDisplay();
-
-  function handleDownloadCSV() {
-    const headers = ['Time'];
-    const paramList = [];
-    selectedParams.forEach(function(key) {
-      const param = allParameters.find(function(p) { return p.key === key; });
-      if (param) {
-        headers.push(param.label + ' (' + param.unit + ')');
-        paramList.push(key);
-      }
-    });
-    
-    const rows = trendData.map(function(d) {
-      const row = [d.time];
-      paramList.forEach(function(key) {
-        row.push((d[key] || 0).toFixed(2));
-      });
-      return row;
-    });
-    
-    generateCSVDownload({
-      title: 'Trends_Data_' + timeRange,
-      headers: headers,
-      data: rows
-    });
-    setShowDownloadMenu(false);
-  }
-
-  async function handleDownloadPDF() {
-    const tableHeaders = ['Time'];
-    const paramList = [];
-    selectedParams.slice(0, 5).forEach(function(key) {
-      const param = allParameters.find(function(p) { return p.key === key; });
-      if (param) {
-        tableHeaders.push(param.label);
-        paramList.push(key);
-      }
-    });
-    
-    const tableData = trendData.slice(0, 15).map(function(d) {
-      const row = [d.time];
-      paramList.forEach(function(key) {
-        row.push((d[key] || 0).toFixed(2));
-      });
-      return row;
-    });
-    
-    await generatePDFReport({
-      title: 'Historical Trends Report',
-      subtitle: 'LR Energy Biogas Plant - Karnal',
-      period: 'Time Range: ' + timeRange,
-      summaryData: {
-        'Parameters': selectedParams.length.toString(),
-        'Time Range': timeRange,
-        'Data Points': trendData.length.toString(),
-        'Report Type': 'Trends Analysis'
-      },
-      tableHeaders: tableHeaders,
-      tableData: tableData
-    });
-    setShowDownloadMenu(false);
-  }
-
-  function renderCategoryChart(categoryName, params, isMaximized) {
-    const categorySelectedParams = params.filter(function(p) { return selectedParams.includes(p.key); });
-    if (categorySelectedParams.length === 0) return null;
-
-    const ChartComp = chartType === 'area' ? AreaChart : LineChart;
-    const height = isMaximized ? 500 : 250;
-
-    return (
-      <div 
-        key={categoryName}
-        className={'bg-white rounded-lg border border-slate-200 p-4 shadow-sm ' + (isMaximized ? '' : 'cursor-pointer hover:shadow-md transition-shadow')}
-        onClick={function() { if (!isMaximized) setMaximizedChart(categoryName); }}
-      >
-        <div className="flex items-center justify-between mb-3">
-          <h4 className="text-sm font-semibold text-slate-700">{categoryName}</h4>
-          {!isMaximized && (
-            <Maximize2 className="w-4 h-4 text-slate-400" />
-          )}
-        </div>
-        <ResponsiveContainer width="100%" height={height}>
-          <ChartComp data={trendData} margin={{ top: 5, right: 20, left: 0, bottom: 5 }}>
-            <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
-            <XAxis 
-              dataKey="time" 
-              stroke="#94a3b8" 
-              style={{ fontSize: '10px' }}
-            />
-            <YAxis stroke="#94a3b8" style={{ fontSize: '10px' }} />
-            <Tooltip 
-              contentStyle={{ 
-                backgroundColor: 'white', 
-                border: '1px solid #e2e8f0',
-                borderRadius: '6px',
-                fontSize: '11px'
-              }}
-            />
-            {isMaximized && <Legend wrapperStyle={{ fontSize: '11px' }} />}
-            {categorySelectedParams.map(function(param) {
-              if (chartType === 'area') {
-                return (
-                  <Area
-                    key={param.key}
-                    type="monotone"
-                    dataKey={param.key}
-                    stroke={param.color}
-                    fill={param.color}
-                    fillOpacity={0.2}
-                    strokeWidth={2}
-                    name={param.label}
-                  />
-                );
-              } else {
-                return (
-                  <Line
-                    key={param.key}
-                    type="monotone"
-                    dataKey={param.key}
-                    stroke={param.color}
-                    strokeWidth={2}
-                    dot={false}
-                    name={param.label}
-                  />
-                );
-              }
-            })}
-          </ChartComp>
-        </ResponsiveContainer>
-        {!isMaximized && (
-          <div className="flex flex-wrap gap-2 mt-2">
-            {categorySelectedParams.map(function(param) {
-              return (
-                <div key={param.key} className="flex items-center space-x-1">
-                  <div className="w-2 h-2 rounded-full" style={{ backgroundColor: param.color }}></div>
-                  <span className="text-xs text-slate-600">{param.label}</span>
-                </div>
-              );
-            })}
-          </div>
-        )}
-      </div>
-    );
-  }
-
-  function renderMaximizedModal() {
-    if (!maximizedChart) return null;
-    
-    const params = parameterCategories[maximizedChart];
-    
-    return (
-      <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-        <div className="bg-white rounded-xl shadow-2xl w-full max-w-6xl max-h-[90vh] overflow-hidden">
-          <div className="bg-gradient-to-r from-emerald-600 to-teal-600 text-white p-4 flex justify-between items-center">
-            <h3 className="text-xl font-bold">{maximizedChart} - Detailed View</h3>
-            <button 
-              onClick={function() { setMaximizedChart(null); }}
-              className="p-2 hover:bg-white/20 rounded-lg transition-colors"
-            >
-              <X className="w-5 h-5" />
-            </button>
-          </div>
-          <div className="p-6">
-            {renderCategoryChart(maximizedChart, params, true)}
-          </div>
-        </div>
-      </div>
-    );
-  }
-
-  const timeRangeButtons = ['1h', '12h', '24h', '7d'].map(function(range) {
-    return (
+  // Build time range buttons
+  const timeRangeButtons = [];
+  [
+    { value: '1h', label: '1 Hr' },
+    { value: '12h', label: '12 Hr' },
+    { value: '24h', label: '24 Hr' },
+    { value: '7d', label: '7 Days' }
+  ].forEach(function(range) {
+    timeRangeButtons.push(
       <button
-        key={range}
-        onClick={function() { setTimeRange(range); }}
-        data-testid={'time-range-' + range}
+        key={range.value}
+        onClick={function() { setTimeRange(range.value); }}
+        data-testid={'time-range-' + range.value}
         className={'px-4 py-2 rounded-md text-sm font-medium transition-all ' +
-          (timeRange === range
+          (timeRange === range.value
             ? 'bg-emerald-600 text-white shadow-sm'
             : 'bg-slate-100 text-slate-600 hover:bg-slate-200')}
       >
-        {range}
+        {range.label}
       </button>
     );
   });
 
-  const chartTypeButtons = ['line', 'area'].map(function(type) {
-    return (
+  // Build chart type buttons
+  const chartTypeButtons = [];
+  ['line', 'area'].forEach(function(type) {
+    chartTypeButtons.push(
       <button
         key={type}
         onClick={function() { setChartType(type); }}
@@ -491,11 +277,13 @@ function TrendsPage() {
     );
   });
 
+  // Build category options
   const categoryOptions = [<option key="all" value="all">All Categories</option>];
   Object.keys(parameterCategories).forEach(function(cat) {
     categoryOptions.push(<option key={cat} value={cat}>{cat}</option>);
   });
 
+  // Build parameter toggles
   const parameterToggles = [];
   Object.keys(filteredCategories).forEach(function(category) {
     const params = filteredCategories[category];
@@ -539,15 +327,19 @@ function TrendsPage() {
     );
   });
 
+  // Build statistics cards - Only from database
   const statisticsCards = [];
   selectedParams.slice(0, 12).forEach(function(paramKey) {
     const param = allParameters.find(function(p) { return p.key === paramKey; });
     if (!param) return;
     const stats = getStatistics(paramKey);
     
-    // H2S should display as integer (no decimals)
+    // H2S should display as integer
     const isH2S = paramKey === 'h2s';
-    const formatValue = (val) => isH2S ? Math.round(val) : val.toFixed(2);
+    const formatValue = (val) => {
+      if (val === 0 || val === null || val === undefined) return '--';
+      return isH2S ? Math.round(val) : val.toFixed(2);
+    };
 
     statisticsCards.push(
       <div key={paramKey} className="bg-gradient-to-br from-slate-50 to-slate-100/50 rounded-lg p-3 border border-slate-200">
@@ -578,95 +370,222 @@ function TrendsPage() {
     );
   });
 
-  const categoryCharts = categoriesToDisplay.map(function(cat) {
-    return renderCategoryChart(cat.name, cat.params, false);
-  });
+  // Get categories to display based on selected parameters
+  function getCategoriesToDisplay() {
+    const categories = [];
+    Object.keys(parameterCategories).forEach(function(categoryName) {
+      const params = parameterCategories[categoryName];
+      const hasSelected = params.some(function(p) { return selectedParams.includes(p.key); });
+      if (hasSelected && (selectedCategory === 'all' || selectedCategory === categoryName)) {
+        categories.push({ name: categoryName, params: params });
+      }
+    });
+    return categories;
+  }
 
-  if (loading && trendData.length === 0) {
+  const categoriesToDisplay = getCategoriesToDisplay();
+
+  // Render chart for a category
+  function renderCategoryChart(categoryName, params, isMaximized) {
+    const categorySelectedParams = params.filter(function(p) { return selectedParams.includes(p.key); });
+    if (categorySelectedParams.length === 0) return null;
+
+    // Check if we have data
+    if (!trendData || trendData.length === 0) {
+      return (
+        <div key={categoryName} className="bg-white rounded-lg border border-slate-200 p-4 shadow-sm">
+          <h4 className="text-sm font-semibold text-slate-700 mb-3">{categoryName}</h4>
+          <div className="flex items-center justify-center h-48 bg-slate-50 rounded-lg">
+            <div className="text-center text-slate-500">
+              <Database className="w-8 h-8 mx-auto mb-2 text-slate-400" />
+              <p className="text-sm">No data available</p>
+            </div>
+          </div>
+        </div>
+      );
+    }
+
+    const ChartComp = chartType === 'area' ? AreaChart : LineChart;
+    const height = isMaximized ? 500 : 250;
+
     return (
-      <div className="max-w-[1920px] mx-auto p-4 md:p-6 lg:p-8 bg-slate-50 min-h-screen" data-testid="trends-page">
-        <div className="flex items-center justify-center p-12 bg-white rounded-lg border border-slate-200">
-          <RefreshCw className="w-8 h-8 text-slate-400 animate-spin mr-3" />
-          <span className="text-slate-500 text-lg">Loading trend data...</span>
+      <div 
+        key={categoryName}
+        className={'bg-white rounded-lg border border-slate-200 p-4 shadow-sm ' + (isMaximized ? '' : 'cursor-pointer hover:shadow-md transition-shadow')}
+        onClick={function() { if (!isMaximized) setMaximizedChart(categoryName); }}
+      >
+        <div className="flex items-center justify-between mb-3">
+          <h4 className="text-sm font-semibold text-slate-700">{categoryName}</h4>
+          {!isMaximized && (
+            <Maximize2 className="w-4 h-4 text-slate-400" />
+          )}
+        </div>
+        <ResponsiveContainer width="100%" height={height}>
+          <ChartComp data={trendData} margin={{ top: 5, right: 20, left: 0, bottom: 5 }}>
+            <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
+            <XAxis 
+              dataKey="time" 
+              stroke="#94a3b8" 
+              style={{ fontSize: '10px' }}
+              interval={0}
+              angle={timeRange === '7d' ? 0 : -45}
+              textAnchor={timeRange === '7d' ? 'middle' : 'end'}
+              height={timeRange === '7d' ? 30 : 50}
+            />
+            <YAxis stroke="#94a3b8" style={{ fontSize: '10px' }} />
+            <Tooltip 
+              contentStyle={{ 
+                backgroundColor: 'white', 
+                border: '1px solid #e2e8f0',
+                borderRadius: '6px',
+                fontSize: '11px'
+              }}
+              labelFormatter={(label) => `Time: ${label}`}
+              formatter={(value, name) => {
+                const param = categorySelectedParams.find(p => p.key === name);
+                return [`${value} ${param?.unit || ''}`, param?.label || name];
+              }}
+            />
+            {isMaximized && <Legend wrapperStyle={{ fontSize: '11px' }} />}
+            {categorySelectedParams.map(function(param) {
+              if (chartType === 'area') {
+                return (
+                  <Area
+                    key={param.key}
+                    type="monotone"
+                    dataKey={param.key}
+                    stroke={param.color}
+                    fill={param.color}
+                    fillOpacity={0.2}
+                    strokeWidth={2}
+                    name={param.key}
+                    connectNulls={true}
+                  />
+                );
+              } else {
+                return (
+                  <Line
+                    key={param.key}
+                    type="monotone"
+                    dataKey={param.key}
+                    stroke={param.color}
+                    strokeWidth={2}
+                    dot={{ r: 3 }}
+                    name={param.key}
+                    connectNulls={true}
+                  />
+                );
+              }
+            })}
+          </ChartComp>
+        </ResponsiveContainer>
+        {/* Legend for small charts */}
+        {!isMaximized && (
+          <div className="flex flex-wrap gap-2 mt-2">
+            {categorySelectedParams.map(function(param) {
+              return (
+                <div key={param.key} className="flex items-center space-x-1">
+                  <div className="w-2 h-2 rounded-full" style={{ backgroundColor: param.color }}></div>
+                  <span className="text-xs text-slate-600">{param.label}</span>
+                </div>
+              );
+            })}
+          </div>
+        )}
+      </div>
+    );
+  }
+
+  // Maximized chart modal
+  function renderMaximizedModal() {
+    if (!maximizedChart) return null;
+    
+    const params = parameterCategories[maximizedChart];
+    
+    return (
+      <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+        <div className="bg-white rounded-xl shadow-2xl w-full max-w-6xl max-h-[90vh] overflow-hidden">
+          <div className="bg-gradient-to-r from-emerald-600 to-teal-600 text-white p-4 flex justify-between items-center">
+            <h3 className="text-xl font-bold">{maximizedChart} - Detailed View</h3>
+            <button 
+              onClick={function() { setMaximizedChart(null); }}
+              className="p-2 hover:bg-white/20 rounded-lg transition-colors"
+            >
+              <X className="w-5 h-5" />
+            </button>
+          </div>
+          <div className="p-6">
+            {renderCategoryChart(maximizedChart, params, true)}
+          </div>
         </div>
       </div>
     );
   }
 
+  // Build category charts
+  const categoryCharts = categoriesToDisplay.map(function(cat) {
+    return renderCategoryChart(cat.name, cat.params, false);
+  });
+
   return (
     <div className="max-w-[1920px] mx-auto p-4 md:p-6 lg:p-8 bg-slate-50 min-h-screen" data-testid="trends-page">
       {renderMaximizedModal()}
       
-      <div className="mb-6 flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-bold tracking-tight text-slate-800 mb-2 flex items-center space-x-3">
-            <TrendingUp className="w-7 h-7 text-emerald-600" />
-            <span>Historical Trends Analysis</span>
-          </h1>
-          <p className="text-slate-600">Analyze historical data patterns and performance metrics across all SCADA parameters</p>
-        </div>
-        
-        <div className="flex items-center space-x-3">
-          {/* Connection Status */}
+      <div className="mb-6">
+        <h1 className="text-2xl font-bold tracking-tight text-slate-800 mb-2 flex items-center space-x-3">
+          <TrendingUp className="w-7 h-7 text-emerald-600" />
+          <span>Historical Trends Analysis</span>
+        </h1>
+        <p className="text-slate-600">Analyze historical data patterns and parameter trends from database</p>
+      </div>
+
+      {/* Connection Status & Stats */}
+      <div className="flex items-center justify-between mb-4 flex-wrap gap-2">
+        <div className="flex items-center space-x-3 flex-wrap gap-2">
           {isConnected ? (
             <span className="flex items-center space-x-1 px-2 py-1 bg-emerald-100 text-emerald-700 rounded text-xs font-medium">
               <Wifi className="w-3 h-3" />
               <span>LIVE</span>
             </span>
           ) : (
-            <span className="flex items-center space-x-1 px-2 py-1 bg-amber-100 text-amber-700 rounded text-xs font-medium">
+            <span className="flex items-center space-x-1 px-2 py-1 bg-rose-100 text-rose-700 rounded text-xs font-medium">
               <WifiOff className="w-3 h-3" />
-              <span>DEMO</span>
+              <span>OFFLINE</span>
             </span>
           )}
-
-          {/* API Stats */}
           {apiStats && (
-            <span className="px-3 py-1 bg-slate-100 rounded-full text-xs text-slate-600">
-              {apiStats.totalRecords}/{apiStats.expectedRecords} records ({apiStats.coveragePercent}%)
-            </span>
+            <>
+              <span className="text-xs text-slate-500 bg-slate-100 px-2 py-1 rounded">
+                {apiStats.dataPoints}/{apiStats.expectedIntervals} intervals
+              </span>
+              <span className="text-xs text-slate-500 bg-slate-100 px-2 py-1 rounded">
+                {apiStats.totalRecords} total records
+              </span>
+              {apiStats.intervalLabel && (
+                <span className="text-xs text-slate-500 bg-blue-50 px-2 py-1 rounded">
+                  Interval: {apiStats.intervalLabel}
+                </span>
+              )}
+            </>
           )}
-
-          {/* Refresh Button */}
-          <button
-            onClick={fetchData}
-            className="flex items-center space-x-1 px-3 py-1.5 text-sm text-slate-600 hover:bg-slate-100 rounded-lg border border-slate-200"
-            disabled={loading}
-          >
-            <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} />
-            <span>Refresh</span>
-          </button>
-
-          {/* Download Buttons */}
-          <div className="relative">
-            <button
-              onClick={function() { setShowDownloadMenu(!showDownloadMenu); }}
-              className="flex items-center space-x-2 px-4 py-2 bg-emerald-600 text-white rounded-lg font-medium hover:bg-emerald-700 transition-colors shadow-sm"
-            >
-              <Download className="w-4 h-4" />
-              <span>Download</span>
-            </button>
-            {showDownloadMenu && (
-              <div className="absolute top-full right-0 mt-2 bg-white border border-slate-200 rounded-lg shadow-lg z-10 min-w-[160px]">
-                <button 
-                  onClick={handleDownloadCSV}
-                  className="w-full px-4 py-3 text-left hover:bg-slate-50 flex items-center space-x-2 text-slate-700"
-                >
-                  <FileSpreadsheet className="w-4 h-4 text-cyan-600" />
-                  <span>Download CSV</span>
-                </button>
-                <button 
-                  onClick={handleDownloadPDF}
-                  className="w-full px-4 py-3 text-left hover:bg-slate-50 flex items-center space-x-2 text-slate-700 border-t border-slate-100"
-                >
-                  <FileText className="w-4 h-4 text-rose-600" />
-                  <span>Download PDF</span>
-                </button>
-              </div>
-            )}
-          </div>
         </div>
+        <button 
+          onClick={fetchData}
+          disabled={loading}
+          className="flex items-center space-x-1 px-3 py-1.5 bg-emerald-600 text-white rounded text-sm font-medium hover:bg-emerald-700 disabled:opacity-50"
+        >
+          <RefreshCw className={`w-3 h-3 ${loading ? 'animate-spin' : ''}`} />
+          <span>Refresh</span>
+        </button>
       </div>
+
+      {/* Error Banner */}
+      {error && (
+        <div className="mb-4 p-3 bg-rose-50 border border-rose-200 rounded-lg flex items-center space-x-2">
+          <AlertTriangle className="w-4 h-4 text-rose-600" />
+          <span className="text-sm text-rose-700">{error}</span>
+        </div>
+      )}
 
       {/* Controls */}
       <div className="bg-white rounded-lg border border-slate-200 p-5 mb-6 shadow-sm">
@@ -718,19 +637,33 @@ function TrendsPage() {
 
         {/* Chart Visualization */}
         <div className="lg:col-span-9 space-y-4">
-          <h3 className="text-lg font-semibold text-slate-800">Data Visualization <span className="text-sm font-normal text-slate-500">(Click chart to maximize)</span></h3>
+          <h3 className="text-lg font-semibold text-slate-800">
+            Data Visualization 
+            <span className="text-sm font-normal text-slate-500 ml-2">(Click chart to maximize)</span>
+            {loading && <RefreshCw className="w-4 h-4 inline-block ml-2 animate-spin text-slate-400" />}
+          </h3>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             {categoryCharts}
           </div>
         </div>
       </div>
 
-      {/* Statistics Grid */}
+      {/* Selected Parameter Statistics - From Database Only */}
       <div className="bg-white rounded-lg border border-slate-200 p-5 shadow-sm">
-        <h4 className="text-lg font-semibold text-slate-700 mb-4">Selected Parameter Statistics</h4>
-        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-3">
-          {statisticsCards}
-        </div>
+        <h3 className="text-lg font-semibold text-slate-800 mb-4 flex items-center space-x-2">
+          <Database className="w-5 h-5 text-emerald-600" />
+          <span>Selected Parameter Statistics (From Database)</span>
+        </h3>
+        {!isConnected || !apiStatistics ? (
+          <div className="text-center py-8 text-slate-500">
+            <Database className="w-12 h-12 mx-auto mb-2 text-slate-300" />
+            <p>No statistics available - Connect to database</p>
+          </div>
+        ) : (
+          <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-3">
+            {statisticsCards}
+          </div>
+        )}
       </div>
     </div>
   );
