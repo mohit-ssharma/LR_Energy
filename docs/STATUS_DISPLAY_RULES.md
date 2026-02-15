@@ -248,7 +248,7 @@
 | **Gas Composition** | CH₄ | 96.8 | % |
 | | CO₂ | 2.9 | % |
 | | O₂ | 0.3 | % |
-| | H₂S | 180 | ppm |
+| | H₂S | 3 | ppm |
 | | Dew Point | -68 | mg/m³ |
 | **Digester 1** | Temp Bottom | 37 | °C |
 | | Temp Top | 36.5 | °C |
