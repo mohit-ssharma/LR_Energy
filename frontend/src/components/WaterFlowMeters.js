@@ -25,11 +25,6 @@ const WaterFlowMeters = () => {
     amber: { bg: 'bg-amber-600', light: 'bg-amber-50', border: 'border-amber-200', text: 'text-amber-600', stroke: '#f59e0b' }
   };
 
-  // Calculate totals
-  const totalFeedFlow = flowMeters[0].value + flowMeters[1].value;
-  const totalWaterFlow = flowMeters.reduce((sum, m) => sum + m.value, 0);
-  const totalTotalizer = flowMeters.reduce((sum, m) => sum + m.totalizer, 0);
-
   return (
     <div className="mb-6" data-testid="water-flow-section">
       <h2 className="text-xl font-semibold tracking-tight text-slate-800 mb-4">Water Flow Meters</h2>
