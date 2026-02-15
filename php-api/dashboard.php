@@ -33,14 +33,27 @@ if (!$pdo) {
 }
 
 try {
-    // Get latest reading
+    // Get latest reading with complete data (exclude records with NULL key fields)
     $stmt = $pdo->query("
         SELECT * FROM scada_readings 
         WHERE plant_id = '" . PLANT_ID . "' 
+        AND purified_gas_flow IS NOT NULL
+        AND co2_level IS NOT NULL
         ORDER BY timestamp DESC 
         LIMIT 1
     ");
     $latest = $stmt->fetch();
+    
+    // If no complete records, try to get any record
+    if (!$latest) {
+        $stmt = $pdo->query("
+            SELECT * FROM scada_readings 
+            WHERE plant_id = '" . PLANT_ID . "' 
+            ORDER BY timestamp DESC 
+            LIMIT 1
+        ");
+        $latest = $stmt->fetch();
+    }
     
     if (!$latest) {
         sendResponse([
