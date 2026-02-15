@@ -1,14 +1,60 @@
 import React from 'react';
 import { Droplet, Activity } from 'lucide-react';
 import { LineChart, Line, ResponsiveContainer, Tooltip } from 'recharts';
+import { formatNumber } from '../services/api';
 
-const WaterFlowMeters = () => {
-  // Updated dummy data - All with Totalizer
+const WaterFlowMeters = ({ dashboardData }) => {
+  // Get current values from API data or use defaults
+  const current = dashboardData?.current || {};
+  const lastUpdate = dashboardData?.last_update;
+
+  // Format timestamp
+  const formatTime = (timestamp) => {
+    if (!timestamp) return '--:--:--';
+    const date = new Date(timestamp);
+    return date.toLocaleTimeString('en-IN', { hour12: false });
+  };
+
+  const timeStr = formatTime(lastUpdate);
+
+  // Flow meter data from API
   const flowMeters = [
-    { id: 'feed-fm1', name: 'Feed FM-I', value: 42, unit: 'm³/hr', totalizer: 1008, totalizerUnit: 'm³', color: 'emerald' },
-    { id: 'feed-fm2', name: 'Feed FM-II', value: 38, unit: 'm³/hr', totalizer: 912, totalizerUnit: 'm³', color: 'cyan' },
-    { id: 'fresh-water', name: 'Fresh Water FM', value: 12, unit: 'm³/hr', totalizer: 288, totalizerUnit: 'm³', color: 'violet' },
-    { id: 'recycle', name: 'Recycle Water FM', value: 26, unit: 'm³/hr', totalizer: 624, totalizerUnit: 'm³', color: 'amber' }
+    { 
+      id: 'feed-fm1', 
+      name: 'Feed FM-I', 
+      value: current.feed_fm1_flow ?? 42, 
+      unit: 'm³/hr', 
+      totalizer: current.feed_fm1_totalizer ?? 1008, 
+      totalizerUnit: 'm³', 
+      color: 'emerald' 
+    },
+    { 
+      id: 'feed-fm2', 
+      name: 'Feed FM-II', 
+      value: current.feed_fm2_flow ?? 38, 
+      unit: 'm³/hr', 
+      totalizer: current.feed_fm2_totalizer ?? 912, 
+      totalizerUnit: 'm³', 
+      color: 'cyan' 
+    },
+    { 
+      id: 'fresh-water', 
+      name: 'Fresh Water FM', 
+      value: current.fresh_water_flow ?? 12, 
+      unit: 'm³/hr', 
+      totalizer: current.fresh_water_totalizer ?? 288, 
+      totalizerUnit: 'm³', 
+      color: 'violet' 
+    },
+    { 
+      id: 'recycle', 
+      name: 'Recycle Water FM', 
+      value: current.recycle_water_flow ?? 26, 
+      unit: 'm³/hr', 
+      totalizer: current.recycle_water_totalizer ?? 624, 
+      totalizerUnit: 'm³', 
+      color: 'amber' 
+    }
   ];
 
   const generateTrendData = (baseValue) => {
@@ -36,7 +82,7 @@ const WaterFlowMeters = () => {
             </div>
             <div>
               <h3 className="text-lg font-medium text-slate-800">Flow Meter Status</h3>
-              <span className="text-xs text-slate-500">Real-time flow measurements with 24Hr totalizers</span>
+              <span className="text-xs text-slate-500">Real-time flow measurements with totalizers</span>
             </div>
           </div>
           <span className="text-xs px-3 py-1 bg-emerald-100 text-emerald-700 rounded-full border border-emerald-200 font-semibold">
@@ -68,7 +114,7 @@ const WaterFlowMeters = () => {
                   <div className="mb-3">
                     <div className="text-xs text-slate-500 mb-1">Current Flow</div>
                     <div className="flex items-baseline space-x-1 mb-1">
-                      <span className={`text-3xl font-bold font-mono ${colors.text}`}>{meter.value}</span>
+                      <span className={`text-3xl font-bold font-mono ${colors.text}`}>{formatNumber(meter.value, 1)}</span>
                       <span className="text-sm font-medium text-slate-500">{meter.unit}</span>
                     </div>
                   </div>
@@ -98,23 +144,21 @@ const WaterFlowMeters = () => {
 
                   {/* Totalizer Box */}
                   <div className="bg-white/80 rounded-md p-2 border border-slate-200 mb-2">
-                    <div className="text-xs text-slate-500">Totalizer (24 Hr)</div>
+                    <div className="text-xs text-slate-500">Totalizer</div>
                     <div className="flex items-baseline space-x-1">
-                      <span className="text-lg font-bold font-mono text-slate-900">{meter.totalizer.toLocaleString()}</span>
+                      <span className="text-lg font-bold font-mono text-slate-900">{formatNumber(Math.round(meter.totalizer), 0)}</span>
                       <span className="text-xs text-slate-500">{meter.totalizerUnit}</span>
                     </div>
                   </div>
 
                   <div className="flex items-center justify-between text-xs text-slate-500">
                     <span>Status: Online</span>
-                    <span className="font-mono">08:43:41</span>
+                    <span className="font-mono">{timeStr}</span>
                   </div>
                 </div>
               );
             })}
           </div>
-
-          {/* Individual flow meters only - no totals */}
         </div>
       </div>
     </div>
