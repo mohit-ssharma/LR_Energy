@@ -77,6 +77,9 @@ function TrendsPage() {
     }));
   };
 
+  // State for API statistics from backend
+  const [apiStatistics, setApiStatistics] = useState(null);
+
   // Fetch data from API
   const fetchData = useCallback(async () => {
     setLoading(true);
@@ -93,12 +96,15 @@ function TrendsPage() {
           expectedRecords: result.data.expected_records,
           coveragePercent: result.data.coverage_percent
         });
+        // Store statistics from backend (includes 12hr and 24hr averages)
+        setApiStatistics(result.data.statistics || null);
         setIsConnected(true);
       } else {
         // API failed - use mock data
         const mockHours = timeRange === '1h' ? 60 : timeRange === '12h' ? 12 : timeRange === '24h' ? 24 : 168;
         setTrendData(generateMockData(mockHours));
         setApiStats(null);
+        setApiStatistics(null);
         setIsConnected(false);
       }
     } catch (err) {
@@ -106,6 +112,7 @@ function TrendsPage() {
       const mockHours = timeRange === '1h' ? 60 : timeRange === '12h' ? 12 : timeRange === '24h' ? 24 : 168;
       setTrendData(generateMockData(mockHours));
       setApiStats(null);
+      setApiStatistics(null);
       setIsConnected(false);
     } finally {
       setLoading(false);
