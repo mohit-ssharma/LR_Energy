@@ -61,7 +61,7 @@
 | CH₄ | 96.8 | % | ≥96% = Accepted |
 | CO₂ | 2.9 | % | <5% = Normal |
 | O₂ | 0.3 | % | <0.5% = Normal |
-| H₂S | 180 | ppm | <500 = Normal |
+| H₂S | 3 | ppm | <5 = Accepted, ≥5 = Critical (Max: 105) |
 
 ### Dew Point
 | Value | Unit | Status Rule |
