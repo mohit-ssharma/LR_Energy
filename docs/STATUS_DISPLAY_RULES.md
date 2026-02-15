@@ -148,8 +148,10 @@
 | CH₄ Concentration | 96.8 | % |
 | CO₂ Level | 2.9 | % |
 | O₂ Concentration | 0.3 | % |
-| H₂S Content | 180 | ppm |
+| H₂S Content | 3 | ppm |
 | Dew Point | -68 | mg/m³ |
+
+**Note:** H₂S should ideally be < 5 ppm (Accepted status). Max limit is 105 ppm.
 
 **File:** `GasComposition.js`, `KPISummary.js`
 
