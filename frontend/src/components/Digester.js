@@ -1,7 +1,16 @@
 import React from 'react';
 import { Thermometer, Gauge, Layers, Activity, Fuel } from 'lucide-react';
 
-const Digester = ({ unit, data }) => {
+const Digester = ({ unit, data, lastUpdate }) => {
+  // Format timestamp
+  const formatTime = (timestamp) => {
+    if (!timestamp) return '--:--:--';
+    const date = new Date(timestamp);
+    return date.toLocaleTimeString('en-IN', { hour12: false });
+  };
+
+  const timeStr = formatTime(lastUpdate);
+
   const MetricCard = ({ label, value, unit, min, max, color, testId }) => {
     const percentage = max ? ((parseFloat(value) - min) / (max - min)) * 100 : 0;
     
@@ -26,7 +35,7 @@ const Digester = ({ unit, data }) => {
             </div>
           </>
         )}
-        <div className="text-xs text-slate-400 mt-2 font-mono">08:43:41</div>
+        <div className="text-xs text-slate-400 mt-2 font-mono">{timeStr}</div>
       </div>
     );
   };
@@ -77,7 +86,7 @@ const Digester = ({ unit, data }) => {
             </div>
           </div>
         </div>
-        <div className="text-xs text-slate-400 mt-2 font-mono">08:43:41</div>
+        <div className="text-xs text-slate-400 mt-2 font-mono">{timeStr}</div>
       </div>
     );
   };
@@ -201,30 +210,39 @@ const Digester = ({ unit, data }) => {
   );
 };
 
-const DigestersSection = () => {
-  // Updated dummy data with Bottom and Top temperatures + Gas Level
+const DigestersSection = ({ dashboardData }) => {
+  // Get data from API response or use defaults
+  const current = dashboardData?.current || {};
+  const lastUpdate = dashboardData?.last_update;
+  
   const digester1Data = {
-    tempBottom: '37',
-    tempTop: '36.5',
-    pressure: { balloonGas: '32', balloonAir: '18' },
-    gasLevel: '75',
-    slurryHeight: '7.6'
+    tempBottom: current.d1_temp_bottom?.toFixed(1) ?? '37.0',
+    tempTop: current.d1_temp_top?.toFixed(1) ?? '36.5',
+    pressure: { 
+      balloonGas: current.d1_gas_pressure?.toFixed(1) ?? '32.0', 
+      balloonAir: current.d1_air_pressure?.toFixed(1) ?? '18.0' 
+    },
+    gasLevel: current.d1_gas_level?.toFixed(0) ?? '75',
+    slurryHeight: current.d1_slurry_height?.toFixed(1) ?? '7.6'
   };
 
   const digester2Data = {
-    tempBottom: '36.5',
-    tempTop: '36',
-    pressure: { balloonGas: '30', balloonAir: '17' },
-    gasLevel: '72',
-    slurryHeight: '7.3'
+    tempBottom: current.d2_temp_bottom?.toFixed(1) ?? '36.5',
+    tempTop: current.d2_temp_top?.toFixed(1) ?? '36.0',
+    pressure: { 
+      balloonGas: current.d2_gas_pressure?.toFixed(1) ?? '30.0', 
+      balloonAir: current.d2_air_pressure?.toFixed(1) ?? '17.0' 
+    },
+    gasLevel: current.d2_gas_level?.toFixed(0) ?? '72',
+    slurryHeight: current.d2_slurry_height?.toFixed(1) ?? '7.3'
   };
 
   return (
     <div className="mb-6">
       <h2 className="text-xl font-semibold tracking-tight text-slate-800 mb-4">Digesters</h2>
       <div className="space-y-6">
-        <Digester unit="1" data={digester1Data} />
-        <Digester unit="2" data={digester2Data} />
+        <Digester unit="1" data={digester1Data} lastUpdate={lastUpdate} />
+        <Digester unit="2" data={digester2Data} lastUpdate={lastUpdate} />
       </div>
     </div>
   );
