@@ -56,15 +56,15 @@ return [
         'name' => 'H₂S (Hydrogen Sulfide) Content',
         'unit' => 'ppm',
         'min' => 0,
-        'max' => 500,
-        'severity' => 'WARNING',
+        'max' => 5,
+        'severity' => 'CRITICAL',
     ],
     
     'h2s_content_critical' => [
         'name' => 'H₂S - CRITICAL',
         'unit' => 'ppm',
         'min' => null,
-        'max' => 1000,
+        'max' => 105,
         'severity' => 'CRITICAL',
     ],
     
