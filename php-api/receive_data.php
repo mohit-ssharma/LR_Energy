@@ -61,7 +61,6 @@ if (!isset($data['timestamp'])) {
 // Validate timestamp format
 $timestamp = $data['timestamp'];
 if (!preg_match('/^\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}$/', $timestamp)) {
-    logApiRequest('receive_data.php', 'POST', 400, 'Invalid timestamp format');
     sendError('Invalid timestamp format. Use: YYYY-MM-DD HH:MM:SS', 400);
 }
 
