@@ -78,7 +78,6 @@ if (strlen($plantId) > 50) {
 // Connect to database
 $pdo = getDBConnection();
 if (!$pdo) {
-    logApiRequest('receive_data.php', 'POST', 500, 'Database connection failed');
     sendError('Database connection failed', 500);
 }
 
