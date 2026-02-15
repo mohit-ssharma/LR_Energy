@@ -282,20 +282,20 @@ const MNREDashboard = () => {
       setError('Connection lost - showing last known data');
       setIsDemo(false);
     } else {
-      // ❌ No previous data ever received - show demo
-      setDashboardData(getMockData());
-      setError('API not connected - showing demo data');
-      setIsDemo(true);
+      // ❌ No previous data - show empty state (NO MOCK DATA)
+      setDashboardData(null);
+      setError('No data available - connect to database');
+      setIsDemo(false);
     }
   };
 
-  // Initial fetch and auto-refresh every 60 seconds
+  // Initial fetch and auto-refresh every 30 seconds
   useEffect(() => {
     fetchData();
     
     const interval = setInterval(() => {
       fetchData();
-    }, 60000); // 60 seconds
+    }, 30000); // 30 seconds for faster updates
     
     return () => clearInterval(interval);
   }, [fetchData]);
