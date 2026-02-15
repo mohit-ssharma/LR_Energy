@@ -1,18 +1,24 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { LineChart, Line, AreaChart, Area, ResponsiveContainer, XAxis, YAxis, CartesianGrid, Tooltip, Legend } from 'recharts';
-import { TrendingUp, Calendar, BarChart3, Eye, X, Maximize2 } from 'lucide-react';
+import { TrendingUp, Calendar, BarChart3, Eye, X, Maximize2, RefreshCw, Wifi, WifiOff } from 'lucide-react';
+import { getTrendsData } from '../services/api';
 
 function MNRETrendsPage() {
   const [timeRange, setTimeRange] = useState('24h');
   const [chartType, setChartType] = useState('area');
   const [selectedCategory, setSelectedCategory] = useState('all');
   const [maximizedChart, setMaximizedChart] = useState(null);
+  const [trendData, setTrendData] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [isConnected, setIsConnected] = useState(false);
+  const [apiStats, setApiStats] = useState(null);
 
-  function generateTrendData(hours) {
+  // Generate mock data as fallback
+  function generateMockData(hours) {
     const data = [];
     for (let i = 0; i < hours; i++) {
       data.push({
-        time: i,
+        time: i + 'h',
         rawBiogas: 1250 + (Math.random() * 100 - 50),
         purifiedGas: 1180 + (Math.random() * 80 - 40),
         productGas: 1150 + (Math.random() * 70 - 35),
@@ -25,10 +31,69 @@ function MNRETrendsPage() {
     return data;
   }
 
-  const hours = timeRange === '1h' ? 60 : timeRange === '12h' ? 12 : timeRange === '24h' ? 24 : 168;
-  const trendData = generateTrendData(hours);
+  // Transform API data to chart format
+  const transformApiData = (apiData) => {
+    return (apiData || []).map((row) => ({
+      time: row.timestamp ? new Date(row.timestamp).toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' }) : '',
+      rawBiogas: parseFloat(row.raw_biogas_flow) || 0,
+      purifiedGas: parseFloat(row.purified_gas_flow) || 0,
+      productGas: parseFloat(row.product_gas_flow) || 0,
+      ch4: parseFloat(row.ch4_concentration) || 0,
+      co2: parseFloat(row.co2_level) || 0,
+      o2: parseFloat(row.o2_concentration) || 0,
+      h2s: parseFloat(row.h2s_content) || 0
+    }));
+  };
 
-  // MNRE can only see these 2 parameter categories
+  // Fetch data from API
+  const fetchData = useCallback(async () => {
+    setLoading(true);
+    try {
+      const hours = timeRange === '1h' ? 1 : timeRange === '12h' ? 12 : timeRange === '24h' ? 24 : 168;
+      const result = await getTrendsData(hours);
+      
+      if (result.success && result.data?.data) {
+        const transformedData = transformApiData(result.data.data);
+        setTrendData(transformedData);
+        setApiStats({
+          dataPoints: result.data.data_points,
+          totalRecords: result.data.total_records,
+          expectedRecords: result.data.expected_records,
+          coveragePercent: result.data.coverage_percent
+        });
+        setIsConnected(true);
+      } else {
+        // API failed - use mock data
+        const mockHours = timeRange === '1h' ? 60 : timeRange === '12h' ? 12 : timeRange === '24h' ? 24 : 168;
+        setTrendData(generateMockData(mockHours));
+        setApiStats(null);
+        setIsConnected(false);
+      }
+    } catch (err) {
+      console.error('MNRE Trends API error:', err);
+      const mockHours = timeRange === '1h' ? 60 : timeRange === '12h' ? 12 : timeRange === '24h' ? 24 : 168;
+      setTrendData(generateMockData(mockHours));
+      setApiStats(null);
+      setIsConnected(false);
+    } finally {
+      setLoading(false);
+    }
+  }, [timeRange]);
+
+  // Initial fetch and when timeRange changes
+  useEffect(() => {
+    fetchData();
+  }, [fetchData]);
+
+  // Auto-refresh every 60 seconds
+  useEffect(() => {
+    const interval = setInterval(() => {
+      fetchData();
+    }, 60000);
+    return () => clearInterval(interval);
+  }, [fetchData]);
+
+  // MNRE can only see these 2 parameter categories (Gas Flow and Gas Composition)
   const parameterCategories = {
     'Gas Flow': [
       { key: 'rawBiogas', label: 'Raw Biogas Flow', color: '#10b981', unit: 'Nm³/hr' },
@@ -174,8 +239,6 @@ function MNRETrendsPage() {
     );
   });
 
-  // Build chart lines/areas - NOT USED anymore, using split charts instead
-  
   // Get categories to display based on selected parameters
   function getCategoriesToDisplay() {
     const categories = [];
@@ -191,7 +254,7 @@ function MNRETrendsPage() {
 
   const categoriesToDisplay = getCategoriesToDisplay();
 
-  // Render chart for a category (same as Head Office)
+  // Render chart for a category
   function renderCategoryChart(categoryName, params, isMaximized) {
     const categorySelectedParams = params.filter(function(p) { return selectedParams.includes(p.key); });
     if (categorySelectedParams.length === 0) return null;
@@ -218,7 +281,6 @@ function MNRETrendsPage() {
               dataKey="time" 
               stroke="#94a3b8" 
               style={{ fontSize: '10px' }}
-              tickFormatter={function(value) { return timeRange === '1h' ? value + 'm' : value + 'h'; }}
             />
             <YAxis stroke="#94a3b8" style={{ fontSize: '10px' }} />
             <Tooltip 
@@ -320,6 +382,36 @@ function MNRETrendsPage() {
         <p className="text-slate-600">Analyze historical data patterns for Gas Flow and Gas Composition parameters</p>
       </div>
 
+      {/* Connection Status & Stats */}
+      <div className="flex items-center justify-between mb-4">
+        <div className="flex items-center space-x-3">
+          {isConnected ? (
+            <span className="flex items-center space-x-1 px-2 py-1 bg-emerald-100 text-emerald-700 rounded text-xs font-medium">
+              <Wifi className="w-3 h-3" />
+              <span>LIVE</span>
+            </span>
+          ) : (
+            <span className="flex items-center space-x-1 px-2 py-1 bg-amber-100 text-amber-700 rounded text-xs font-medium">
+              <WifiOff className="w-3 h-3" />
+              <span>DEMO</span>
+            </span>
+          )}
+          {apiStats && (
+            <span className="text-xs text-slate-500">
+              {apiStats.totalRecords}/{apiStats.expectedRecords} records ({apiStats.coveragePercent}%)
+            </span>
+          )}
+        </div>
+        <button 
+          onClick={fetchData}
+          disabled={loading}
+          className="flex items-center space-x-1 px-3 py-1.5 bg-emerald-600 text-white rounded text-sm font-medium hover:bg-emerald-700 disabled:opacity-50"
+        >
+          <RefreshCw className={`w-3 h-3 ${loading ? 'animate-spin' : ''}`} />
+          <span>Refresh</span>
+        </button>
+      </div>
+
       {/* Controls */}
       <div className="bg-white rounded-lg border border-slate-200 p-5 mb-6 shadow-sm">
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -368,9 +460,13 @@ function MNRETrendsPage() {
           </div>
         </div>
 
-        {/* Chart Visualization - Split by Category like Head Office */}
+        {/* Chart Visualization - Split by Category */}
         <div className="lg:col-span-9 space-y-4">
-          <h3 className="text-lg font-semibold text-slate-800">Data Visualization <span className="text-sm font-normal text-slate-500">(Click chart to maximize)</span></h3>
+          <h3 className="text-lg font-semibold text-slate-800">
+            Data Visualization 
+            <span className="text-sm font-normal text-slate-500 ml-2">(Click chart to maximize)</span>
+            {loading && <RefreshCw className="w-4 h-4 inline-block ml-2 animate-spin text-slate-400" />}
+          </h3>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             {categoryCharts}
           </div>
