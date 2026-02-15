@@ -119,38 +119,7 @@ const WaterFlowMeters = () => {
             })}
           </div>
 
-          {/* Summary */}
-          <div className="mt-4 pt-4 border-t border-slate-200">
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-              <div className="bg-slate-50 rounded-lg p-3 border border-slate-200">
-                <div className="text-xs font-semibold uppercase tracking-wider text-slate-500 mb-1">Total Feed Flow</div>
-                <div className="flex items-baseline space-x-1">
-                  <span className="text-xl font-bold font-mono text-slate-900">{totalFeedFlow}</span>
-                  <span className="text-sm text-slate-500">m³/hr</span>
-                </div>
-              </div>
-              <div className="bg-slate-50 rounded-lg p-3 border border-slate-200">
-                <div className="text-xs font-semibold uppercase tracking-wider text-slate-500 mb-1">Total Water Flow</div>
-                <div className="flex items-baseline space-x-1">
-                  <span className="text-xl font-bold font-mono text-slate-900">{totalWaterFlow}</span>
-                  <span className="text-sm text-slate-500">m³/hr</span>
-                </div>
-              </div>
-              <div className="bg-slate-50 rounded-lg p-3 border border-slate-200">
-                <div className="text-xs font-semibold uppercase tracking-wider text-slate-500 mb-1">Total Totalizer (24 Hr)</div>
-                <div className="flex items-baseline space-x-1">
-                  <span className="text-xl font-bold font-mono text-slate-900">{totalTotalizer.toLocaleString()}</span>
-                  <span className="text-sm text-slate-500">m³</span>
-                </div>
-              </div>
-              <div className="bg-emerald-50 rounded-lg p-3 border border-emerald-200">
-                <div className="text-xs font-semibold uppercase tracking-wider text-emerald-600 mb-1">System Status</div>
-                <div className="flex items-baseline space-x-1">
-                  <span className="text-xl font-bold font-mono text-emerald-700">All Online</span>
-                </div>
-              </div>
-            </div>
-          </div>
+          {/* Individual flow meters only - no totals */}
         </div>
       </div>
     </div>
