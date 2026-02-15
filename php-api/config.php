@@ -60,6 +60,10 @@ define('TIMEZONE', 'Asia/Kolkata');
 // Set timezone
 date_default_timezone_set(TIMEZONE);
 
+// Fix floating point precision in JSON output
+ini_set('serialize_precision', 14);
+ini_set('precision', 14);
+
 // ============================================
 // DATABASE CONNECTION FUNCTION
 // ============================================
