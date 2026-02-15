@@ -29,11 +29,11 @@ if ($is_local) {
     define('DB_USER', 'root');
     define('DB_PASS', '');  // XAMPP default is empty password
 } else {
-    // PRODUCTION (GoDaddy) - UPDATE THESE!
-    define('DB_HOST', 'localhost');
-    define('DB_NAME', 'your_godaddy_database_name');
-    define('DB_USER', 'your_godaddy_username');
-    define('DB_PASS', 'your_godaddy_password');
+    // PRODUCTION (GoDaddy/Starter Starter)
+    define('DB_HOST', '119.18.49.27');
+    define('DB_NAME', 'illionss_karnal_lre');
+    define('DB_USER', 'illionss_karnal_lre');
+    define('DB_PASS', 'xkA}Iu$l~Vrw3r.Vp+');
 }
 
 // ============================================
