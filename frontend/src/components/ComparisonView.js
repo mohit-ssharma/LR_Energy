@@ -41,14 +41,14 @@ const ComparisonCard = ({ title, unit, todayValue, yesterdayValue, goodDirection
       
       <div className="grid grid-cols-2 gap-4">
         <div>
-          <div className="text-xs text-slate-500">Today</div>
+          <div className="text-xs text-slate-500">Today (Current)</div>
           <div className="text-xl font-bold font-mono text-slate-900">
             {formatNumber(todayValue, title.includes('CH') || title.includes('CO') || title.includes('O₂') ? 1 : 0)}
             <span className="text-sm font-normal text-slate-500 ml-1">{unit}</span>
           </div>
         </div>
         <div>
-          <div className="text-xs text-slate-500">Yesterday</div>
+          <div className="text-xs text-slate-500">Yesterday (Avg)</div>
           <div className="text-xl font-bold font-mono text-slate-500">
             {formatNumber(yesterdayValue, title.includes('CH') || title.includes('CO') || title.includes('O₂') ? 1 : 0)}
             <span className="text-sm font-normal text-slate-400 ml-1">{unit}</span>
