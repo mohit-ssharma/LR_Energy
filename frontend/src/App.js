@@ -20,6 +20,12 @@ import MNRETrendsPage from "./components/MNRETrendsPage";
 import MNREHeader from "./components/MNREHeader";
 import ComparisonView from "./components/ComparisonView";
 
+// User role constants
+const USER_ROLES = {
+  HEAD_OFFICE: 'HEAD_OFFICE',
+  MNRE: 'MNRE'
+};
+
 const LREnergyDashboard = () => {
   const [dashboardData, setDashboardData] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -103,14 +109,15 @@ const ComingSoonPage = ({ plantName, onBack }) => {
   );
 };
 
-// MNRE User App - Restricted View
+// MNRE User App - Restricted View (logged in as MNRE user)
 const MNREApp = ({ onLogout, showBackButton = false, onBack }) => {
   const [currentPage, setCurrentPage] = useState('dashboard');
 
   const renderPage = () => {
     switch(currentPage) {
       case 'trends':
-        return <MNRETrendsPage />;
+        // MNRE user gets trends page with stats bar hidden
+        return <MNRETrendsPage userRole={USER_ROLES.MNRE} />;
       default:
         return <MNREDashboard />;
     }
@@ -146,10 +153,10 @@ const HeadOfficeApp = ({ onLogout, onBackToDashboardList }) => {
   // Render page based on current dashboard view
   const renderPage = () => {
     if (currentDashboard === 'mnre') {
-      // MNRE View (limited)
+      // MNRE View (limited) - but HO user can see stats
       switch(currentPage) {
         case 'trends':
-          return <MNRETrendsPage />;
+          return <MNRETrendsPage userRole={USER_ROLES.HEAD_OFFICE} />;
         default:
           return <MNREDashboard />;
       }
@@ -157,7 +164,7 @@ const HeadOfficeApp = ({ onLogout, onBackToDashboardList }) => {
       // Karnal / Full HO View
       switch(currentPage) {
         case 'trends':
-          return <TrendsPage />;
+          return <TrendsPage userRole={USER_ROLES.HEAD_OFFICE} />;
         case 'reports':
           return <ReportsPage />;
         default:
