@@ -431,22 +431,31 @@ LIMIT 10;
 ## ❓ FAQ
 
 **Q: Can PLC send HTTP (not HTTPS)?**
-A: Yes, but HTTPS is recommended for security. If HTTP only, we can configure the server to accept HTTP.
+A: Yes, but HTTPS is recommended. For HTTP, just omit the `tls` parameter and use `http://` URL.
 
 **Q: What if PLC cannot set custom headers?**
-A: Use API key in URL: `?api_key=YOUR_KEY` - I will update the API to support this.
+A: Use API key in URL: `?api_key=YOUR_KEY` - API supports this method.
 
-**Q: What happens if PLC misses a reading?**
+**Q: What certificate format does TIA Portal accept?**
+A: .crt, .cer, or .pem formats are supported.
+
+**Q: What happens if certificate expires?**
+A: PLC will get TLS error (80A3). Update certificate in Certificate Manager.
+
+**Q: What if PLC misses a reading?**
 A: Dashboard will show gaps. Data quality indicator will reflect missing readings.
 
 **Q: Can PLC send partial data?**
-A: Yes, only `timestamp` is mandatory. Other fields can be null/missing but dashboard accuracy will be affected.
+A: Yes, only `timestamp` is mandatory. Other fields can be null/missing.
 
 **Q: What timezone for timestamp?**
 A: IST (Indian Standard Time). Format: `YYYY-MM-DD HH:MM:SS`
 
+**Q: What TLS version is required?**
+A: TLS 1.2 or higher. S7-1500 with LHTTP supports this.
+
 ---
 
-**Document Version:** 1.0  
+**Document Version:** 1.1  
 **Last Updated:** February 2026  
 **Contact:** IT Department - LR Energy
