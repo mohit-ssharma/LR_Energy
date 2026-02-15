@@ -136,7 +136,7 @@ const MNREApp = ({ onLogout, showBackButton = false, onBack }) => {
 // Head Office App - Full Access with Dashboard Switcher
 const HeadOfficeApp = ({ onLogout, onBackToDashboardList }) => {
   const [currentPage, setCurrentPage] = useState('dashboard');
-  const [currentDashboard, setCurrentDashboard] = useState('sonipat'); // 'sonipat' or 'mnre'
+  const [currentDashboard, setCurrentDashboard] = useState('karnal'); // 'karnal' or 'mnre'
 
   const handleSwitchDashboard = (dashboardId) => {
     setCurrentDashboard(dashboardId);
@@ -154,7 +154,7 @@ const HeadOfficeApp = ({ onLogout, onBackToDashboardList }) => {
           return <MNREDashboard />;
       }
     } else {
-      // Sonipat / Full HO View
+      // Karnal / Full HO View
       switch(currentPage) {
         case 'trends':
           return <TrendsPage />;
@@ -166,7 +166,7 @@ const HeadOfficeApp = ({ onLogout, onBackToDashboardList }) => {
     }
   };
 
-  // Use MNRE header for MNRE view, regular header for Sonipat
+  // Use MNRE header for MNRE view, regular header for Karnal
   const renderHeader = () => {
     if (currentDashboard === 'mnre') {
       return (
@@ -175,7 +175,7 @@ const HeadOfficeApp = ({ onLogout, onBackToDashboardList }) => {
           onNavigate={setCurrentPage} 
           onLogout={onLogout}
           showBackButton={true}
-          onBack={() => setCurrentDashboard('sonipat')}
+          onBack={() => setCurrentDashboard('karnal')}
         />
       );
     }

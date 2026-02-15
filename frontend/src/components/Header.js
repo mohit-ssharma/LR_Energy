@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Clock, Activity, LogOut, Building2, ChevronDown } from 'lucide-react';
 
-const Header = ({ currentPage, onNavigate, onLogout, onSwitchDashboard, currentDashboard = 'sonipat' }) => {
+const Header = ({ currentPage, onNavigate, onLogout, onSwitchDashboard, currentDashboard = 'karnal' }) => {
   const [currentTime, setCurrentTime] = useState(new Date());
   const [showDashboardMenu, setShowDashboardMenu] = useState(false);
   const menuRef = useRef(null);
@@ -44,9 +44,9 @@ const Header = ({ currentPage, onNavigate, onLogout, onSwitchDashboard, currentD
 
   const navItems = ['Dashboard', 'Trends', 'Reports'];
 
-  // Dashboard options for switcher
+  // Dashboard options for switcher - Currently working on Karnal plant
   const dashboardOptions = [
-    { id: 'sonipat', name: 'Sonipat Plant', description: 'Main Biogas Plant' },
+    { id: 'karnal', name: 'Karnal Plant', description: 'LR Energy Biogas Plant - Karnal' },
     { id: 'mnre', name: 'MNRE View', description: 'Ministry View (Limited)' }
   ];
 
