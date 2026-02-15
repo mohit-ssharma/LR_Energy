@@ -5,7 +5,7 @@
 
 ## ✅ YES, IT IS POSSIBLE!
 
-The Siemens LHTTP library supports **HTTP POST** with **JSON data**, which is exactly what our API expects.
+The Siemens LHTTP library supports **HTTPS POST** with **JSON data**, which is exactly what our API expects.
 
 ---
 
@@ -18,9 +18,99 @@ The Siemens LHTTP library supports **HTTP POST** with **JSON data**, which is ex
 | **Function Block** | `LHTTP_Post` |
 | **URL** | `https://karnal.lrenergy.in/scada-api/receive_data.php` |
 | **Method** | POST |
+| **Protocol** | HTTPS (TLS/SSL) ✅ |
 | **Data Format** | JSON String |
 | **Frequency** | Every 60 seconds |
 | **Authentication** | API Key in URL (see workaround below) |
+
+---
+
+## 🔐 HTTPS CONFIGURATION (RECOMMENDED)
+
+### HTTPS is Fully Supported!
+
+The LHTTP library supports HTTPS via the **`tls`** parameter in `LHTTP_Post`.
+
+### Certificate Setup Steps:
+
+#### Step 1: Get Root CA Certificate
+
+The PLC needs to trust the server's SSL certificate. You need the **Root CA certificate** from GoDaddy.
+
+**Option A: Download from GoDaddy**
+1. Login to GoDaddy → SSL Certificates
+2. Download the Root CA certificate (.crt or .pem)
+
+**Option B: Download from Browser**
+1. Open `https://karnal.lrenergy.in` in browser
+2. Click padlock icon → Certificate → Certification Path
+3. Select Root certificate → View Certificate → Export
+
+**Option C: Common Root CAs (if using Let's Encrypt)**
+- ISRG Root X1 (Let's Encrypt)
+- GoDaddy Root Certificate Authority - G2
+
+#### Step 2: Import Certificate into TIA Portal
+
+```
+TIA Portal → Project → PLC → Certificate Manager
+├── Click "Import"
+├── Select the Root CA certificate file
+├── Name it: "GoDaddy_Root_CA" or "LetsEncrypt_Root"
+└── Save and compile
+```
+
+#### Step 3: Create TLS Configuration Data Block
+
+Create a data block of type `LHTTP_typeTLS`:
+
+```
+DB_TLS_Config : LHTTP_typeTLS
+├── certServer: "GoDaddy_Root_CA"  // Name from Certificate Manager
+├── certClient: ""                  // Empty (no client auth needed)
+├── keyClient: ""                   // Empty (no client auth needed)
+└── verify: TRUE                    // Verify server certificate
+```
+
+#### Step 4: Configure LHTTP_Post with TLS
+
+```
+LHTTP_Post
+├── execute: trigger_send
+├── hwID: Local~PROFINET_interface_1
+├── connID: 1
+├── url: "https://karnal.lrenergy.in/scada-api/receive_data.php?api_key=SCADA_LR_ENERGY_2026_SECURE_KEY"
+├── data: json_payload_string
+├── tls: DB_TLS_Config              // ← Connect TLS config here
+├── done: post_done
+├── busy: post_busy
+├── error: post_error
+├── statusID: post_statusID
+├── status: post_status
+├── responseCode: http_response_code
+├── length: response_length
+└── responseData: response_buffer
+```
+
+---
+
+## 🔄 HTTP vs HTTPS Comparison
+
+| Aspect | HTTP | HTTPS |
+|--------|------|-------|
+| **URL** | `http://karnal.lrenergy.in/...` | `https://karnal.lrenergy.in/...` |
+| **TLS Parameter** | Leave unconnected | Connect to LHTTP_typeTLS |
+| **Certificate** | Not needed | Root CA required |
+| **Security** | ❌ Unencrypted | ✅ Encrypted |
+| **Recommended** | No | **Yes** ✅ |
+
+### If HTTPS Certificate Issues:
+
+You can temporarily use HTTP for testing:
+```
+url: "http://karnal.lrenergy.in/scada-api/receive_data.php?api_key=..."
+tls: (leave unconnected)
+```
 
 ---
 
@@ -45,7 +135,7 @@ https://karnal.lrenergy.in/scada-api/receive_data.php?api_key=SCADA_LR_ENERGY_20
 }
 ```
 
-> **I will update receive_data.php to support both methods.**
+> **The API supports both methods.**
 
 ---
 
@@ -56,6 +146,7 @@ https://karnal.lrenergy.in/scada-api/receive_data.php?api_key=SCADA_LR_ENERGY_20
 URL: https://karnal.lrenergy.in/scada-api/receive_data.php
 Method: POST
 Content-Type: application/json
+Protocol: HTTPS (TLS 1.2+)
 ```
 
 ### 2. API Key
@@ -63,7 +154,14 @@ Content-Type: application/json
 SCADA_LR_ENERGY_2026_SECURE_KEY
 ```
 
-### 3. JSON Payload Template (37 fields)
+### 3. SSL Certificate
+```
+Root CA: GoDaddy Root Certificate Authority - G2
+         OR Let's Encrypt ISRG Root X1
+Format: .crt, .cer, or .pem
+```
+
+### 4. JSON Payload Template (37 fields)
 ```json
 {
   "timestamp": "2026-02-15 10:30:00",
@@ -108,16 +206,16 @@ SCADA_LR_ENERGY_2026_SECURE_KEY
 }
 ```
 
-### 4. TIA Portal Configuration
+### 5. Complete TIA Portal Configuration
 
 ```
 LHTTP_Post Configuration:
-├── execute: TRUE (trigger every 60 seconds)
-├── hwID: [Ethernet interface HW ID]
+├── execute: TRUE (trigger every 60 seconds via timer)
+├── hwID: [Your Ethernet interface HW ID]
 ├── connID: 1 (unique connection ID)
 ├── url: "https://karnal.lrenergy.in/scada-api/receive_data.php?api_key=SCADA_LR_ENERGY_2026_SECURE_KEY"
 ├── data: [JSON string built from PLC tags]
-├── tls: [Certificate for HTTPS - optional if HTTP]
+├── tls: DB_TLS_Config (LHTTP_typeTLS with Root CA)
 └── responseData: Array[0..1023] of Char
 ```
 
@@ -137,7 +235,7 @@ data := '{"timestamp":"' + timestamp_string +
         + '}'
 ```
 
-### Step 2: Execute HTTP POST Every 60 Seconds
+### Step 2: Execute HTTPS POST Every 60 Seconds
 ```
 // Timer triggers every 60 seconds
 IF timer_60s.Q THEN
@@ -150,13 +248,52 @@ END_IF;
 IF LHTTP_Post.done THEN
     IF LHTTP_Post.responseCode = 201 THEN
         // Success - data saved
+        success_count := success_count + 1;
     ELSIF LHTTP_Post.responseCode = 200 THEN
-        // Duplicate - already exists
+        // Duplicate - already exists (OK)
+        duplicate_count := duplicate_count + 1;
     ELSE
         // Error - check responseCode
+        error_count := error_count + 1;
+        last_error_code := LHTTP_Post.responseCode;
     END_IF;
 END_IF;
+
+// Handle TLS/Connection errors
+IF LHTTP_Post.error THEN
+    connection_error := TRUE;
+    // Check LHTTP_Post.status for error details
+    // Common: 80A3 = Certificate error, 80C4 = Connection refused
+END_IF;
 ```
+
+---
+
+## 🔍 HTTPS TROUBLESHOOTING
+
+### Common TLS/HTTPS Errors:
+
+| Status Code | Meaning | Solution |
+|-------------|---------|----------|
+| **80A3** | Certificate verification failed | Check Root CA is imported correctly |
+| **80A1** | TLS handshake failed | Verify server supports TLS 1.2 |
+| **80C4** | Connection refused | Check URL, firewall, internet |
+| **80C8** | DNS resolution failed | Use IP address or configure DNS |
+
+### Certificate Verification Steps:
+
+1. **Verify certificate is imported:**
+   - TIA Portal → PLC → Certificate Manager → Check certificate exists
+
+2. **Verify certificate is correct:**
+   - Certificate should be Root CA, not server certificate
+   - Check expiry date
+
+3. **Test with HTTP first:**
+   - If HTTP works but HTTPS doesn't, it's a certificate issue
+
+4. **Check PLC has internet access:**
+   - PLC must reach `karnal.lrenergy.in` on port 443
 
 ---
 
