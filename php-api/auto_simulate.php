@@ -49,6 +49,24 @@ echo "<style>
 
 echo "<h1>🤖 Auto PLC Simulator</h1>";
 
+// Scenario Reference
+echo "<div class='card info'>";
+echo "<h3>📋 10 Distinct Scenarios (Cycles Through)</h3>";
+echo "<table style='width:100%; border-collapse: collapse; font-size:12px;'>";
+echo "<tr style='background:#f1f5f9;'><th style='padding:6px;'>#</th><th style='padding:6px; text-align:left;'>Scenario</th><th style='padding:6px;'>Key Change</th></tr>";
+echo "<tr><td style='padding:4px; text-align:center;'>1</td><td>✅ Normal Operation</td><td>Optimal values</td></tr>";
+echo "<tr style='background:#f8fafc;'><td style='padding:4px; text-align:center;'>2</td><td>📈 High Gas Production</td><td>Flow +10%, CH₄ 97.2%</td></tr>";
+echo "<tr><td style='padding:4px; text-align:center;'>3</td><td>📉 Low Gas Production</td><td>Flow -20%, Morning start</td></tr>";
+echo "<tr style='background:#f8fafc;'><td style='padding:4px; text-align:center;'>4</td><td>⚠️ Low CH₄</td><td>CH₄ 94.5% (below 96%)</td></tr>";
+echo "<tr><td style='padding:4px; text-align:center;'>5</td><td>🚨 High H₂S</td><td>H₂S 85 ppm (Critical)</td></tr>";
+echo "<tr style='background:#f8fafc;'><td style='padding:4px; text-align:center;'>6</td><td>⚠️ High Temp</td><td>D1 Temp 44.5°C</td></tr>";
+echo "<tr><td style='padding:4px; text-align:center;'>7</td><td>🚨 High Tank</td><td>Buffer 93% (Critical)</td></tr>";
+echo "<tr style='background:#f8fafc;'><td style='padding:4px; text-align:center;'>8</td><td>⚠️ Low PSA</td><td>PSA Efficiency 88.5%</td></tr>";
+echo "<tr><td style='padding:4px; text-align:center;'>9</td><td>🌙 Night Operation</td><td>Reduced load -15%</td></tr>";
+echo "<tr style='background:#f8fafc;'><td style='padding:4px; text-align:center;'>10</td><td>🏆 Peak Performance</td><td>Max values, CH₄ 97.5%</td></tr>";
+echo "</table>";
+echo "</div>";
+
 // Session tracking
 session_start();
 if (!isset($_SESSION['reading_count'])) {
