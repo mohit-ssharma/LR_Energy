@@ -90,11 +90,61 @@ if ($is_local) {
     $api_url = 'https://' . $_SERVER['SERVER_NAME'] . '/scada-api/receive_data.php';
 }
 
+// Send ALL fields like real PLC would
 $testData = [
     'plant_id' => 'KARNAL',
     'timestamp' => date('Y-m-d H:i:s'),
+    
+    // Gas Flow
     'raw_biogas_flow' => 1250.5,
-    'ch4_concentration' => 96.8
+    'raw_biogas_totalizer' => 150000,
+    'purified_gas_flow' => 1180.2,
+    'purified_gas_totalizer' => 142000,
+    'product_gas_flow' => 1150.8,
+    'product_gas_totalizer' => 138000,
+    
+    // Gas Composition
+    'ch4_concentration' => 96.8,
+    'co2_level' => 2.9,
+    'o2_concentration' => 0.3,
+    'h2s_content' => 3.0,
+    'dew_point' => -68,
+    
+    // Digester 1
+    'd1_temp_bottom' => 37.0,
+    'd1_temp_top' => 36.5,
+    'd1_gas_pressure' => 32,
+    'd1_air_pressure' => 18,
+    'd1_slurry_height' => 7.6,
+    'd1_gas_level' => 75,
+    
+    // Digester 2
+    'd2_temp_bottom' => 36.5,
+    'd2_temp_top' => 36.0,
+    'd2_gas_pressure' => 30,
+    'd2_air_pressure' => 17,
+    'd2_slurry_height' => 7.3,
+    'd2_gas_level' => 72,
+    
+    // Tanks
+    'buffer_tank_level' => 82,
+    'lagoon_tank_level' => 76,
+    
+    // Water Flow
+    'feed_fm1_flow' => 42,
+    'feed_fm1_totalizer' => 5000,
+    'feed_fm2_flow' => 38,
+    'feed_fm2_totalizer' => 4500,
+    'fresh_water_flow' => 12,
+    'fresh_water_totalizer' => 1500,
+    'recycle_water_flow' => 26,
+    'recycle_water_totalizer' => 3000,
+    
+    // Equipment
+    'psa_status' => 1,
+    'psa_efficiency' => 94.4,
+    'compressor_status' => 1,
+    'lt_panel_power' => 245
 ];
 
 $ch = curl_init($api_url);
