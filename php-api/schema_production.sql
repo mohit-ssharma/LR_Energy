@@ -24,7 +24,7 @@ CREATE TABLE IF NOT EXISTS `scada_readings` (
     `ch4_concentration` DECIMAL(5,2) DEFAULT NULL,
     `co2_level` DECIMAL(5,2) DEFAULT NULL,
     `o2_concentration` DECIMAL(5,2) DEFAULT NULL,
-    `h2s_content` DECIMAL(10,2) DEFAULT NULL,
+    `h2s_content` INT DEFAULT NULL,
     `dew_point` DECIMAL(10,2) DEFAULT NULL,
     
     -- DIGESTER 1 (6 fields)

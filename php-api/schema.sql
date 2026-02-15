@@ -53,7 +53,7 @@ CREATE TABLE IF NOT EXISTS `scada_readings` (
     `ch4_concentration` DECIMAL(5,2) DEFAULT NULL COMMENT 'Methane concentration in %',
     `co2_level` DECIMAL(5,2) DEFAULT NULL COMMENT 'Carbon dioxide level in %',
     `o2_concentration` DECIMAL(5,2) DEFAULT NULL COMMENT 'Oxygen concentration in %',
-    `h2s_content` DECIMAL(10,2) DEFAULT NULL COMMENT 'Hydrogen sulfide in ppm',
+    `h2s_content` INT DEFAULT NULL COMMENT 'Hydrogen sulfide in ppm',
     `dew_point` DECIMAL(10,2) DEFAULT NULL COMMENT 'Dew point in mg/m³',
     
     -- ==========================================

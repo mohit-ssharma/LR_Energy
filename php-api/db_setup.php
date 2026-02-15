@@ -47,7 +47,7 @@ $sql = "CREATE TABLE IF NOT EXISTS scada_readings (
     ch4_concentration DECIMAL(5,2),
     co2_level DECIMAL(5,2),
     o2_concentration DECIMAL(5,2),
-    h2s_content DECIMAL(10,2),
+    h2s_content INT,
     dew_point DECIMAL(10,2),
     d1_temp_bottom DECIMAL(5,2),
     d1_temp_top DECIMAL(5,2),
