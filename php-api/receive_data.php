@@ -50,7 +50,6 @@ if (empty($rawInput)) {
 $data = json_decode($rawInput, true);
 
 if (json_last_error() !== JSON_ERROR_NONE) {
-    logApiRequest('receive_data.php', 'POST', 400, 'Invalid JSON');
     sendError('Invalid JSON: ' . json_last_error_msg(), 400);
 }
 
