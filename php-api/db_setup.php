@@ -7,31 +7,34 @@ echo "<p>Testing connection...</p>";
 
 $host = "localhost";
 $user = "illionss_karnal_lre";
-$pass = "xkA}Iu\$l~Vrw3r.Vp+";
+$pass = 'xkA}Iu$l~Vrw3r.Vp+';  // Single quotes - no variable interpretation
 $db   = "illionss_karnal_lre";
 
 echo "<p>Host: $host</p>";
 echo "<p>User: $user</p>";
 echo "<p>DB: $db</p>";
+echo "<p>Pass length: " . strlen($pass) . " chars</p>";
 
-$conn = @new mysqli($host, $user, $pass, $db);
-
-if ($conn->connect_error) {
-    echo "<p style='color:red;'>localhost FAILED: " . $conn->connect_error . "</p>";
+try {
+    $conn = new mysqli($host, $user, $pass, $db);
+    echo "<p style='color:green;'>✅ Connected using localhost!</p>";
+} catch (Exception $e) {
+    echo "<p style='color:orange;'>localhost failed: " . $e->getMessage() . "</p>";
     
     // Try IP
     $host = "119.18.49.27";
-    echo "<p>Trying IP: $host</p>";
-    $conn = @new mysqli($host, $user, $pass, $db);
+    echo "<p>Trying IP: $host...</p>";
     
-    if ($conn->connect_error) {
-        echo "<p style='color:red;'>IP FAILED: " . $conn->connect_error . "</p>";
-        echo "<p>Cannot connect to database!</p>";
+    try {
+        $conn = new mysqli($host, $user, $pass, $db);
+        echo "<p style='color:green;'>✅ Connected using IP!</p>";
+    } catch (Exception $e2) {
+        echo "<p style='color:red;'>IP also failed: " . $e2->getMessage() . "</p>";
+        echo "<h2 style='color:red;'>❌ Cannot connect to database!</h2>";
+        echo "<p>Please verify your MySQL credentials in hosting panel.</p>";
         exit;
     }
 }
-
-echo "<p style='color:green;'>✅ Connected using: $host</p>";
 
 // Create tables one by one
 echo "<h2>Creating Tables...</h2>";
@@ -197,7 +200,7 @@ if ($result && $result->num_rows > 0) {
 
 echo "<h2 style='color:green;'>✅ SETUP COMPLETE!</h2>";
 echo "<p><strong>Login:</strong> ho@lrenergy.in / qwerty@1234</p>";
-echo "<p><strong>⚠️ DELETE this file now!</strong></p>";
+echo "<p style='color:red;'><strong>⚠️ DELETE this file now!</strong></p>";
 
 $conn->close();
 ?>
