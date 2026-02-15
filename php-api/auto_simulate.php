@@ -13,9 +13,19 @@
 set_time_limit(0); // Allow long execution
 header('Content-Type: text/html; charset=UTF-8');
 
-// Configuration
-$API_URL = 'http://localhost/scada-api/receive_data.php';
-$API_KEY = 'sk_prod_LREnergy_283669e54e512351a5bde265e20da2149fd4b54569a7e12b1ee8226746a6a2a7';
+// Configuration - Auto-detect environment
+require_once 'config.php';
+
+$is_local = ($_SERVER['SERVER_NAME'] === 'localhost' || $_SERVER['SERVER_NAME'] === '127.0.0.1');
+
+if ($is_local) {
+    $API_URL = 'http://localhost/scada-api/receive_data.php';
+} else {
+    // Production URL - Update this after GoDaddy deployment
+    $API_URL = 'https://' . $_SERVER['SERVER_NAME'] . '/scada-api/receive_data.php';
+}
+
+$API_KEY = API_KEY;
 
 $duration = isset($_GET['duration']) ? intval($_GET['duration']) : 10; // minutes
 $interval = isset($_GET['interval']) ? intval($_GET['interval']) : 60; // seconds
