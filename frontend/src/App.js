@@ -153,24 +153,66 @@ const MNREApp = ({ onLogout, showBackButton = false, onBack }) => {
   );
 };
 
-// Head Office App - Full Access
+// Head Office App - Full Access with Dashboard Switcher
 const HeadOfficeApp = ({ onLogout, onBackToDashboardList }) => {
   const [currentPage, setCurrentPage] = useState('dashboard');
+  const [currentDashboard, setCurrentDashboard] = useState('sonipat'); // 'sonipat' or 'mnre'
 
+  const handleSwitchDashboard = (dashboardId) => {
+    setCurrentDashboard(dashboardId);
+    setCurrentPage('dashboard'); // Reset to dashboard when switching
+  };
+
+  // Render page based on current dashboard view
   const renderPage = () => {
-    switch(currentPage) {
-      case 'trends':
-        return <TrendsPage />;
-      case 'reports':
-        return <ReportsPage />;
-      default:
-        return <LREnergyDashboard />;
+    if (currentDashboard === 'mnre') {
+      // MNRE View (limited)
+      switch(currentPage) {
+        case 'trends':
+          return <MNRETrendsPage />;
+        default:
+          return <MNREDashboard />;
+      }
+    } else {
+      // Sonipat / Full HO View
+      switch(currentPage) {
+        case 'trends':
+          return <TrendsPage />;
+        case 'reports':
+          return <ReportsPage />;
+        default:
+          return <LREnergyDashboard />;
+      }
     }
+  };
+
+  // Use MNRE header for MNRE view, regular header for Sonipat
+  const renderHeader = () => {
+    if (currentDashboard === 'mnre') {
+      return (
+        <MNREHeader 
+          currentPage={currentPage} 
+          onNavigate={setCurrentPage} 
+          onLogout={onLogout}
+          showBackButton={true}
+          onBack={() => setCurrentDashboard('sonipat')}
+        />
+      );
+    }
+    return (
+      <Header 
+        currentPage={currentPage} 
+        onNavigate={setCurrentPage} 
+        onLogout={onLogout}
+        onSwitchDashboard={handleSwitchDashboard}
+        currentDashboard={currentDashboard}
+      />
+    );
   };
 
   return (
     <div className="App min-h-screen bg-slate-50 flex flex-col">
-      <Header currentPage={currentPage} onNavigate={setCurrentPage} onLogout={onLogout} />
+      {renderHeader()}
       <div className="flex-1">
         {renderPage()}
       </div>
