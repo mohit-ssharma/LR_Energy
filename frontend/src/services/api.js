@@ -55,12 +55,19 @@ export async function getComparisonData(period = 'today_vs_yesterday') {
 
 /**
  * Get trends data for charts
- * Endpoint: GET /trends.php?hours=24&parameters=raw_biogas_flow,ch4_concentration
+ * Endpoint: GET /trends.php?hours=24&parameters=raw_biogas_flow,ch4_concentration&raw=true
+ * 
+ * @param {number} hours - Number of hours of data to fetch
+ * @param {array} parameters - Optional list of specific parameters to fetch
+ * @param {boolean} raw - If true, returns individual records without grouping/averaging
  */
-export async function getTrendsData(hours = 24, parameters = null) {
+export async function getTrendsData(hours = 24, parameters = null, raw = true) {
     let url = `trends.php?hours=${hours}`;
     if (parameters && parameters.length > 0) {
         url += `&parameters=${parameters.join(',')}`;
+    }
+    if (raw) {
+        url += `&raw=true`;
     }
     return fetchAPI(url);
 }
