@@ -342,10 +342,15 @@ echo "<tr style='background:#f1f5f9;'><th style='padding:8px; text-align:left;'>
 
 $keyParams = [
     'raw_biogas_flow' => 'Nm³/hr',
+    'purified_gas_flow' => 'Nm³/hr',
+    'product_gas_flow' => 'Nm³/hr',
     'ch4_concentration' => '%',
+    'co2_level' => '%',
     'h2s_content' => 'ppm',
     'd1_temp_bottom' => '°C',
+    'd2_temp_bottom' => '°C',
     'buffer_tank_level' => '%',
+    'lagoon_tank_level' => '%',
     'psa_efficiency' => '%'
 ];
 
