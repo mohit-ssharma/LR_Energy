@@ -27,15 +27,35 @@ if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
     sendError('Method not allowed. Use POST.', 405);
 }
 
-// Validate API Key
-$apiKey = $_SERVER['HTTP_X_API_KEY'] ?? '';
-if (empty($apiKey)) {
-    $authHeader = $_SERVER['HTTP_AUTHORIZATION'] ?? '';
+// Validate API Key - Support multiple methods for PLC compatibility
+// Method 1: X-API-Key header (preferred)
+// Method 2: Authorization: Bearer header
+// Method 3: URL query parameter ?api_key= (for PLCs that can't set headers)
+// Method 4: JSON body "api_key" field (for PLCs that can't set headers)
+
+$apiKey = '';
+
+// Check header first
+if (!empty($_SERVER['HTTP_X_API_KEY'])) {
+    $apiKey = $_SERVER['HTTP_X_API_KEY'];
+} elseif (!empty($_SERVER['HTTP_AUTHORIZATION'])) {
+    $authHeader = $_SERVER['HTTP_AUTHORIZATION'];
     if (preg_match('/Bearer\s+(.*)$/i', $authHeader, $matches)) {
         $apiKey = $matches[1];
     }
 }
-validateApiKey($apiKey);
+
+// Check URL query parameter (for Siemens PLC LHTTP compatibility)
+if (empty($apiKey) && isset($_GET['api_key'])) {
+    $apiKey = $_GET['api_key'];
+}
+
+// Will also check JSON body after parsing (below)
+$checkJsonApiKey = empty($apiKey);
+
+if (empty($apiKey) && !$checkJsonApiKey) {
+    validateApiKey($apiKey);
+}
 
 // Validate IP if whitelist is set
 validateIP();
