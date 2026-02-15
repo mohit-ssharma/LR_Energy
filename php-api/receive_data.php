@@ -250,30 +250,6 @@ function updateSyncStatus($pdo, $plantId, $status, $recordCount) {
 }
 
 /**
- * Log API request
- */
-function logApiRequest($endpoint, $method, $responseCode, $message, $executionTime = null) {
-    global $pdo;
-    if (!$pdo) return;
-    
-    try {
-        $sql = "INSERT INTO api_logs (endpoint, method, ip_address, response_code, response_message, execution_time_ms) 
-                VALUES (?, ?, ?, ?, ?, ?)";
-        $stmt = $pdo->prepare($sql);
-        $stmt->execute([
-            $endpoint,
-            $method,
-            $_SERVER['REMOTE_ADDR'] ?? null,
-            $responseCode,
-            substr($message, 0, 255),
-            $executionTime
-        ]);
-    } catch (Exception $e) {
-        error_log("Failed to log API request: " . $e->getMessage());
-    }
-}
-
-/**
  * Check thresholds and create alerts
  * 
  * THRESHOLD REFERENCE:
