@@ -33,27 +33,14 @@ if (!$pdo) {
 }
 
 try {
-    // Get latest reading with complete data (exclude records with NULL key fields)
+    // Get absolute latest reading (no filters)
     $stmt = $pdo->query("
         SELECT * FROM scada_readings 
         WHERE plant_id = '" . PLANT_ID . "' 
-        AND purified_gas_flow IS NOT NULL
-        AND co2_level IS NOT NULL
         ORDER BY timestamp DESC 
         LIMIT 1
     ");
     $latest = $stmt->fetch();
-    
-    // If no complete records, try to get any record
-    if (!$latest) {
-        $stmt = $pdo->query("
-            SELECT * FROM scada_readings 
-            WHERE plant_id = '" . PLANT_ID . "' 
-            ORDER BY timestamp DESC 
-            LIMIT 1
-        ");
-        $latest = $stmt->fetch();
-    }
     
     if (!$latest) {
         sendResponse([
@@ -62,6 +49,10 @@ try {
             'data' => null
         ]);
     }
+    
+    // Get total record count for debugging
+    $countStmt = $pdo->query("SELECT COUNT(*) as total FROM scada_readings WHERE plant_id = '" . PLANT_ID . "'");
+    $totalRecords = $countStmt->fetch()['total'];
     
     // Calculate data freshness
     $lastTimestamp = strtotime($latest['timestamp']);
