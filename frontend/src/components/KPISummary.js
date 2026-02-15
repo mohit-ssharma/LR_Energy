@@ -535,6 +535,13 @@ const KPISummary = () => {
             onRetry={fetchData}
           />
           
+          {/* Records Count */}
+          {dashboardData?.total_records && (
+            <span className="text-xs text-slate-500 bg-slate-100 px-2 py-1 rounded">
+              Records: {dashboardData.total_records} | ID: {dashboardData.latest_record_id}
+            </span>
+          )}
+          
           {/* Manual Refresh Button */}
           <button 
             onClick={fetchData}
