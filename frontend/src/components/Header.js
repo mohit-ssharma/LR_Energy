@@ -1,14 +1,27 @@
-import React, { useState, useEffect } from 'react';
-import { Clock, Activity, LogOut, List } from 'lucide-react';
+import React, { useState, useEffect, useRef } from 'react';
+import { Clock, Activity, LogOut, Building2, ChevronDown } from 'lucide-react';
 
-const Header = ({ currentPage, onNavigate, onLogout }) => {
+const Header = ({ currentPage, onNavigate, onLogout, onSwitchDashboard, currentDashboard = 'sonipat' }) => {
   const [currentTime, setCurrentTime] = useState(new Date());
+  const [showDashboardMenu, setShowDashboardMenu] = useState(false);
+  const menuRef = useRef(null);
 
   useEffect(() => {
     const timer = setInterval(() => {
       setCurrentTime(new Date());
     }, 1000);
     return () => clearInterval(timer);
+  }, []);
+
+  // Close dropdown when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (menuRef.current && !menuRef.current.contains(event.target)) {
+        setShowDashboardMenu(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
   const formatTime = (date) => {
@@ -31,6 +44,21 @@ const Header = ({ currentPage, onNavigate, onLogout }) => {
 
   const navItems = ['Dashboard', 'Trends', 'Reports'];
 
+  // Dashboard options for switcher
+  const dashboardOptions = [
+    { id: 'sonipat', name: 'Sonipat Plant', description: 'Main Biogas Plant' },
+    { id: 'mnre', name: 'MNRE View', description: 'Ministry View (Limited)' }
+  ];
+
+  const currentDashboardInfo = dashboardOptions.find(d => d.id === currentDashboard) || dashboardOptions[0];
+
+  const handleDashboardSwitch = (dashboardId) => {
+    setShowDashboardMenu(false);
+    if (onSwitchDashboard) {
+      onSwitchDashboard(dashboardId);
+    }
+  };
+
   return (
     <header className="bg-white border-b border-slate-200 sticky top-0 z-50 shadow-sm">
       <div className="max-w-[1920px] mx-auto px-6 py-4">
@@ -51,6 +79,52 @@ const Header = ({ currentPage, onNavigate, onLogout }) => {
                 </div>
               </div>
             </div>
+
+            {/* Dashboard Switcher - Only for HO */}
+            {onSwitchDashboard && (
+              <div className="relative" ref={menuRef}>
+                <button
+                  onClick={() => setShowDashboardMenu(!showDashboardMenu)}
+                  className="flex items-center space-x-2 px-3 py-2 bg-violet-50 hover:bg-violet-100 border border-violet-200 rounded-lg transition-colors"
+                  data-testid="dashboard-switcher"
+                >
+                  <Building2 className="w-4 h-4 text-violet-600" />
+                  <span className="text-sm font-medium text-violet-700">{currentDashboardInfo.name}</span>
+                  <ChevronDown className={`w-4 h-4 text-violet-500 transition-transform ${showDashboardMenu ? 'rotate-180' : ''}`} />
+                </button>
+
+                {showDashboardMenu && (
+                  <div className="absolute top-full left-0 mt-2 w-64 bg-white rounded-lg shadow-lg border border-slate-200 py-2 z-50">
+                    <div className="px-3 py-2 text-xs font-semibold text-slate-500 uppercase tracking-wider border-b border-slate-100">
+                      Switch Dashboard
+                    </div>
+                    {dashboardOptions.map((option) => (
+                      <button
+                        key={option.id}
+                        onClick={() => handleDashboardSwitch(option.id)}
+                        className={`w-full text-left px-3 py-2 hover:bg-slate-50 transition-colors ${
+                          currentDashboard === option.id ? 'bg-emerald-50' : ''
+                        }`}
+                        data-testid={`switch-to-${option.id}`}
+                      >
+                        <div className="flex items-center justify-between">
+                          <div>
+                            <div className={`text-sm font-medium ${currentDashboard === option.id ? 'text-emerald-700' : 'text-slate-700'}`}>
+                              {option.name}
+                            </div>
+                            <div className="text-xs text-slate-500">{option.description}</div>
+                          </div>
+                          {currentDashboard === option.id && (
+                            <span className="text-xs bg-emerald-100 text-emerald-700 px-2 py-0.5 rounded-full">Active</span>
+                          )}
+                        </div>
+                      </button>
+                    ))}
+                  </div>
+                )}
+              </div>
+            )}
+
             <nav className="flex space-x-1">
               {navItems.map((item) => (
                 <button
