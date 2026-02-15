@@ -27,7 +27,7 @@ CH₄ (Methane)           | %       | _________ | 100       | WARNING  | Current
 CO₂ (Carbon Dioxide)    | %       | 0         | _________ | WARNING  | Currently: 5
 O₂ (Oxygen)             | %       | 0         | _________ | WARNING  | Currently: 0.5
 O₂ (Oxygen) - CRITICAL  | %       | -         | _________ | CRITICAL | Explosion risk
-H₂S (Hydrogen Sulfide)  | ppm     | 0         | _________ | WARNING  | Currently: 500
+H₂S (Hydrogen Sulfide)  | ppm     | 0         | 5         | CRITICAL | Max limit: 105
 H₂S - CRITICAL          | ppm     | -         | _________ | CRITICAL | Safety hazard
 Dew Point               | mg/m³   | _________ | _________ | WARNING  | Currently: -80 to -40
 
