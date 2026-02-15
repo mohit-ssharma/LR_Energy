@@ -95,7 +95,7 @@ try {
     $stmt = $pdo->query($sql);
     $data = $stmt->fetchAll();
     
-    // Get statistics for the period
+    // Get statistics for the full period requested (24hr/12hr/etc)
     $statsSelect = [];
     foreach ($params as $param) {
         $statsSelect[] = "MIN($param) as min_$param";
@@ -116,13 +116,39 @@ try {
     $stmtStats = $pdo->query($statsSQL);
     $stats = $stmtStats->fetch();
     
-    // Build statistics response
+    // Get separate 12-hour statistics (always from last 12 hours)
+    $stats12hrSQL = "
+        SELECT 
+            COUNT(*) as total_records,
+            $statsSelectClause
+        FROM scada_readings 
+        WHERE plant_id = '" . PLANT_ID . "' 
+        AND timestamp >= DATE_SUB(NOW(), INTERVAL 12 HOUR)
+    ";
+    $stmtStats12hr = $pdo->query($stats12hrSQL);
+    $stats12hr = $stmtStats12hr->fetch();
+    
+    // Get separate 24-hour statistics (always from last 24 hours)
+    $stats24hrSQL = "
+        SELECT 
+            COUNT(*) as total_records,
+            $statsSelectClause
+        FROM scada_readings 
+        WHERE plant_id = '" . PLANT_ID . "' 
+        AND timestamp >= DATE_SUB(NOW(), INTERVAL 24 HOUR)
+    ";
+    $stmtStats24hr = $pdo->query($stats24hrSQL);
+    $stats24hr = $stmtStats24hr->fetch();
+    
+    // Build statistics response with separate 12hr and 24hr averages
     $statistics = [];
     foreach ($params as $param) {
         $statistics[$param] = [
             'min' => round(floatval($stats["min_$param"]), 2),
             'max' => round(floatval($stats["max_$param"]), 2),
-            'avg' => round(floatval($stats["avg_$param"]), 2)
+            'avg' => round(floatval($stats["avg_$param"]), 2),
+            'avg_12hr' => round(floatval($stats12hr["avg_$param"]), 2),
+            'avg_24hr' => round(floatval($stats24hr["avg_$param"]), 2)
         ];
     }
     
@@ -140,6 +166,8 @@ try {
         'expected_records' => $hours * 60,
         'coverage_percent' => round((intval($stats['total_records']) / ($hours * 60)) * 100, 1),
         'statistics' => $statistics,
+        'stats_12hr_records' => intval($stats12hr['total_records']),
+        'stats_24hr_records' => intval($stats24hr['total_records']),
         'data' => $data,
         'execution_time_ms' => $executionTime
     ];
