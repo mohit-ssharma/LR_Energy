@@ -536,9 +536,9 @@ const KPISummary = () => {
           />
           
           {/* Records Count */}
-          {dashboardData?.total_records && (
+          {dashboardData?.total_records !== undefined && (
             <span className="text-xs text-slate-500 bg-slate-100 px-2 py-1 rounded">
-              Records: {dashboardData.total_records} | ID: {dashboardData.latest_record_id}
+              Today: {dashboardData.total_records} records | ID: {dashboardData.latest_record_id}
             </span>
           )}
           
