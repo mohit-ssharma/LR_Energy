@@ -1,24 +1,69 @@
 {
   "_documentation": {
     "title": "LR Energy SCADA - PLC Data Interface Specification",
-    "version": "1.0",
+    "version": "2.0",
     "date": "February 2026",
-    "description": "This JSON template defines the exact data format required from the Siemens SCADA/PLC system. The sync script will read these values every 60 seconds and push to the cloud database.",
+    "description": "This JSON template defines the exact data format required from the Siemens S7-1500 PLC using LHTTP library. The PLC will send HTTP POST requests every 60 seconds to the cloud API.",
+    "plc_type": "Siemens S7-1500 with LHTTP Library",
     "contact": "IT Department - LR Energy",
     "notes": [
       "All values should be provided in the specified units",
       "Use NULL for any unavailable/faulty sensor reading",
       "Totalizers are cumulative counters (never reset)",
-      "Status fields use 0=Off, 1=On/Running"
+      "Status fields use 0=Off, 1=On/Running",
+      "PLC developer must map each JSON field to corresponding PLC tag address"
     ]
   },
 
-  "_sync_requirements": {
-    "frequency": "Every 60 seconds",
-    "protocol": "HTTP POST to cloud API",
-    "data_format": "JSON",
+  "_plc_configuration": {
+    "plc_model": "Siemens S7-1500",
+    "library": "LHTTP (Library for HTTP Communication)",
+    "function_block": "LHTTP_Post",
+    "protocol": "HTTPS (recommended) or HTTP",
+    "tls_required": "Yes for HTTPS - Import Root CA certificate in TIA Portal",
+    "data_format": "JSON String",
+    "frequency": "Every 60 seconds via timer trigger"
+  },
+
+  "_api_configuration": {
+    "endpoint": "https://karnal.lrenergy.in/scada-api/receive_data.php",
+    "method": "POST",
+    "content_type": "application/json",
+    "authentication": {
+      "method": "API Key in URL (LHTTP does not support custom headers)",
+      "full_url": "https://karnal.lrenergy.in/scada-api/receive_data.php?api_key=SCADA_LR_ENERGY_2026_SECURE_KEY",
+      "api_key": "SCADA_LR_ENERGY_2026_SECURE_KEY"
+    },
     "total_fields": 37,
-    "api_endpoint": "https://karnal.lrenergy.in/api/receive_data.php"
+    "response_codes": {
+      "201": "Success - Data saved",
+      "200": "Duplicate - Data already exists for this timestamp",
+      "400": "Bad Request - Invalid JSON or missing fields",
+      "401": "Unauthorized - Invalid API key",
+      "500": "Server Error - Retry later"
+    }
+  },
+
+  "_lhttp_post_configuration": {
+    "description": "TIA Portal LHTTP_Post function block parameters",
+    "parameters": {
+      "execute": "BOOL - Set TRUE to trigger POST request (use 60s timer)",
+      "hwID": "HW_ANY - Hardware ID of Ethernet interface",
+      "connID": "CONN_OUC - Unique connection ID (e.g., 1)",
+      "url": "STRING - Full URL with API key: https://karnal.lrenergy.in/scada-api/receive_data.php?api_key=SCADA_LR_ENERGY_2026_SECURE_KEY",
+      "data": "STRING - JSON payload built from PLC tags",
+      "tls": "LHTTP_typeTLS - TLS configuration (for HTTPS only)",
+      "responseData": "ARRAY[0..1023] OF CHAR - Buffer for server response"
+    },
+    "outputs": {
+      "done": "BOOL - Request completed",
+      "busy": "BOOL - Request in progress",
+      "error": "BOOL - Error occurred",
+      "statusID": "USINT - Error source",
+      "status": "WORD - Status/error code",
+      "responseCode": "UINT - HTTP response code (201=success)",
+      "length": "UDINT - Response data length"
+    }
   },
 
   "data": {
