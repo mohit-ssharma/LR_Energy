@@ -91,11 +91,28 @@ function getDBConnection() {
 // ============================================
 
 /**
+ * Round float values recursively in array
+ */
+function roundFloats($data, $precision = 2) {
+    if (is_array($data)) {
+        foreach ($data as $key => $value) {
+            $data[$key] = roundFloats($value, $precision);
+        }
+        return $data;
+    } elseif (is_float($data)) {
+        return round($data, $precision);
+    }
+    return $data;
+}
+
+/**
  * Send JSON response
  */
 function sendResponse($data, $statusCode = 200) {
     http_response_code($statusCode);
-    echo json_encode($data);
+    // Round all float values to fix precision issues
+    $data = roundFloats($data);
+    echo json_encode($data, JSON_PRESERVE_ZERO_FRACTION);
     exit;
 }
 
