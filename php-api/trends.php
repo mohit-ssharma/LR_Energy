@@ -31,8 +31,13 @@ $hours = min(max($hours, 1), 168);  // Limit: 1 to 168 hours (1 week)
 
 $requestedParams = isset($_GET['parameters']) ? explode(',', $_GET['parameters']) : null;
 
-// Auto-calculate interval based on hours
-if ($hours <= 1) {
+// Check if raw data is requested (no grouping)
+$rawData = isset($_GET['raw']) && $_GET['raw'] === 'true';
+
+// Auto-calculate interval based on hours (only if not requesting raw data)
+if ($rawData) {
+    $interval = 1;      // 1 minute (raw data, no averaging)
+} elseif ($hours <= 1) {
     $interval = 1;      // 1 minute (raw data)
 } elseif ($hours <= 12) {
     $interval = 5;      // 5 minutes
