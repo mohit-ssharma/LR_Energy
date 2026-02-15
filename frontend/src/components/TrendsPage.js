@@ -544,6 +544,10 @@ function TrendsPage() {
     const param = allParameters.find(function(p) { return p.key === paramKey; });
     if (!param) return;
     const stats = getStatistics(paramKey);
+    
+    // H2S should display as integer (no decimals)
+    const isH2S = paramKey === 'h2s';
+    const formatValue = (val) => isH2S ? Math.round(val) : val.toFixed(2);
 
     statisticsCards.push(
       <div key={paramKey} className="bg-gradient-to-br from-slate-50 to-slate-100/50 rounded-lg p-3 border border-slate-200">
@@ -554,19 +558,19 @@ function TrendsPage() {
         <div className="space-y-1 text-xs">
           <div className="flex justify-between">
             <span className="text-slate-500">12-Hr Avg:</span>
-            <span className="font-bold font-mono text-slate-800">{stats.avg12hr.toFixed(2)}</span>
+            <span className="font-bold font-mono text-slate-800">{formatValue(stats.avg12hr)}</span>
           </div>
           <div className="flex justify-between">
             <span className="text-slate-500">24-Hr Avg:</span>
-            <span className="font-semibold font-mono text-slate-700">{stats.avg24hr.toFixed(2)}</span>
+            <span className="font-semibold font-mono text-slate-700">{formatValue(stats.avg24hr)}</span>
           </div>
           <div className="flex justify-between">
             <span className="text-slate-500">Min:</span>
-            <span className="font-semibold font-mono text-emerald-600">{stats.min.toFixed(2)}</span>
+            <span className="font-semibold font-mono text-emerald-600">{formatValue(stats.min)}</span>
           </div>
           <div className="flex justify-between">
             <span className="text-slate-500">Max:</span>
-            <span className="font-semibold font-mono text-rose-600">{stats.max.toFixed(2)}</span>
+            <span className="font-semibold font-mono text-rose-600">{formatValue(stats.max)}</span>
           </div>
           <div className="text-xs text-slate-400 pt-1 border-t border-slate-200">{param.unit}</div>
         </div>
