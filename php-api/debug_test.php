@@ -81,6 +81,15 @@ try {
 
 // Test 5: Check receive_data.php simulation
 echo "<h2>5. API Simulation Test</h2>";
+
+// Auto-detect environment
+$is_local = ($_SERVER['SERVER_NAME'] === 'localhost' || $_SERVER['SERVER_NAME'] === '127.0.0.1');
+if ($is_local) {
+    $api_url = 'http://localhost/scada-api/receive_data.php';
+} else {
+    $api_url = 'https://' . $_SERVER['SERVER_NAME'] . '/scada-api/receive_data.php';
+}
+
 $testData = [
     'plant_id' => 'KARNAL',
     'timestamp' => date('Y-m-d H:i:s'),
@@ -88,7 +97,7 @@ $testData = [
     'ch4_concentration' => 96.8
 ];
 
-$ch = curl_init('http://localhost/scada-api/receive_data.php');
+$ch = curl_init($api_url);
 curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
 curl_setopt($ch, CURLOPT_POST, true);
 curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($testData));
