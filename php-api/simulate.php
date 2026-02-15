@@ -86,16 +86,18 @@ function generateData($mode) {
     // Modify values based on mode
     if ($mode === 'warning') {
         $data['ch4_concentration'] = 94.5;  // Below 96% threshold
-        $data['buffer_tank_level'] = 92;    // Near high limit
+        $data['buffer_tank_level'] = 85;    // Warning range (70-90%)
         $data['psa_efficiency'] = 86;       // Near low limit
         $data['d1_temp_bottom'] = 43;       // Near high limit
+        $data['h2s_content'] = 4.5;         // Near 5 ppm threshold
     } 
     elseif ($mode === 'critical') {
         $data['ch4_concentration'] = 90;    // Well below threshold
-        $data['h2s_content'] = 600;         // Above 500 ppm
-        $data['o2_concentration'] = 1.5;    // Above 1%
+        $data['h2s_content'] = 10;          // Above 5 ppm = Critical
+        $data['o2_concentration'] = 0.6;    // Above 0.5%
         $data['d1_temp_bottom'] = 48;       // Critical high
-        $data['buffer_tank_level'] = 98;    // Overflow risk
+        $data['buffer_tank_level'] = 92;    // Above 90% = Critical
+        $data['d1_slurry_height'] = 7.5;    // Above 85% of 8.2m = High
     }
     elseif ($mode === 'equipment_off') {
         $data['psa_status'] = 0;
