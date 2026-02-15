@@ -80,9 +80,8 @@ try {
         sendError('Account is disabled', 403);
     }
     
-    // Verify password
-    // Note: For testing, we also accept plain text comparison
-    $passwordValid = password_verify($password, $user['password']) || $password === 'qwerty';
+    // Verify password using bcrypt hash
+    $passwordValid = password_verify($password, $user['password']);
     
     if (!$passwordValid) {
         // Log failed attempt
