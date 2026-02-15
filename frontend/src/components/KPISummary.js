@@ -277,7 +277,6 @@ const KPISummary = () => {
       }
     } catch (err) {
       // Network error or exception
-      console.error('API error:', err.message);
       handleConnectionLost(err.message);
     } finally {
       setLoading(false);
