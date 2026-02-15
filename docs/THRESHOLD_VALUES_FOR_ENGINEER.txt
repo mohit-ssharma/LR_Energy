@@ -54,7 +54,7 @@ D1 Top Temperature      | °C      | _________ | _________ | WARNING  | Normal: 
 D1 Temperature CRITICAL | °C      | -         | _________ | CRITICAL | Bacteria death
 D1 Balloon Gas Pressure | mbar    | _________ | _________ | WARNING  | Normal: ~32
 D1 Balloon Air Pressure | mbar    | _________ | _________ | WARNING  | Normal: ~18
-D1 Slurry Height        | m       | _________ | _________ | WARNING  | Normal: ~7.6
+D1 Slurry Height        | m       | 2.46      | 6.97      | WARNING  | Max: 8.2m (30-85% range)
 D1 Gas Level            | %       | _________ | _________ | WARNING  | Normal: ~75
 
 
