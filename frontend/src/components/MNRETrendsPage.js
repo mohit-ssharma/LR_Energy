@@ -492,45 +492,47 @@ function MNRETrendsPage({ userRole = 'MNRE' }) {
       </div>
 
       {/* Connection Status - Stats bar visible only for HEAD_OFFICE */}
-      <div className="flex items-center justify-between mb-4 flex-wrap gap-2" data-testid="mnre-trends-stats-bar">
-        <div className="flex items-center space-x-3">
-          {isConnected ? (
-            <span className="flex items-center space-x-1 px-2 py-1 bg-emerald-100 text-emerald-700 rounded text-xs font-medium">
-              <Wifi className="w-3 h-3" />
-              <span>LIVE</span>
-            </span>
-          ) : (
-            <span className="flex items-center space-x-1 px-2 py-1 bg-rose-100 text-rose-700 rounded text-xs font-medium">
-              <WifiOff className="w-3 h-3" />
-              <span>OFFLINE</span>
-            </span>
-          )}
-          {/* Technical stats only visible for HEAD_OFFICE */}
-          {showStatsBar && apiStats && (
-            <>
-              <span className="text-xs text-slate-500 bg-slate-100 px-2 py-1 rounded">
-                {apiStats.dataPoints}/{apiStats.expectedIntervals} intervals
+      {showStatsBar ? (
+        <div className="flex items-center justify-between mb-4 flex-wrap gap-2" data-testid="mnre-trends-stats-bar">
+          <div className="flex items-center space-x-3">
+            {isConnected ? (
+              <span className="flex items-center space-x-1 px-2 py-1 bg-emerald-100 text-emerald-700 rounded text-xs font-medium">
+                <Wifi className="w-3 h-3" />
+                <span>LIVE</span>
               </span>
-              <span className="text-xs text-slate-500 bg-slate-100 px-2 py-1 rounded">
-                {apiStats.totalRecords} total records
+            ) : (
+              <span className="flex items-center space-x-1 px-2 py-1 bg-rose-100 text-rose-700 rounded text-xs font-medium">
+                <WifiOff className="w-3 h-3" />
+                <span>OFFLINE</span>
               </span>
-              {apiStats.intervalLabel && (
-                <span className="text-xs text-slate-500 bg-blue-50 px-2 py-1 rounded">
-                  Interval: {apiStats.intervalLabel}
+            )}
+            {/* Technical stats only visible for HEAD_OFFICE */}
+            {apiStats && (
+              <>
+                <span className="text-xs text-slate-500 bg-slate-100 px-2 py-1 rounded">
+                  {apiStats.dataPoints}/{apiStats.expectedIntervals} intervals
                 </span>
-              )}
-            </>
-          )}
+                <span className="text-xs text-slate-500 bg-slate-100 px-2 py-1 rounded">
+                  {apiStats.totalRecords} total records
+                </span>
+                {apiStats.intervalLabel && (
+                  <span className="text-xs text-slate-500 bg-blue-50 px-2 py-1 rounded">
+                    Interval: {apiStats.intervalLabel}
+                  </span>
+                )}
+              </>
+            )}
+          </div>
+          <button 
+            onClick={fetchData}
+            disabled={loading}
+            className="flex items-center space-x-1 px-3 py-1.5 bg-emerald-600 text-white rounded text-sm font-medium hover:bg-emerald-700 disabled:opacity-50"
+          >
+            <RefreshCw className={`w-3 h-3 ${loading ? 'animate-spin' : ''}`} />
+            <span>Refresh</span>
+          </button>
         </div>
-        <button 
-          onClick={fetchData}
-          disabled={loading}
-          className="flex items-center space-x-1 px-3 py-1.5 bg-emerald-600 text-white rounded text-sm font-medium hover:bg-emerald-700 disabled:opacity-50"
-        >
-          <RefreshCw className={`w-3 h-3 ${loading ? 'animate-spin' : ''}`} />
-          <span>Refresh</span>
-        </button>
-      </div>
+      ) : null}
 
       {/* Error Banner */}
       {error && (
