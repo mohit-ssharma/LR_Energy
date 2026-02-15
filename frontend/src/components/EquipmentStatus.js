@@ -1,20 +1,14 @@
-import React, { useState, useEffect, useCallback, useRef } from 'react';
-import { Power, Zap, Activity, CheckCircle2, XCircle, RefreshCw, WifiOff, Wifi, AlertTriangle } from 'lucide-react';
-import { getDashboardData, formatNumber } from '../services/api';
+import React from 'react';
+import { Power, Zap, Activity, CheckCircle2, XCircle, AlertTriangle } from 'lucide-react';
+import { formatNumber } from '../services/api';
 
-const EquipmentStatus = () => {
-  const [equipmentData, setEquipmentData] = useState(null);
-  const [currentValues, setCurrentValues] = useState(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
-  const [isConnected, setIsConnected] = useState(false);
-  const [isDemo, setIsDemo] = useState(false);
-  
-  // Store last known good data
-  const lastKnownEquipmentRef = useRef(null);
-  const lastKnownCurrentRef = useRef(null);
+const EquipmentStatus = ({ dashboardData }) => {
+  // Get equipment data from props
+  const equipmentData = dashboardData?.equipment || null;
+  const currentValues = dashboardData?.current || null;
+  const lastUpdate = dashboardData?.last_update;
 
-  // Mock data for when API is unavailable (first load only)
+  // Mock data for when API is unavailable
   const getMockEquipmentData = () => ({
     psa: {
       status: 'Running',
@@ -49,374 +43,193 @@ const EquipmentStatus = () => {
     purified_gas_flow: 1180.2
   });
 
-  // Fetch equipment data from dashboard API
-  const fetchData = useCallback(async () => {
-    try {
-      const result = await getDashboardData();
-      
-      if (result.success && result.data?.equipment) {
-        // ✅ Valid data received - Connection is LIVE
-        setEquipmentData(result.data.equipment);
-        setCurrentValues(result.data.current);
-        
-        // Store as last known good data
-        lastKnownEquipmentRef.current = result.data.equipment;
-        lastKnownCurrentRef.current = result.data.current;
-        
-        setError(null);
-        setIsConnected(true);
-        setIsDemo(false);
-      } else {
-        // API call failed
-        handleConnectionLost();
-      }
-    } catch (err) {
-      // Network error
-      console.error('Equipment API error:', err.message);
-      handleConnectionLost();
-    } finally {
-      setLoading(false);
-    }
-  }, []);
+  // Use actual data or mock data
+  const equipment = equipmentData || getMockEquipmentData();
+  const current = currentValues || getMockCurrentValues();
+  const isDemo = !equipmentData;
 
-  // Handle connection lost - KEEP LAST KNOWN DATA
-  const handleConnectionLost = () => {
-    setIsConnected(false);
-    
-    if (lastKnownEquipmentRef.current) {
-      // ✅ We have last known real data - KEEP SHOWING IT
-      setEquipmentData(lastKnownEquipmentRef.current);
-      setCurrentValues(lastKnownCurrentRef.current);
-      setError('Connection lost - showing last known data');
-      setIsDemo(false);
-    } else {
-      // ❌ No previous data - show demo
-      setEquipmentData(getMockEquipmentData());
-      setCurrentValues(getMockCurrentValues());
-      setError('API not connected - showing demo data');
-      setIsDemo(true);
-    }
+  // Format timestamp
+  const formatTime = (timestamp) => {
+    if (!timestamp) return '--:--:--';
+    const date = new Date(timestamp);
+    return date.toLocaleTimeString('en-IN', { hour12: false });
   };
 
-  // Initial fetch and auto-refresh every 60 seconds
-  useEffect(() => {
-    fetchData();
-    
-    const interval = setInterval(() => {
-      fetchData();
-    }, 60000);
-    
-    return () => clearInterval(interval);
-  }, [fetchData]);
-
-  const StatusBadge = ({ status }) => {
-    const isRunning = status === 'Running' || status === 'Active';
-    return (
-      <span className={`inline-flex items-center space-x-1 px-3 py-1 rounded-full text-sm font-semibold ${
-        isRunning 
-          ? 'bg-emerald-100 text-emerald-700 border border-emerald-200' 
-          : 'bg-rose-100 text-rose-700 border border-rose-200'
-      }`}>
-        {isRunning ? <CheckCircle2 className="w-4 h-4" /> : <XCircle className="w-4 h-4" />}
-        <span>{status}</span>
-      </span>
-    );
+  // Calculate PSA efficiency from current flows if available
+  const calculateEfficiency = () => {
+    const rawFlow = parseFloat(current?.raw_biogas_flow) || 0;
+    const purifiedFlow = parseFloat(current?.purified_gas_flow) || 0;
+    if (rawFlow > 0 && purifiedFlow > 0) {
+      return ((purifiedFlow / rawFlow) * 100).toFixed(1);
+    }
+    return equipment?.psa?.efficiency || equipment?.psa?.calculated_efficiency || 94.4;
   };
 
-  const CircularProgress = ({ value, max, label, unit, color }) => {
-    const percentage = max > 0 ? (value / max) * 100 : 0;
-    const circumference = 2 * Math.PI * 40;
-    const strokeDashoffset = circumference - (percentage / 100) * circumference;
+  // PSA Card
+  const PSACard = () => {
+    const psa = equipment?.psa || {};
+    const isRunning = psa.status_code === 1 || psa.status === 'Running';
+    const efficiency = calculateEfficiency();
     
     return (
-      <div className="flex flex-col items-center">
-        <div className="relative">
-          <svg className="w-24 h-24 transform -rotate-90">
-            <circle
-              cx="48"
-              cy="48"
-              r="40"
-              stroke="#e2e8f0"
-              strokeWidth="8"
-              fill="none"
-            />
-            <circle
-              cx="48"
-              cy="48"
-              r="40"
-              stroke={color}
-              strokeWidth="8"
-              fill="none"
-              strokeDasharray={circumference}
-              strokeDashoffset={strokeDashoffset}
-              strokeLinecap="round"
-              className="transition-all duration-500"
-            />
-          </svg>
-          <div className="absolute inset-0 flex items-center justify-center">
-            <div className="text-center">
-              <div className="text-xl font-bold font-mono text-slate-900">{value}</div>
-              <div className="text-xs text-slate-500">{unit}</div>
+      <div className="bg-white border border-slate-200 shadow-sm rounded-lg overflow-hidden" data-testid="psa-status">
+        <div className={`px-5 py-3 border-b flex justify-between items-center ${isRunning ? 'bg-emerald-50 border-emerald-100' : 'bg-rose-50 border-rose-100'}`}>
+          <div className="flex items-center space-x-3">
+            <div className={`p-2 ${isRunning ? 'bg-emerald-600' : 'bg-rose-600'} rounded-md`}>
+              <Activity className="w-4 h-4 text-white" />
+            </div>
+            <div>
+              <h3 className="text-lg font-medium text-slate-800">PSA System</h3>
+              <span className="text-xs text-slate-500">Pressure Swing Adsorption</span>
+            </div>
+          </div>
+          <span className={`flex items-center space-x-1 text-xs px-3 py-1 rounded-full border font-semibold ${isRunning ? 'bg-emerald-100 text-emerald-700 border-emerald-200' : 'bg-rose-100 text-rose-700 border-rose-200'}`}>
+            {isRunning ? <CheckCircle2 className="w-3 h-3" /> : <XCircle className="w-3 h-3" />}
+            <span>{isRunning ? 'Running' : 'Stopped'}</span>
+          </span>
+        </div>
+        <div className="p-5 bg-gradient-to-br from-slate-50/30 to-white">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+            <div className="bg-gradient-to-br from-emerald-50 to-teal-50/50 rounded-lg p-3 border border-emerald-100">
+              <div className="text-xs font-semibold uppercase tracking-wider text-slate-500 mb-1">Efficiency</div>
+              <div className="text-2xl font-bold font-mono text-emerald-700" data-testid="psa-efficiency">{efficiency}%</div>
+            </div>
+            <div className="bg-gradient-to-br from-slate-50 to-slate-100/50 rounded-lg p-3 border border-slate-200">
+              <div className="text-xs font-semibold uppercase tracking-wider text-slate-500 mb-1">Today</div>
+              <div className="text-xl font-bold font-mono text-slate-800">{formatNumber(psa.running_hours_today, 1)} hrs</div>
+            </div>
+            <div className="bg-gradient-to-br from-slate-50 to-slate-100/50 rounded-lg p-3 border border-slate-200">
+              <div className="text-xs font-semibold uppercase tracking-wider text-slate-500 mb-1">This Month</div>
+              <div className="text-xl font-bold font-mono text-slate-800">{formatNumber(psa.running_hours_month, 1)} hrs</div>
+            </div>
+            <div className="bg-gradient-to-br from-slate-50 to-slate-100/50 rounded-lg p-3 border border-slate-200">
+              <div className="text-xs font-semibold uppercase tracking-wider text-slate-500 mb-1">Updated</div>
+              <div className="text-sm font-mono text-slate-600">{formatTime(lastUpdate)}</div>
             </div>
           </div>
         </div>
-        <div className="text-xs font-semibold text-slate-600 mt-2">{label}</div>
       </div>
     );
   };
 
-  // Connection Status Badge
-  const ConnectionBadge = () => {
-    if (isDemo) {
-      return (
-        <span className="flex items-center space-x-1 px-2 py-1 bg-amber-100 text-amber-700 rounded text-xs font-medium">
-          <WifiOff className="w-3 h-3" />
-          <span>DEMO</span>
-        </span>
-      );
-    }
-    if (!isConnected) {
-      return (
-        <span className="flex items-center space-x-1 px-2 py-1 bg-red-100 text-red-700 rounded text-xs font-medium">
-          <WifiOff className="w-3 h-3" />
-          <span>OFFLINE</span>
-        </span>
-      );
-    }
+  // Compressor Card
+  const CompressorCard = () => {
+    const compressor = equipment?.compressor || {};
+    const isRunning = compressor.status_code === 1 || compressor.status === 'Running';
+    
     return (
-      <span className="flex items-center space-x-1 px-2 py-1 bg-emerald-100 text-emerald-700 rounded text-xs font-medium">
-        <Wifi className="w-3 h-3" />
-        <span>LIVE</span>
-      </span>
+      <div className="bg-white border border-slate-200 shadow-sm rounded-lg overflow-hidden" data-testid="compressor-status">
+        <div className={`px-5 py-3 border-b flex justify-between items-center ${isRunning ? 'bg-emerald-50 border-emerald-100' : 'bg-rose-50 border-rose-100'}`}>
+          <div className="flex items-center space-x-3">
+            <div className={`p-2 ${isRunning ? 'bg-emerald-600' : 'bg-rose-600'} rounded-md`}>
+              <Power className="w-4 h-4 text-white" />
+            </div>
+            <div>
+              <h3 className="text-lg font-medium text-slate-800">Compressor</h3>
+              <span className="text-xs text-slate-500">Gas Compression Unit</span>
+            </div>
+          </div>
+          <span className={`flex items-center space-x-1 text-xs px-3 py-1 rounded-full border font-semibold ${isRunning ? 'bg-emerald-100 text-emerald-700 border-emerald-200' : 'bg-rose-100 text-rose-700 border-rose-200'}`}>
+            {isRunning ? <CheckCircle2 className="w-3 h-3" /> : <XCircle className="w-3 h-3" />}
+            <span>{isRunning ? 'Running' : 'Stopped'}</span>
+          </span>
+        </div>
+        <div className="p-5 bg-gradient-to-br from-slate-50/30 to-white">
+          <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+            <div className="bg-gradient-to-br from-violet-50 to-purple-50/50 rounded-lg p-3 border border-violet-100">
+              <div className="text-xs font-semibold uppercase tracking-wider text-slate-500 mb-1">Status</div>
+              <div className={`text-xl font-bold ${isRunning ? 'text-emerald-700' : 'text-rose-700'}`}>
+                {isRunning ? 'Running' : 'Stopped'}
+              </div>
+            </div>
+            <div className="bg-gradient-to-br from-slate-50 to-slate-100/50 rounded-lg p-3 border border-slate-200">
+              <div className="text-xs font-semibold uppercase tracking-wider text-slate-500 mb-1">Today</div>
+              <div className="text-xl font-bold font-mono text-slate-800">{formatNumber(compressor.running_hours_today, 1)} hrs</div>
+            </div>
+            <div className="bg-gradient-to-br from-slate-50 to-slate-100/50 rounded-lg p-3 border border-slate-200">
+              <div className="text-xs font-semibold uppercase tracking-wider text-slate-500 mb-1">This Month</div>
+              <div className="text-xl font-bold font-mono text-slate-800">{formatNumber(compressor.running_hours_month, 1)} hrs</div>
+            </div>
+          </div>
+        </div>
+      </div>
     );
   };
 
-  // Loading state
-  if (loading) {
+  // LT Panel Card
+  const LTPanelCard = () => {
+    const ltPanel = equipment?.lt_panel || {};
+    
     return (
-      <div className="mb-6" data-testid="equipment-status-section">
-        <h2 className="text-xl font-semibold tracking-tight text-slate-800 mb-4">Equipment Status</h2>
-        <div className="flex items-center justify-center p-8 bg-white rounded-lg border border-slate-200">
-          <RefreshCw className="w-6 h-6 text-slate-400 animate-spin mr-2" />
-          <span className="text-slate-500">Loading equipment data...</span>
+      <div className="bg-white border border-slate-200 shadow-sm rounded-lg overflow-hidden" data-testid="lt-panel-status">
+        <div className="px-5 py-3 border-b bg-amber-50 border-amber-100 flex justify-between items-center">
+          <div className="flex items-center space-x-3">
+            <div className="p-2 bg-amber-600 rounded-md">
+              <Zap className="w-4 h-4 text-white" />
+            </div>
+            <div>
+              <h3 className="text-lg font-medium text-slate-800">LT Panel</h3>
+              <span className="text-xs text-slate-500">Power Distribution</span>
+            </div>
+          </div>
+          <span className="flex items-center space-x-1 text-xs px-3 py-1 bg-emerald-100 text-emerald-700 rounded-full border border-emerald-200 font-semibold">
+            <CheckCircle2 className="w-3 h-3" />
+            <span>Active</span>
+          </span>
+        </div>
+        <div className="p-5 bg-gradient-to-br from-slate-50/30 to-white">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+            <div className="bg-gradient-to-br from-amber-50 to-yellow-50/50 rounded-lg p-3 border border-amber-100">
+              <div className="text-xs font-semibold uppercase tracking-wider text-slate-500 mb-1">Current Load</div>
+              <div className="text-2xl font-bold font-mono text-amber-700" data-testid="lt-panel-load">{formatNumber(ltPanel.current_load_kw, 0)} kW</div>
+            </div>
+            <div className="bg-gradient-to-br from-slate-50 to-slate-100/50 rounded-lg p-3 border border-slate-200">
+              <div className="text-xs font-semibold uppercase tracking-wider text-slate-500 mb-1">Avg Today</div>
+              <div className="text-xl font-bold font-mono text-slate-800">{formatNumber(ltPanel.avg_power_today_kw, 1)} kW</div>
+            </div>
+            <div className="bg-gradient-to-br from-slate-50 to-slate-100/50 rounded-lg p-3 border border-slate-200">
+              <div className="text-xs font-semibold uppercase tracking-wider text-slate-500 mb-1">Today</div>
+              <div className="text-xl font-bold font-mono text-slate-800">{formatNumber(ltPanel.consumption_today_kwh, 0)} kWh</div>
+            </div>
+            <div className="bg-gradient-to-br from-slate-50 to-slate-100/50 rounded-lg p-3 border border-slate-200">
+              <div className="text-xs font-semibold uppercase tracking-wider text-slate-500 mb-1">This Month</div>
+              <div className="text-xl font-bold font-mono text-slate-800">{formatNumber(ltPanel.consumption_month_kwh, 0)} kWh</div>
+            </div>
+          </div>
+          
+          {/* Min/Max Power */}
+          <div className="mt-4 grid grid-cols-2 gap-4">
+            <div className="bg-gradient-to-br from-emerald-50 to-teal-50/50 rounded-lg p-3 border border-emerald-100">
+              <div className="text-xs font-semibold uppercase tracking-wider text-slate-500 mb-1">Min Power Today</div>
+              <div className="text-lg font-bold font-mono text-emerald-700">{formatNumber(ltPanel.min_power_today_kw, 0)} kW</div>
+            </div>
+            <div className="bg-gradient-to-br from-rose-50 to-red-50/50 rounded-lg p-3 border border-rose-100">
+              <div className="text-xs font-semibold uppercase tracking-wider text-slate-500 mb-1">Max Power Today</div>
+              <div className="text-lg font-bold font-mono text-rose-700">{formatNumber(ltPanel.max_power_today_kw, 0)} kW</div>
+            </div>
+          </div>
         </div>
       </div>
     );
-  }
-
-  // Error state - don't block, we have data (last known or mock)
-  if (error && !equipmentData) {
-    return (
-      <div className="mb-6" data-testid="equipment-status-section">
-        <h2 className="text-xl font-semibold tracking-tight text-slate-800 mb-4">Equipment Status</h2>
-        <div className="flex items-center justify-center p-8 bg-amber-50 rounded-lg border border-amber-200">
-          <WifiOff className="w-6 h-6 text-amber-500 mr-2" />
-          <span className="text-amber-700">Loading data...</span>
-        </div>
-      </div>
-    );
-  }
-
-  // Extract data from API response
-  const psa = equipmentData?.psa || {};
-  const ltPanel = equipmentData?.lt_panel || {};
-  const compressor = equipmentData?.compressor || {};
-
-  // Get current flow values for efficiency display
-  const rawBiogasFlow = currentValues?.raw_biogas_flow || 0;
-  const purifiedGasFlow = currentValues?.purified_gas_flow || 0;
+  };
 
   return (
     <div className="mb-6" data-testid="equipment-status-section">
       <div className="flex items-center justify-between mb-4">
         <h2 className="text-xl font-semibold tracking-tight text-slate-800">Equipment Status</h2>
-        <div className="flex items-center space-x-2">
-          <ConnectionBadge />
-          <button 
-            onClick={fetchData}
-            className="flex items-center space-x-1 px-2 py-1 text-xs text-slate-500 hover:text-slate-700 hover:bg-slate-100 rounded"
-            title="Refresh data"
-          >
-            <RefreshCw className="w-3 h-3" />
-            <span>Refresh</span>
-          </button>
-        </div>
+        {isDemo && (
+          <span className="flex items-center space-x-1 px-2 py-1 bg-amber-100 text-amber-700 rounded text-xs font-medium">
+            <AlertTriangle className="w-3 h-3" />
+            <span>DEMO</span>
+          </span>
+        )}
       </div>
       
-      {/* Warning Banner for Connection Issues */}
-      {error && (
-        <div className={`mb-4 p-3 rounded-lg flex items-center ${
-          isDemo ? 'bg-amber-50 border border-amber-200' : 'bg-orange-50 border border-orange-200'
-        }`}>
-          <AlertTriangle className={`w-4 h-4 mr-2 ${isDemo ? 'text-amber-500' : 'text-orange-500'}`} />
-          <span className={`text-sm ${isDemo ? 'text-amber-700' : 'text-orange-700'}`}>
-            {error}
-          </span>
-        </div>
-      )}
-      
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* PSA Section */}
-        <div className="bg-white border border-slate-200 shadow-sm rounded-lg overflow-hidden" data-testid="psa-section">
-          <div className="px-5 py-3 border-b border-slate-100 bg-gradient-to-r from-violet-50 to-purple-50 flex justify-between items-center">
-            <div className="flex items-center space-x-3">
-              <div className="p-2 bg-violet-700 rounded-md">
-                <Activity className="w-4 h-4 text-white" />
-              </div>
-              <div>
-                <h3 className="text-lg font-medium text-slate-800">PSA Unit</h3>
-                <span className="text-xs text-slate-500">Pressure Swing Adsorption</span>
-              </div>
-            </div>
-            <StatusBadge status={psa.status || 'Stopped'} />
-          </div>
-          
-          <div className="p-5 bg-gradient-to-br from-slate-50/30 to-white">
-            <div className="flex justify-around mb-4">
-              <CircularProgress 
-                value={psa.running_hours_today || 0} 
-                max={24} 
-                label="Hours Today" 
-                unit="hrs"
-                color="#8b5cf6"
-              />
-              <CircularProgress 
-                value={psa.efficiency || psa.calculated_efficiency || 0} 
-                max={100} 
-                label="Efficiency" 
-                unit="%"
-                color="#10b981"
-              />
-            </div>
-            
-            <div className="bg-violet-50 rounded-lg p-3 border border-violet-200">
-              <div className="text-xs text-violet-600 mb-1">Efficiency Formula</div>
-              <div className="text-sm font-mono text-violet-800">
-                (Purified Gas / Raw Biogas) × 100
-              </div>
-              <div className="text-sm font-mono text-violet-900 mt-1">
-                ({formatNumber(purifiedGasFlow, 1)} / {formatNumber(rawBiogasFlow, 1)}) × 100 = <span className="font-bold">{psa.calculated_efficiency || 0}%</span>
-              </div>
-            </div>
-            
-            {/* Monthly Running Hours */}
-            <div className="mt-3 p-2 bg-slate-50 rounded border border-slate-200">
-              <div className="flex justify-between text-xs">
-                <span className="text-slate-600">Monthly Running Hours</span>
-                <span className="font-mono font-semibold text-slate-800">{formatNumber(psa.running_hours_month, 1)} hrs</span>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        {/* LT Panel Section */}
-        <div className="bg-white border border-slate-200 shadow-sm rounded-lg overflow-hidden" data-testid="lt-panel-section">
-          <div className="px-5 py-3 border-b border-slate-100 bg-gradient-to-r from-amber-50 to-yellow-50 flex justify-between items-center">
-            <div className="flex items-center space-x-3">
-              <div className="p-2 bg-amber-600 rounded-md">
-                <Zap className="w-4 h-4 text-white" />
-              </div>
-              <div>
-                <h3 className="text-lg font-medium text-slate-800">LT Panel</h3>
-                <span className="text-xs text-slate-500">Electricity Monitoring</span>
-              </div>
-            </div>
-            <StatusBadge status={ltPanel.status || 'Inactive'} />
-          </div>
-          
-          <div className="p-5 bg-gradient-to-br from-slate-50/30 to-white">
-            <div className="flex justify-center mb-4">
-              <CircularProgress 
-                value={ltPanel.current_load_kw || 0} 
-                max={500} 
-                label="Current Load" 
-                unit="kW"
-                color="#f59e0b"
-              />
-            </div>
-            
-            <div className="space-y-2">
-              <div className="flex justify-between items-center p-3 bg-amber-50 rounded-lg border border-amber-200">
-                <div>
-                  <span className="text-sm text-amber-700 block">Today's Consumption</span>
-                  <span className="text-xs text-amber-600">Avg: {formatNumber(ltPanel.avg_power_today_kw, 1)} kW</span>
-                </div>
-                <span className="text-lg font-bold font-mono text-amber-900">
-                  {formatNumber(ltPanel.consumption_today_kwh, 0)} kWh
-                </span>
-              </div>
-              <div className="flex justify-between items-center p-3 bg-slate-50 rounded-lg border border-slate-200">
-                <div>
-                  <span className="text-sm text-slate-600 block">Monthly Consumption</span>
-                  <span className="text-xs text-slate-500">{formatNumber(ltPanel.hours_recorded_month, 0)} hrs recorded</span>
-                </div>
-                <span className="text-lg font-bold font-mono text-slate-900">
-                  {formatNumber(ltPanel.consumption_month_kwh, 0)} kWh
-                </span>
-              </div>
-            </div>
-            
-            {/* Min/Max Power */}
-            <div className="mt-3 grid grid-cols-2 gap-2">
-              <div className="p-2 bg-emerald-50 rounded border border-emerald-200 text-center">
-                <div className="text-xs text-emerald-600">Min Today</div>
-                <div className="font-mono font-semibold text-emerald-800">{formatNumber(ltPanel.min_power_today_kw, 1)} kW</div>
-              </div>
-              <div className="p-2 bg-rose-50 rounded border border-rose-200 text-center">
-                <div className="text-xs text-rose-600">Max Today</div>
-                <div className="font-mono font-semibold text-rose-800">{formatNumber(ltPanel.max_power_today_kw, 1)} kW</div>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        {/* Compressor Section */}
-        <div className="bg-white border border-slate-200 shadow-sm rounded-lg overflow-hidden" data-testid="compressor-section">
-          <div className="px-5 py-3 border-b border-slate-100 bg-gradient-to-r from-cyan-50 to-blue-50 flex justify-between items-center">
-            <div className="flex items-center space-x-3">
-              <div className="p-2 bg-cyan-600 rounded-md">
-                <Power className="w-4 h-4 text-white" />
-              </div>
-              <div>
-                <h3 className="text-lg font-medium text-slate-800">Compressor</h3>
-                <span className="text-xs text-slate-500">Gas Compression Unit</span>
-              </div>
-            </div>
-            <StatusBadge status={compressor.status || 'Stopped'} />
-          </div>
-          
-          <div className="p-5 bg-gradient-to-br from-slate-50/30 to-white">
-            <div className="flex justify-around mb-4">
-              <CircularProgress 
-                value={compressor.running_hours_today || 0} 
-                max={24} 
-                label="Hours Today" 
-                unit="hrs"
-                color="#06b6d4"
-              />
-              <CircularProgress 
-                value={psa.calculated_efficiency || 0} 
-                max={100} 
-                label="Efficiency" 
-                unit="%"
-                color="#10b981"
-              />
-            </div>
-            
-            <div className="bg-cyan-50 rounded-lg p-3 border border-cyan-200">
-              <div className="text-xs text-cyan-600 mb-1">Runtime Summary</div>
-              <div className="grid grid-cols-2 gap-2 mt-2">
-                <div>
-                  <div className="text-xs text-cyan-600">Today</div>
-                  <div className="text-lg font-bold font-mono text-cyan-900">{compressor.running_hours_today || 0} hrs</div>
-                </div>
-                <div>
-                  <div className="text-xs text-cyan-600">This Month</div>
-                  <div className="text-lg font-bold font-mono text-cyan-900">{formatNumber(compressor.running_hours_month, 1)} hrs</div>
-                </div>
-              </div>
-            </div>
-          </div>
+      <div className="space-y-4">
+        <PSACard />
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+          <CompressorCard />
+          <LTPanelCard />
         </div>
       </div>
     </div>
