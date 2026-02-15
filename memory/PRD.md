@@ -2,13 +2,20 @@
 
 ## Project Status: PENDING USER VERIFICATION ⏳
 
-**Last Updated:** February 2026 - Fixed data display and calculation issues
+**Last Updated:** February 2026 - Fixed dashboard switcher and stats bar visibility
 
 ---
 
-## RECENT FIXES (February 2026)
+## RECENT FIXES (February 2026 - Latest)
 
-### Issues Fixed
+### Dashboard & UI Updates
+| # | Issue | Status |
+|---|-------|--------|
+| 1 | Dashboard switcher showing "Sonipat Plant" instead of "Karnal Plant" | ✅ Fixed |
+| 2 | Statistics bar visible to MNRE users on Trends page | ✅ Fixed - Hidden for MNRE |
+| 3 | HO user needs to see all dashboards (Karnal + MNRE) | ✅ Working |
+
+### Earlier Issues Fixed
 | # | Issue | Status |
 |---|-------|--------|
 | 1 | Totalizer showing MAX-MIN calculation instead of actual value | ✅ Fixed - Now shows actual DB value |
@@ -18,13 +25,16 @@
 | 5 | CO2/O2/H2S improvement logic incorrect | ✅ Fixed - Lower value = Improved |
 | 6 | H₂S default value 180 ppm (exceeds 105 ppm limit) | ✅ Fixed - Changed to 3 ppm |
 
-### Files Modified
-- `/app/frontend/src/components/KPISummary.js` - Totalizer shows actual value
-- `/app/frontend/src/components/ComparisonView.js` - Updated labels
-- `/app/frontend/src/components/TrendsPage.js` - Uses API statistics
-- `/app/php-api/comparison.php` - Complete rewrite for correct comparison
-- `/app/php-api/trends.php` - Separate 12hr/24hr queries
-- `/app/docs/FIX_CHECKLIST_FEB2026.md` (NEW)
+### Files Modified (Latest Session)
+- `/app/frontend/src/components/Header.js` - Dashboard switcher changed to "Karnal Plant"
+- `/app/frontend/src/components/TrendsPage.js` - Stats bar conditional rendering based on role
+- `/app/frontend/src/components/MNRETrendsPage.js` - Stats bar hidden for MNRE users
+- `/app/frontend/src/App.js` - Pass userRole prop to trends pages
+
+### Dashboard Switcher Logic
+- **HEAD_OFFICE**: Can see dashboard switcher with "Karnal Plant" (Active) and "MNRE View" options
+- **MNRE**: Goes directly to MNRE Dashboard (no switcher)
+- **Stats Bar**: Only visible for HEAD_OFFICE users on both TrendsPage and MNRETrendsPage
 
 ### Comparison Logic Summary
 - **Today** = Current/Latest reading from database
