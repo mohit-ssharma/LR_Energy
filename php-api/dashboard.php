@@ -210,7 +210,8 @@ try {
         'data_age_seconds' => $ageSeconds,
         'last_update' => $latest['timestamp'],
         'server_time' => date('Y-m-d H:i:s'),
-        'total_records' => intval($totalRecords),
+        'total_records' => intval($totalRecords),           // Today's records only
+        'all_time_records' => intval($allTimeRecords),      // All-time total
         'latest_record_id' => intval($latest['id']),
         
         // Current values
