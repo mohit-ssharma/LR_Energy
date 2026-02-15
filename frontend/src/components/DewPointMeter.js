@@ -2,17 +2,29 @@ import React from 'react';
 import { Droplets, TrendingDown, CheckCircle2 } from 'lucide-react';
 import { LineChart, Line, ResponsiveContainer, XAxis, YAxis, CartesianGrid, Tooltip, ReferenceLine } from 'recharts';
 
-const DewPointMeter = () => {
-  // Generate trend data with range -70 to -63
+const DewPointMeter = ({ dashboardData }) => {
+  // Get dew point value from API data or use default
+  const current = dashboardData?.current || {};
+  const lastUpdate = dashboardData?.last_update;
+  
+  const currentValue = current.dew_point ?? -68;
+
+  // Format timestamp
+  const formatTime = (timestamp) => {
+    if (!timestamp) return '--:--:--';
+    const date = new Date(timestamp);
+    return date.toLocaleTimeString('en-IN', { hour12: false });
+  };
+
+  // Generate trend data with range around current value
   const generateTrendData = () => {
     return Array.from({ length: 24 }, (_, i) => ({
       hour: i,
-      value: -70 + Math.random() * 7 // Range: -70 to -63
+      value: currentValue + (Math.random() * 7 - 3.5) // Range: currentValue ± 3.5
     }));
   };
 
   const trendData = generateTrendData();
-  const currentValue = -68;
   
   // Status logic:
   // < -65 → Within Limits
@@ -58,143 +70,87 @@ const DewPointMeter = () => {
                     strokeDasharray={`${2 * Math.PI * 75}`}
                     strokeDashoffset={`${2 * Math.PI * 75 * 0.32}`}
                     strokeLinecap="round"
-                    className="transition-all duration-500"
                   />
                 </svg>
-                <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 text-center">
-                  <div className="text-4xl font-bold font-mono tracking-tighter text-slate-900" data-testid="dew-point-value">{currentValue}</div>
-                  <div className="text-sm font-medium text-slate-500">mg/m³</div>
+                <div className="absolute inset-0 flex flex-col items-center justify-center">
+                  <span className="text-4xl font-bold font-mono text-slate-900" data-testid="dew-point-value">{currentValue.toFixed(1)}</span>
+                  <span className="text-sm text-slate-500">mg/m³</span>
                 </div>
               </div>
             </div>
             
-            <div className="space-y-3">
-              <div className="bg-slate-50 rounded-lg p-3 border border-slate-100">
-                <div className="flex items-center justify-between mb-1">
-                  <span className="text-xs font-semibold uppercase tracking-wider text-slate-500">Moisture Content</span>
-                  <span className="text-xs text-slate-400 font-mono">08:43:41</span>
-                </div>
-                <div className="text-2xl font-bold font-mono text-slate-900">{currentValue} mg/m³</div>
-              </div>
-              
-              <div className="flex items-center justify-between space-x-2">
-                <div className="flex items-center space-x-2 text-sm text-emerald-600 bg-emerald-50 px-3 py-2 rounded-md border border-emerald-200 flex-1">
-                  <TrendingDown className="w-4 h-4" />
-                  <span className="font-semibold">-0.5 mg/m³</span>
-                </div>
-                <div className="text-xs text-slate-500">vs last hour</div>
-              </div>
-              
-              <div className={`bg-${status.color}-50 border border-${status.color}-200 rounded-lg p-3`}>
-                <div className="flex items-center space-x-2">
-                  <div className={`w-2 h-2 bg-${status.color}-500 rounded-full animate-pulse-subtle`}></div>
-                  <span className={`text-sm font-semibold text-${status.color}-700`}>{status.text}</span>
-                </div>
-                <p className={`text-xs text-${status.color}-600 mt-1`}>All parameters within limits</p>
-              </div>
-              
-              <div className="text-xs text-slate-400 flex items-center justify-between">
-                <span>Sensor ID: DPM-001</span>
-                <span className="font-mono">Feb 01, 2026</span>
-              </div>
+            <div className={`flex items-center justify-center space-x-2 p-3 rounded-lg bg-${status.color}-50 border border-${status.color}-200`}>
+              <CheckCircle2 className={`w-5 h-5 text-${status.color}-600`} />
+              <span className={`font-semibold text-${status.color}-700`}>{status.text}</span>
+            </div>
+            
+            <div className="mt-4 text-center text-xs text-slate-400 font-mono">
+              Last Updated: {formatTime(lastUpdate)}
             </div>
           </div>
           
-          <div className="lg:col-span-8 p-5 bg-gradient-to-br from-slate-50/30 to-white">
-            <div className="flex items-center justify-between mb-4">
-              <h3 className="text-lg font-medium text-slate-700">24-Hour Trend Analysis</h3>
-              <div className="flex items-center space-x-4 text-xs">
-                <div className="flex items-center space-x-2">
-                  <div className="w-3 h-0.5 bg-cyan-600"></div>
-                  <span className="text-slate-600">Current: {currentValue} mg/m³</span>
-                </div>
-                <div className="flex items-center space-x-2">
-                  <div className="w-3 h-0.5 bg-amber-500 border-dashed"></div>
-                  <span className="text-slate-600">Warning: -65 mg/m³</span>
-                </div>
-                <div className="flex items-center space-x-2">
-                  <div className="w-3 h-0.5 bg-rose-500 border-dashed"></div>
-                  <span className="text-slate-600">Critical: -50 mg/m³</span>
-                </div>
-              </div>
+          <div className="lg:col-span-4 p-5 bg-gradient-to-br from-white to-cyan-50/20">
+            <div className="flex items-center space-x-2 mb-4">
+              <TrendingDown className="w-5 h-5 text-emerald-600" />
+              <h3 className="text-sm font-semibold uppercase tracking-wider text-slate-500">Trend</h3>
             </div>
             
-            <ResponsiveContainer width="100%" height={300}>
-              <LineChart data={trendData} margin={{ top: 5, right: 20, left: 0, bottom: 5 }}>
+            <ResponsiveContainer width="100%" height={180}>
+              <LineChart data={trendData} margin={{ top: 10, right: 10, left: -20, bottom: 5 }}>
                 <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
                 <XAxis 
                   dataKey="hour" 
-                  stroke="#94a3b8" 
-                  style={{ fontSize: '11px', fontFamily: 'Inter' }}
-                  tickFormatter={(value) => `${value}h`}
+                  tick={{ fontSize: 10 }} 
+                  stroke="#94a3b8"
+                  tickFormatter={(val) => `${val}h`}
                 />
                 <YAxis 
-                  stroke="#94a3b8" 
-                  style={{ fontSize: '11px', fontFamily: 'Inter' }}
-                  domain={[-75, -40]}
+                  tick={{ fontSize: 10 }} 
+                  stroke="#94a3b8"
+                  domain={[-75, -60]}
                 />
                 <Tooltip 
                   contentStyle={{ 
                     backgroundColor: 'white', 
                     border: '1px solid #e2e8f0',
                     borderRadius: '6px',
-                    boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)',
                     fontSize: '12px'
                   }}
-                  formatter={(value) => [`${value.toFixed(2)} mg/m³`, 'Dew Point']}
+                  formatter={(val) => [`${val.toFixed(1)} mg/m³`, 'Dew Point']}
                 />
-                <ReferenceLine 
-                  y={-65} 
-                  stroke="#f59e0b" 
-                  strokeDasharray="5 5" 
-                  strokeWidth={2}
-                  label={{ value: 'Warning', fill: '#f59e0b', fontSize: 10 }}
-                />
-                <ReferenceLine 
-                  y={-50} 
-                  stroke="#ef4444" 
-                  strokeDasharray="5 5" 
-                  strokeWidth={2}
-                  label={{ value: 'Critical', fill: '#ef4444', fontSize: 10 }}
-                />
+                <ReferenceLine y={-65} stroke="#f59e0b" strokeDasharray="5 5" label={{ value: 'Warning', fill: '#f59e0b', fontSize: 10 }} />
                 <Line 
                   type="monotone" 
                   dataKey="value" 
                   stroke="#06b6d4" 
-                  strokeWidth={3}
+                  strokeWidth={2}
                   dot={false}
-                  activeDot={{ r: 5, fill: '#06b6d4' }}
+                  activeDot={{ r: 4 }}
                 />
               </LineChart>
             </ResponsiveContainer>
+          </div>
+          
+          <div className="lg:col-span-4 p-5 bg-gradient-to-br from-slate-50/50 to-white">
+            <h3 className="text-sm font-semibold uppercase tracking-wider text-slate-500 mb-4">Thresholds</h3>
+            <div className="space-y-3">
+              <div className="flex items-center justify-between p-3 rounded-lg bg-emerald-50 border border-emerald-200">
+                <span className="text-sm font-medium text-slate-700">Within Limits</span>
+                <span className="text-sm font-mono text-emerald-700">&lt; -65</span>
+              </div>
+              <div className="flex items-center justify-between p-3 rounded-lg bg-amber-50 border border-amber-200">
+                <span className="text-sm font-medium text-slate-700">Warning</span>
+                <span className="text-sm font-mono text-amber-700">-65 to -50</span>
+              </div>
+              <div className="flex items-center justify-between p-3 rounded-lg bg-rose-50 border border-rose-200">
+                <span className="text-sm font-medium text-slate-700">Critical</span>
+                <span className="text-sm font-mono text-rose-700">-50 to +25</span>
+              </div>
+            </div>
             
-            <div className="grid grid-cols-4 gap-3 mt-4">
-              <div className="bg-slate-50 rounded-lg p-3 border border-slate-100">
-                <div className="text-xs font-semibold uppercase tracking-wider text-slate-500 mb-1">Current</div>
-                <div className="text-xl font-bold font-mono text-slate-900">{currentValue}</div>
-                <div className="text-xs text-slate-500">mg/m³</div>
-              </div>
-              <div className="bg-slate-50 rounded-lg p-3 border border-slate-100">
-                <div className="text-xs font-semibold uppercase tracking-wider text-slate-500 mb-1">Average</div>
-                <div className="text-xl font-bold font-mono text-slate-900">
-                  {(trendData.reduce((sum, d) => sum + d.value, 0) / trendData.length).toFixed(1)}
-                </div>
-                <div className="text-xs text-slate-500">mg/m³</div>
-              </div>
-              <div className="bg-slate-50 rounded-lg p-3 border border-slate-100">
-                <div className="text-xs font-semibold uppercase tracking-wider text-slate-500 mb-1">Max</div>
-                <div className="text-xl font-bold font-mono text-slate-900">
-                  {Math.max(...trendData.map(d => d.value)).toFixed(1)}
-                </div>
-                <div className="text-xs text-slate-500">mg/m³</div>
-              </div>
-              <div className="bg-slate-50 rounded-lg p-3 border border-slate-100">
-                <div className="text-xs font-semibold uppercase tracking-wider text-slate-500 mb-1">Min</div>
-                <div className="text-xl font-bold font-mono text-slate-900">
-                  {Math.min(...trendData.map(d => d.value)).toFixed(1)}
-                </div>
-                <div className="text-xs text-slate-500">mg/m³</div>
-              </div>
+            <div className="mt-4 p-3 rounded-lg bg-slate-100 border border-slate-200">
+              <div className="text-xs text-slate-500 mb-1">Target Range</div>
+              <div className="text-lg font-bold font-mono text-slate-900">-70 to -65 mg/m³</div>
             </div>
           </div>
         </div>
