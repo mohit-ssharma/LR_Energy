@@ -488,9 +488,9 @@ function MNRETrendsPage() {
         <p className="text-slate-600">Analyze Gas Flow and Gas Composition data from database</p>
       </div>
 
-      {/* Connection Status & Stats */}
+      {/* Connection Status - MNRE sees only LIVE/OFFLINE, no technical details */}
       <div className="flex items-center justify-between mb-4 flex-wrap gap-2">
-        <div className="flex items-center space-x-3 flex-wrap gap-2">
+        <div className="flex items-center space-x-3">
           {isConnected ? (
             <span className="flex items-center space-x-1 px-2 py-1 bg-emerald-100 text-emerald-700 rounded text-xs font-medium">
               <Wifi className="w-3 h-3" />
@@ -502,21 +502,7 @@ function MNRETrendsPage() {
               <span>OFFLINE</span>
             </span>
           )}
-          {apiStats && (
-            <>
-              <span className="text-xs text-slate-500 bg-slate-100 px-2 py-1 rounded">
-                {apiStats.dataPoints}/{apiStats.expectedIntervals} intervals
-              </span>
-              <span className="text-xs text-slate-500 bg-slate-100 px-2 py-1 rounded">
-                {apiStats.totalRecords} total records
-              </span>
-              {apiStats.intervalLabel && (
-                <span className="text-xs text-slate-500 bg-blue-50 px-2 py-1 rounded">
-                  Interval: {apiStats.intervalLabel}
-                </span>
-              )}
-            </>
-          )}
+          {/* Technical stats hidden from MNRE view */}
         </div>
         <button 
           onClick={fetchData}
