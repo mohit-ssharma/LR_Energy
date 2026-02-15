@@ -7,13 +7,12 @@ echo "<p>Testing connection...</p>";
 
 $host = "localhost";
 $user = "illionss_karnal_lre";
-$pass = 'xkA}Iu$l~Vrw3r.Vp+';  // Single quotes - no variable interpretation
+$pass = '@xABi]j4hOBd';  // CORRECT PASSWORD
 $db   = "illionss_karnal_lre";
 
 echo "<p>Host: $host</p>";
 echo "<p>User: $user</p>";
 echo "<p>DB: $db</p>";
-echo "<p>Pass length: " . strlen($pass) . " chars</p>";
 
 try {
     $conn = new mysqli($host, $user, $pass, $db);
@@ -21,7 +20,6 @@ try {
 } catch (Exception $e) {
     echo "<p style='color:orange;'>localhost failed: " . $e->getMessage() . "</p>";
     
-    // Try IP
     $host = "119.18.49.27";
     echo "<p>Trying IP: $host...</p>";
     
@@ -30,16 +28,13 @@ try {
         echo "<p style='color:green;'>✅ Connected using IP!</p>";
     } catch (Exception $e2) {
         echo "<p style='color:red;'>IP also failed: " . $e2->getMessage() . "</p>";
-        echo "<h2 style='color:red;'>❌ Cannot connect to database!</h2>";
-        echo "<p>Please verify your MySQL credentials in hosting panel.</p>";
         exit;
     }
 }
 
-// Create tables one by one
 echo "<h2>Creating Tables...</h2>";
 
-// Table 1
+// Table 1: scada_readings
 $sql = "CREATE TABLE IF NOT EXISTS scada_readings (
     id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
     timestamp DATETIME NOT NULL,
@@ -85,13 +80,9 @@ $sql = "CREATE TABLE IF NOT EXISTS scada_readings (
     UNIQUE KEY idx_plant_time (plant_id, timestamp)
 ) ENGINE=InnoDB";
 
-if ($conn->query($sql)) {
-    echo "<p>✅ scada_readings - OK</p>";
-} else {
-    echo "<p>❌ scada_readings - " . $conn->error . "</p>";
-}
+echo $conn->query($sql) ? "<p>✅ scada_readings</p>" : "<p>❌ " . $conn->error . "</p>";
 
-// Table 2
+// Table 2: users
 $sql = "CREATE TABLE IF NOT EXISTS users (
     id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
     email VARCHAR(255) NOT NULL UNIQUE,
@@ -103,13 +94,9 @@ $sql = "CREATE TABLE IF NOT EXISTS users (
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 ) ENGINE=InnoDB";
 
-if ($conn->query($sql)) {
-    echo "<p>✅ users - OK</p>";
-} else {
-    echo "<p>❌ users - " . $conn->error . "</p>";
-}
+echo $conn->query($sql) ? "<p>✅ users</p>" : "<p>❌ " . $conn->error . "</p>";
 
-// Table 3
+// Table 3: api_logs
 $sql = "CREATE TABLE IF NOT EXISTS api_logs (
     id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
     endpoint VARCHAR(255),
@@ -122,13 +109,9 @@ $sql = "CREATE TABLE IF NOT EXISTS api_logs (
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 ) ENGINE=InnoDB";
 
-if ($conn->query($sql)) {
-    echo "<p>✅ api_logs - OK</p>";
-} else {
-    echo "<p>❌ api_logs - " . $conn->error . "</p>";
-}
+echo $conn->query($sql) ? "<p>✅ api_logs</p>" : "<p>❌ " . $conn->error . "</p>";
 
-// Table 4
+// Table 4: sync_status
 $sql = "CREATE TABLE IF NOT EXISTS sync_status (
     id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
     plant_id VARCHAR(50),
@@ -139,13 +122,9 @@ $sql = "CREATE TABLE IF NOT EXISTS sync_status (
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 ) ENGINE=InnoDB";
 
-if ($conn->query($sql)) {
-    echo "<p>✅ sync_status - OK</p>";
-} else {
-    echo "<p>❌ sync_status - " . $conn->error . "</p>";
-}
+echo $conn->query($sql) ? "<p>✅ sync_status</p>" : "<p>❌ " . $conn->error . "</p>";
 
-// Table 5
+// Table 5: alerts
 $sql = "CREATE TABLE IF NOT EXISTS alerts (
     id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
     plant_id VARCHAR(50),
@@ -158,49 +137,31 @@ $sql = "CREATE TABLE IF NOT EXISTS alerts (
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 ) ENGINE=InnoDB";
 
-if ($conn->query($sql)) {
-    echo "<p>✅ alerts - OK</p>";
-} else {
-    echo "<p>❌ alerts - " . $conn->error . "</p>";
-}
+echo $conn->query($sql) ? "<p>✅ alerts</p>" : "<p>❌ " . $conn->error . "</p>";
 
 // Insert users
 echo "<h2>Creating Users...</h2>";
-
 $hash = password_hash('qwerty@1234', PASSWORD_DEFAULT);
-
 $sql = "INSERT IGNORE INTO users (email, password, role, name) VALUES 
 ('ho@lrenergy.in', '$hash', 'HEAD_OFFICE', 'Head Office'),
 ('mnre@lrenergy.in', '$hash', 'MNRE', 'MNRE User')";
 
-if ($conn->query($sql)) {
-    echo "<p>✅ Users created</p>";
-} else {
-    echo "<p>❌ Users - " . $conn->error . "</p>";
-}
+echo $conn->query($sql) ? "<p>✅ Users created</p>" : "<p>❌ " . $conn->error . "</p>";
 
 // Verify
-echo "<h2>Verification:</h2>";
-
+echo "<h2>Tables:</h2><ul>";
 $result = $conn->query("SHOW TABLES");
-echo "<p>Tables:</p><ul>";
-while ($row = $result->fetch_array()) {
-    echo "<li>" . $row[0] . "</li>";
-}
+while ($row = $result->fetch_array()) echo "<li>✅ " . $row[0] . "</li>";
 echo "</ul>";
 
+echo "<h2>Users:</h2><ul>";
 $result = $conn->query("SELECT email, role FROM users");
-if ($result && $result->num_rows > 0) {
-    echo "<p>Users:</p><ul>";
-    while ($row = $result->fetch_assoc()) {
-        echo "<li>" . $row['email'] . " (" . $row['role'] . ")</li>";
-    }
-    echo "</ul>";
-}
+while ($row = $result->fetch_assoc()) echo "<li>" . $row['email'] . " (" . $row['role'] . ")</li>";
+echo "</ul>";
 
 echo "<h2 style='color:green;'>✅ SETUP COMPLETE!</h2>";
-echo "<p><strong>Login:</strong> ho@lrenergy.in / qwerty@1234</p>";
-echo "<p style='color:red;'><strong>⚠️ DELETE this file now!</strong></p>";
+echo "<p><b>Login:</b> ho@lrenergy.in / qwerty@1234</p>";
+echo "<p style='color:red;'><b>⚠️ DELETE this file now!</b></p>";
 
 $conn->close();
 ?>
