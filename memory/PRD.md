@@ -187,6 +187,7 @@ X-API-Key: SCADA_LR_ENERGY_2026_SECURE_KEY
 ## NEXT STEPS
 
 1. ✅ Local testing complete
-2. ⏳ PLC developer integrates HTTP POST
-3. ⏳ GoDaddy deployment
-4. ⏳ Phase 2: Alerts & notifications
+2. ⏳ **User verification of Feb 2026 fixes** (see `/app/docs/FIX_CHECKLIST_FEB2026.md`)
+3. ⏳ PLC developer integrates HTTP POST
+4. ⏳ GoDaddy deployment
+5. ⏳ Phase 2: Alerts & notifications
