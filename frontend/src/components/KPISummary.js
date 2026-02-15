@@ -258,7 +258,7 @@ const KPISummary = () => {
           
           // Check if we were previously disconnected (reconnection scenario)
           if (!isConnected && lastKnownDataRef.current) {
-            console.log('Connection restored! Fetching fresh data...');
+            // Connection restored
           }
           
           setDashboardData(result.data);
@@ -269,12 +269,10 @@ const KPISummary = () => {
           setLastRefresh(new Date());
         } else {
           // API returned but data is empty/invalid
-          console.warn('API returned empty or invalid data');
           handleNoData('Server returned empty data');
         }
       } else {
         // API call failed
-        console.log('API unavailable:', result.error);
         handleConnectionLost(result.error);
       }
     } catch (err) {
@@ -335,7 +333,6 @@ const KPISummary = () => {
     fetchData();
     
     const interval = setInterval(() => {
-      console.log('Auto-refresh triggered at:', new Date().toLocaleTimeString());
       fetchData();
     }, 30000); // 30 seconds for faster updates
     
