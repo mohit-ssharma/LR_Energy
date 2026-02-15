@@ -153,6 +153,7 @@ Protocol: HTTPS (TLS 1.2+)
 ```
 SCADA_LR_ENERGY_2026_SECURE_KEY
 ```
+> ⚠️ **Security Note:** Change this key in production by editing `config.php`
 
 ### 3. SSL Certificate
 ```
