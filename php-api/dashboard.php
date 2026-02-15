@@ -50,9 +50,13 @@ try {
         ]);
     }
     
-    // Get total record count for debugging
-    $countStmt = $pdo->query("SELECT COUNT(*) as total FROM scada_readings WHERE plant_id = '" . PLANT_ID . "'");
+    // Get total record count for TODAY (more meaningful for dashboard)
+    $countStmt = $pdo->query("SELECT COUNT(*) as total FROM scada_readings WHERE plant_id = '" . PLANT_ID . "' AND DATE(timestamp) = CURDATE()");
     $totalRecords = $countStmt->fetch()['total'];
+    
+    // Also get all-time record count for reference
+    $allTimeCountStmt = $pdo->query("SELECT COUNT(*) as total FROM scada_readings WHERE plant_id = '" . PLANT_ID . "'");
+    $allTimeRecords = $allTimeCountStmt->fetch()['total'];
     
     // Calculate data freshness
     $lastTimestamp = strtotime($latest['timestamp']);
