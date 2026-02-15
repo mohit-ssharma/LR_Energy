@@ -323,16 +323,15 @@ http://localhost/scada-api/auto_simulate.php?duration=10&interval=60
 
 ### Option 3: Use curl (Command Line)
 ```bash
-curl -X POST "https://karnal.lrenergy.in/scada-api/receive_data.php" \
+# HTTPS with API key in URL
+curl -X POST "https://karnal.lrenergy.in/scada-api/receive_data.php?api_key=SCADA_LR_ENERGY_2026_SECURE_KEY" \
   -H "Content-Type: application/json" \
-  -H "X-API-Key: SCADA_LR_ENERGY_2026_SECURE_KEY" \
   -d '{"timestamp":"2026-02-15 10:30:00","plant_id":"KARNAL","raw_biogas_flow":1250.50,...}'
 ```
 
 ### Option 4: Use Postman
-- URL: `https://karnal.lrenergy.in/scada-api/receive_data.php`
+- URL: `https://karnal.lrenergy.in/scada-api/receive_data.php?api_key=SCADA_LR_ENERGY_2026_SECURE_KEY`
 - Method: POST
-- Headers: `X-API-Key: SCADA_LR_ENERGY_2026_SECURE_KEY`
 - Body: JSON payload
 
 ---
