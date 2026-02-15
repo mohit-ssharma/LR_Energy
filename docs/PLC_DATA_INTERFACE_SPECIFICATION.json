@@ -629,12 +629,35 @@
 
   "_important_notes_for_plc_developer": [
     "1. TOTALIZERS: These are cumulative counters that should NEVER reset. Used to calculate daily production (MAX - MIN for the day).",
-    "2. STATUS FIELDS: psa_status and compressor_status must be 0 (Off) or 1 (Running). These are used to calculate equipment running hours.",
-    "3. NULL HANDLING: If a sensor reading is unavailable, send NULL instead of 0. The system handles NULLs appropriately.",
-    "4. TIMESTAMP: Must be synchronized with server time. Format: 'YYYY-MM-DD HH:MM:SS' in IST timezone.",
-    "5. DATA FREQUENCY: Send data every 60 seconds. Missing data points will affect dashboard accuracy indicators.",
+    "2. STATUS FIELDS: psa_status and compressor_status must be 0 (Off) or 1 (Running). Used to calculate equipment running hours.",
+    "3. NULL HANDLING: If a sensor reading is unavailable, omit the field or send null. The system handles NULLs appropriately.",
+    "4. TIMESTAMP: Must be synchronized with server time. Format: 'YYYY-MM-DD HH:MM:SS' in IST timezone (Asia/Kolkata).",
+    "5. DATA FREQUENCY: Send data every 60 seconds using PLC timer. Missing data points affect dashboard accuracy.",
     "6. DECIMAL PRECISION: Flow rates to 2 decimal places, percentages to 2 decimal places.",
     "7. UNITS: Ensure all values are in the specified units before sending. No unit conversion is done server-side.",
-    "8. API AUTHENTICATION: Include API key in header for security."
-  ]
+    "8. API KEY: Pass API key in URL parameter (?api_key=...) since LHTTP does not support custom HTTP headers.",
+    "9. HTTPS: Use HTTPS for secure communication. Import server Root CA certificate in TIA Portal Certificate Manager.",
+    "10. JSON STRING: Build JSON string in PLC by concatenating field names and values. Use REAL_TO_STRING for conversions.",
+    "11. RESPONSE CHECK: Check LHTTP_Post.responseCode output - 201 means success, 200 means duplicate (already saved).",
+    "12. ERROR HANDLING: Implement retry logic if LHTTP_Post.error is TRUE. Check status code for specific error."
+  ],
+
+  "_action_required_from_plc_developer": {
+    "description": "PLC developer must complete these items before integration",
+    "items": [
+      "1. Fill in all PLC tag addresses in '_tag_mapping_template' section above",
+      "2. Import SSL Root CA certificate in TIA Portal for HTTPS",
+      "3. Create Data Block (DB) for LHTTP_typeTLS configuration",
+      "4. Create timer block for 60-second interval",
+      "5. Write PLC logic to build JSON string from tag values",
+      "6. Configure LHTTP_Post function block with correct URL and TLS",
+      "7. Implement error handling and retry logic",
+      "8. Test with single POST request before enabling timer"
+    ],
+    "deliverables_to_send_back": [
+      "Completed tag mapping table with actual PLC addresses",
+      "Confirmation of successful test POST request",
+      "Screenshot of LHTTP_Post configuration in TIA Portal"
+    ]
+  }
 }
