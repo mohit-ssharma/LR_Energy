@@ -211,8 +211,8 @@ return [
     'd2_slurry_height' => [
         'name' => 'Digester 2 Slurry Height',
         'unit' => 'm',
-        'min' => 2,
-        'max' => 8,
+        'min' => 2.46,
+        'max' => 6.97,
         'severity' => 'WARNING',
     ],
     
