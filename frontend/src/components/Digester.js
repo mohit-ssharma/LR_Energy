@@ -188,10 +188,10 @@ const Digester = ({ unit, data }) => {
             <TankVisualization 
               label="Slurry Height"
               value={data.slurryHeight}
-              maxValue={10}
+              maxValue={8.2}
               unit="m"
-              status="Operational"
-              color="bg-cyan-500"
+              status={getSlurryStatus(data.slurryHeight).status}
+              color={getSlurryStatus(data.slurryHeight).color}
               testId={`digester-${unit}-slurry-height`}
             />
           </div>
