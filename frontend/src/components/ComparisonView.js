@@ -255,10 +255,10 @@ const ComparisonView = () => {
       setError('Connection lost - showing last known data');
       setIsDemo(false);
     } else {
-      // ❌ No previous data - show demo
-      setComparisonData(getMockComparisonData());
-      setError('API not connected - showing demo data');
-      setIsDemo(true);
+      // ❌ No previous data - show empty state (NO MOCK DATA)
+      setComparisonData(null);
+      setError('No data available - connect to database');
+      setIsDemo(false);
     }
   };
 
@@ -267,9 +267,9 @@ const ComparisonView = () => {
     fetchData();
   }, [fetchData]);
 
-  // Auto-refresh every 60 seconds (1 minute)
+  // Auto-refresh every 30 seconds
   useEffect(() => {
-    const interval = setInterval(fetchData, 60000);
+    const interval = setInterval(fetchData, 30000);
     return () => clearInterval(interval);
   }, [fetchData]);
 
