@@ -189,11 +189,6 @@ try {
     // ============================================
     checkAndCreateAlerts($pdo, $plantId, $data);
 
-    // ============================================
-    // LOG API REQUEST
-    // ============================================
-    logApiRequest('receive_data.php', 'POST', 201, 'Data stored', $executionTime);
-
     // Send success response
     $response = [
         'status' => 'success',
@@ -210,7 +205,6 @@ try {
 
 } catch (PDOException $e) {
     error_log("Database error in receive_data.php: " . $e->getMessage());
-    logApiRequest('receive_data.php', 'POST', 500, $e->getMessage());
     
     if ($e->getCode() == 23000) {
         sendError('Duplicate entry for this timestamp', 409);
