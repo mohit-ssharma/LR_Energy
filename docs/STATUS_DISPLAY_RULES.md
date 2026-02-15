@@ -34,8 +34,10 @@
 ### H₂S (Hydrogen Sulfide)
 | Condition | Status | Color |
 |-----------|--------|-------|
-| < 500 ppm | Normal | Green |
-| ≥ 500 ppm | Warning | Amber |
+| < 5 ppm | Accepted | Green |
+| ≥ 5 ppm | Critical | Red |
+
+**Max Limit: 105 ppm**
 
 **File:** `GasComposition.js` (Lines 17-31)
 
