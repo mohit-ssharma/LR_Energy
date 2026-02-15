@@ -27,7 +27,7 @@ function TrendsPage() {
         ch4: 96.8 + (Math.random() * 1 - 0.5),
         co2: 2.9 + (Math.random() * 0.5 - 0.25),
         o2: 0.3 + (Math.random() * 0.1 - 0.05),
-        h2s: 180 + (Math.random() * 30 - 15),
+        h2s: 3 + (Math.random() * 2 - 1),  // H2S should be < 5 ppm (max limit 105 ppm)
         dewPoint: -68 + (Math.random() * 4 - 2),
         digester1Temp: 37 + (Math.random() * 2 - 1),
         digester2Temp: 36.5 + (Math.random() * 2 - 1),
