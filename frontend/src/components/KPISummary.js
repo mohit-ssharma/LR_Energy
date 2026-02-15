@@ -292,7 +292,6 @@ const KPISummary = () => {
     
     if (lastKnownDataRef.current) {
       // ✅ We have last known real data - KEEP SHOWING IT
-      // Don't replace with mock data, just add offline indicator
       setDashboardData({
         ...lastKnownDataRef.current,
         data_status: 'OFFLINE',
@@ -302,10 +301,10 @@ const KPISummary = () => {
       setError('Connection lost - showing last known data');
       setIsDemo(false);
     } else {
-      // ❌ No previous data ever received - this is first load, show demo
-      setDashboardData(getMockData());
-      setError('API not connected - showing demo data');
-      setIsDemo(true);
+      // ❌ No previous data - show empty state (NO MOCK DATA)
+      setDashboardData(null);
+      setError('No data available - connect to database');
+      setIsDemo(false);
     }
     setLastRefresh(new Date());
   };
@@ -323,9 +322,10 @@ const KPISummary = () => {
       setIsConnected(true);
       setIsDemo(false);
     } else {
-      setDashboardData(getMockData());
-      setError('No data available - showing demo');
-      setIsDemo(true);
+      // No data available (NO MOCK DATA)
+      setDashboardData(null);
+      setError('No data available from server');
+      setIsDemo(false);
     }
     setLastRefresh(new Date());
   };
