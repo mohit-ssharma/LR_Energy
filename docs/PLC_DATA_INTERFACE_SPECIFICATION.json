@@ -138,9 +138,10 @@
       "description": "Hydrogen sulfide (H2S) content",
       "unit": "ppm",
       "data_type": "DECIMAL(10,2)",
-      "range": "0 - 5000",
-      "normal_range": "0 - 500",
-      "example": 180.00,
+      "range": "0 - 105",
+      "normal_range": "0 - 5",
+      "status_rule": "< 5 ppm = Accepted, >= 5 ppm = Critical",
+      "example": 3.00,
       "tag_address": "<<PLC_TAG_ADDRESS>>",
       "required": true
     },
