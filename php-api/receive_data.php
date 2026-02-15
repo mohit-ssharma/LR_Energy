@@ -55,7 +55,6 @@ if (json_last_error() !== JSON_ERROR_NONE) {
 
 // Validate required fields
 if (!isset($data['timestamp'])) {
-    logApiRequest('receive_data.php', 'POST', 400, 'Missing timestamp');
     sendError('Missing required field: timestamp', 400);
 }
 
