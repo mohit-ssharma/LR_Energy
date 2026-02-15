@@ -1,6 +1,7 @@
-import { useState } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import "@/App.css";
 import { AuthProvider, useAuth, ROLES } from "./context/AuthContext";
+import { getDashboardData } from "./services/api";
 import LoginPage from "./components/LoginPage";
 import DashboardListPage from "./components/DashboardListPage";
 import Header from "./components/Header";
@@ -20,15 +21,81 @@ import MNREHeader from "./components/MNREHeader";
 import ComparisonView from "./components/ComparisonView";
 
 const LREnergyDashboard = () => {
+  const [dashboardData, setDashboardData] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+  const [isConnected, setIsConnected] = useState(false);
+  const lastKnownDataRef = useRef(null);
+
+  // Mock data for when API is unavailable
+  const getMockData = () => ({
+    data_status: 'DEMO',
+    last_update: new Date().toISOString(),
+    current: {
+      raw_biogas_flow: 1250.5, raw_biogas_totalizer: 150061,
+      purified_gas_flow: 1180.2, purified_gas_totalizer: 142350,
+      product_gas_flow: 1150.8, product_gas_totalizer: 138200,
+      ch4_concentration: 96.8, co2_level: 2.9, o2_concentration: 0.3, h2s_content: 3, dew_point: -68,
+      d1_temp_bottom: 37, d1_temp_top: 36.5, d1_gas_pressure: 32, d1_air_pressure: 18, d1_slurry_height: 7.6, d1_gas_level: 75,
+      d2_temp_bottom: 36.5, d2_temp_top: 36, d2_gas_pressure: 30, d2_air_pressure: 17, d2_slurry_height: 7.3, d2_gas_level: 72,
+      buffer_tank_level: 82, lagoon_tank_level: 76,
+      feed_fm1_flow: 42, feed_fm1_totalizer: 1008, feed_fm2_flow: 38, feed_fm2_totalizer: 912,
+      fresh_water_flow: 12, fresh_water_totalizer: 288, recycle_water_flow: 26, recycle_water_totalizer: 624,
+      psa_status: 1, psa_efficiency: 94.5, lt_panel_power: 245, compressor_status: 1
+    },
+    avg_1hr: { ch4_concentration: 96.7, co2_level: 2.8, h2s_content: 3 },
+    avg_12hr: { ch4_concentration: 96.6, co2_level: 2.9, h2s_content: 4, sample_count: 700, expected_samples: 720 },
+    totalizer_24hr: { raw_biogas: 30000, purified_gas: 28320, product_gas: 27600, sample_count: 1400, expected_samples: 1440 }
+  });
+
+  // Fetch dashboard data
+  const fetchData = useCallback(async () => {
+    try {
+      const result = await getDashboardData();
+      
+      if (result.success && result.data && result.data.current) {
+        setDashboardData(result.data);
+        lastKnownDataRef.current = result.data;
+        setError(null);
+        setIsConnected(true);
+      } else {
+        handleConnectionLost(result.error || 'Failed to fetch data');
+      }
+    } catch (err) {
+      console.error('Dashboard API error:', err);
+      handleConnectionLost(err.message);
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  const handleConnectionLost = (errorMsg) => {
+    setIsConnected(false);
+    if (lastKnownDataRef.current) {
+      setDashboardData({ ...lastKnownDataRef.current, data_status: 'OFFLINE' });
+      setError('Connection lost - showing last known data');
+    } else {
+      setDashboardData(getMockData());
+      setError('API not connected - showing demo data');
+    }
+  };
+
+  // Initial fetch and auto-refresh every 30 seconds
+  useEffect(() => {
+    fetchData();
+    const interval = setInterval(fetchData, 30000);
+    return () => clearInterval(interval);
+  }, [fetchData]);
+
   return (
     <div className="max-w-[1920px] mx-auto p-4 md:p-6 lg:p-8 bg-slate-50 min-h-screen" data-testid="dashboard-page">
       <KPISummary />
-      <GasComposition />
-      <DewPointMeter />
-      <DigestersSection />
-      <TankLevels />
-      <WaterFlowMeters />
-      <EquipmentStatus />
+      <GasComposition dashboardData={dashboardData} />
+      <DewPointMeter dashboardData={dashboardData} />
+      <DigestersSection dashboardData={dashboardData} />
+      <TankLevels dashboardData={dashboardData} />
+      <WaterFlowMeters dashboardData={dashboardData} />
+      <EquipmentStatus dashboardData={dashboardData} />
       <ComparisonView />
     </div>
   );
