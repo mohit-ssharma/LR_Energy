@@ -69,7 +69,7 @@ D2 Top Temperature      | °C      | _________ | _________ | WARNING  | Normal: 
 D2 Temperature CRITICAL | °C      | -         | _________ | CRITICAL | Bacteria death
 D2 Balloon Gas Pressure | mbar    | _________ | _________ | WARNING  | Normal: ~30
 D2 Balloon Air Pressure | mbar    | _________ | _________ | WARNING  | Normal: ~17
-D2 Slurry Height        | m       | _________ | _________ | WARNING  | Normal: ~7.3
+D2 Slurry Height        | m       | 2.46      | 6.97      | WARNING  | Max: 8.2m (30-85% range)
 D2 Gas Level            | %       | _________ | _________ | WARNING  | Normal: ~72
 
 
