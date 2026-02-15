@@ -73,6 +73,15 @@ if (json_last_error() !== JSON_ERROR_NONE) {
     sendError('Invalid JSON: ' . json_last_error_msg(), 400);
 }
 
+// Check API key in JSON body (for Siemens PLC LHTTP compatibility)
+if ($checkJsonApiKey) {
+    if (isset($data['api_key'])) {
+        $apiKey = $data['api_key'];
+        unset($data['api_key']); // Remove from data before saving
+    }
+    validateApiKey($apiKey);
+}
+
 // Validate required fields
 if (!isset($data['timestamp'])) {
     sendError('Missing required field: timestamp', 400);
