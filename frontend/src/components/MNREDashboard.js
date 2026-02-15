@@ -113,15 +113,15 @@ const MNREKPISummary = ({ dashboardData, loading, error, isConnected, isDemo, on
   const buildKPIData = () => {
     if (!dashboardData) return [];
 
-    const { current, totalizer_24hr, last_update } = dashboardData;
+    const { current, last_update } = dashboardData;
 
     return [
       {
         title: 'Raw Biogas Flow',
         value: formatNumber(current?.raw_biogas_flow, 1),
         unit: 'Nm³/hr',
-        totalizer: 'Totalizer (24 Hr)',
-        totalizerValue: formatNumber(totalizer_24hr?.raw_biogas, 0),
+        totalizer: 'Totalizer',
+        totalizerValue: formatNumber(Math.round(current?.raw_biogas_totalizer || 0), 0),
         totalizerUnit: 'Nm³',
         icon: Wind,
         color: 'bg-emerald-600',
@@ -132,8 +132,8 @@ const MNREKPISummary = ({ dashboardData, loading, error, isConnected, isDemo, on
         title: 'Purified Gas Flow',
         value: formatNumber(current?.purified_gas_flow, 1),
         unit: 'Nm³/hr',
-        totalizer: 'Totalizer (24 Hr)',
-        totalizerValue: formatNumber(totalizer_24hr?.purified_gas, 0),
+        totalizer: 'Totalizer',
+        totalizerValue: formatNumber(Math.round(current?.purified_gas_totalizer || 0), 0),
         totalizerUnit: 'Nm³',
         icon: Droplet,
         color: 'bg-violet-700',
@@ -144,8 +144,8 @@ const MNREKPISummary = ({ dashboardData, loading, error, isConnected, isDemo, on
         title: 'Product Gas Flow',
         value: formatNumber(current?.product_gas_flow, 1),
         unit: 'Nm³/hr',
-        totalizer: 'Totalizer (24 Hr)',
-        totalizerValue: formatNumber(totalizer_24hr?.product_gas, 0),
+        totalizer: 'Totalizer',
+        totalizerValue: formatNumber(Math.round(current?.product_gas_totalizer || 0), 0),
         totalizerUnit: 'Nm³',
         icon: TrendingUp,
         color: 'bg-cyan-600',
