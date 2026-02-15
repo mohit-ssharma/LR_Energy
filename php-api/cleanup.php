@@ -1,60 +1,89 @@
 <?php
-/**
- * Database Cleanup Script
- * Removes records with incomplete/NULL data
- * 
- * URL: http://localhost/scada-api/cleanup.php
- */
+error_reporting(E_ALL);
+ini_set('display_errors', 1);
 
-require_once 'config.php';
+echo "<h1>🗑️ Delete Test Data</h1>";
 
-header('Content-Type: text/html; charset=UTF-8');
+$host = "localhost";
+$user = "illionss_karnal_lre";
+$pass = '@xABi]j4hOBd';
+$db   = "illionss_karnal_lre";
 
-echo "<h1>🧹 Database Cleanup</h1>";
+$conn = new mysqli($host, $user, $pass, $db);
 
-$pdo = getDBConnection();
-if (!$pdo) {
-    echo "<p style='color:red;'>❌ Database connection failed</p>";
-    exit;
+if ($conn->connect_error) {
+    die("<p style='color:red;'>Connection failed: " . $conn->connect_error . "</p>");
 }
 
-// Count records before cleanup
-$countBefore = $pdo->query("SELECT COUNT(*) as cnt FROM scada_readings")->fetch()['cnt'];
-echo "<p><strong>Records before cleanup:</strong> {$countBefore}</p>";
+echo "<p style='color:green;'>✅ Connected</p>";
 
-// Delete records where key fields are NULL (incomplete records)
-$sql = "DELETE FROM scada_readings WHERE 
-        purified_gas_flow IS NULL 
-        OR product_gas_flow IS NULL 
-        OR co2_level IS NULL 
-        OR h2s_content IS NULL
-        OR plant_id = 'TEST_DEBUG'";
-
-$deleted = $pdo->exec($sql);
-echo "<p style='color:green;'>✅ Deleted {$deleted} incomplete records</p>";
-
-// Count records after cleanup
-$countAfter = $pdo->query("SELECT COUNT(*) as cnt FROM scada_readings")->fetch()['cnt'];
-echo "<p><strong>Records after cleanup:</strong> {$countAfter}</p>";
-
-// Show remaining records
-echo "<h2>Remaining Records</h2>";
-$records = $pdo->query("SELECT id, plant_id, timestamp, raw_biogas_flow, purified_gas_flow, ch4_concentration, h2s_content FROM scada_readings ORDER BY timestamp DESC LIMIT 10");
-echo "<table border='1' cellpadding='5'>";
-echo "<tr><th>ID</th><th>Plant</th><th>Timestamp</th><th>Raw Flow</th><th>Purified Flow</th><th>CH4</th><th>H2S</th></tr>";
-while ($row = $records->fetch(PDO::FETCH_ASSOC)) {
-    echo "<tr>";
-    echo "<td>{$row['id']}</td>";
-    echo "<td>{$row['plant_id']}</td>";
-    echo "<td>{$row['timestamp']}</td>";
-    echo "<td>{$row['raw_biogas_flow']}</td>";
-    echo "<td>{$row['purified_gas_flow']}</td>";
-    echo "<td>{$row['ch4_concentration']}</td>";
-    echo "<td>{$row['h2s_content']}</td>";
-    echo "</tr>";
+// Check if confirmed
+if (isset($_GET['confirm']) && $_GET['confirm'] === 'yes') {
+    
+    echo "<h2>Deleting...</h2>";
+    
+    // Delete SCADA readings
+    $result = $conn->query("DELETE FROM scada_readings");
+    $deleted1 = $conn->affected_rows;
+    echo "<p>✅ scada_readings: Deleted $deleted1 rows</p>";
+    
+    // Delete API logs
+    $result = $conn->query("DELETE FROM api_logs");
+    $deleted2 = $conn->affected_rows;
+    echo "<p>✅ api_logs: Deleted $deleted2 rows</p>";
+    
+    // Delete sync status
+    $result = $conn->query("DELETE FROM sync_status");
+    $deleted3 = $conn->affected_rows;
+    echo "<p>✅ sync_status: Deleted $deleted3 rows</p>";
+    
+    // Delete alerts
+    $result = $conn->query("DELETE FROM alerts");
+    $deleted4 = $conn->affected_rows;
+    echo "<p>✅ alerts: Deleted $deleted4 rows</p>";
+    
+    // Reset auto-increment
+    $conn->query("ALTER TABLE scada_readings AUTO_INCREMENT = 1");
+    $conn->query("ALTER TABLE api_logs AUTO_INCREMENT = 1");
+    $conn->query("ALTER TABLE sync_status AUTO_INCREMENT = 1");
+    $conn->query("ALTER TABLE alerts AUTO_INCREMENT = 1");
+    
+    echo "<h2 style='color:green;'>✅ All Test Data Deleted!</h2>";
+    echo "<p>Total deleted: " . ($deleted1 + $deleted2 + $deleted3 + $deleted4) . " rows</p>";
+    echo "<p><strong>Note:</strong> Users table NOT touched (logins preserved)</p>";
+    echo "<p style='color:red;'><strong>⚠️ DELETE this file now!</strong></p>";
+    
+} else {
+    
+    // Show current counts
+    echo "<h2>📊 Current Data:</h2>";
+    
+    $tables = ['scada_readings', 'api_logs', 'sync_status', 'alerts', 'users'];
+    
+    echo "<table border='1' cellpadding='10'>";
+    echo "<tr><th>Table</th><th>Rows</th><th>Will Delete?</th></tr>";
+    
+    foreach ($tables as $table) {
+        $result = $conn->query("SELECT COUNT(*) as cnt FROM $table");
+        $row = $result->fetch_assoc();
+        $willDelete = ($table === 'users') ? '❌ No (keep logins)' : '✅ Yes';
+        echo "<tr><td>$table</td><td>{$row['cnt']}</td><td>$willDelete</td></tr>";
+    }
+    echo "</table>";
+    
+    echo "<h2>⚠️ Confirm Delete</h2>";
+    echo "<p>This will delete ALL test data from:</p>";
+    echo "<ul>";
+    echo "<li>scada_readings (sensor data)</li>";
+    echo "<li>api_logs (API call logs)</li>";
+    echo "<li>sync_status (sync records)</li>";
+    echo "<li>alerts (alert history)</li>";
+    echo "</ul>";
+    echo "<p><strong>Users will NOT be deleted.</strong></p>";
+    
+    echo "<br><a href='?confirm=yes' style='background:red; color:white; padding:15px 30px; text-decoration:none; font-size:18px; border-radius:5px;'>🗑️ DELETE ALL TEST DATA</a>";
+    echo "<br><br><a href='dashboard.php'>Cancel - Go to Dashboard</a>";
 }
-echo "</table>";
 
-echo "<hr>";
-echo "<p><a href='simulate.php'>➡️ Go to Simulator</a> to add fresh complete data</p>";
+$conn->close();
 ?>
