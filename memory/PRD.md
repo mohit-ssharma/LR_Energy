@@ -11,19 +11,25 @@
 ### Issues Fixed
 | # | Issue | Status |
 |---|-------|--------|
-| 1 | H₂S value displaying as float (e.g., "5.0") | ✅ Fixed - Now shows integer |
-| 2 | Totalizer values incorrect (e.g., "93 km³") | ✅ Fixed - Correct calculation (MAX-MIN) |
+| 1 | Totalizer showing MAX-MIN calculation instead of actual value | ✅ Fixed - Now shows actual DB value |
+| 2 | H₂S value displaying as float (e.g., "5.0") | ✅ Fixed - Now shows integer |
 | 3 | Statistics 12-Hr/24-Hr Avg showing same values | ✅ Fixed - Backend calculates separately |
-| 4 | H₂S default value 180 ppm (exceeds 105 ppm limit) | ✅ Fixed - Changed to 3 ppm |
-| 5 | Comparison section previous day averages | ✅ Verified - Already working correctly |
+| 4 | Comparison showing Today Avg vs Yesterday Avg | ✅ Fixed - Now Today Current vs Yesterday Avg |
+| 5 | CO2/O2/H2S improvement logic incorrect | ✅ Fixed - Lower value = Improved |
+| 6 | H₂S default value 180 ppm (exceeds 105 ppm limit) | ✅ Fixed - Changed to 3 ppm |
 
 ### Files Modified
-- `/app/frontend/src/components/KPISummary.js`
-- `/app/frontend/src/components/TrendsPage.js`
-- `/app/php-api/dashboard.php`
-- `/app/php-api/trends.php`
-- `/app/docs/STATUS_DISPLAY_RULES.md`
+- `/app/frontend/src/components/KPISummary.js` - Totalizer shows actual value
+- `/app/frontend/src/components/ComparisonView.js` - Updated labels
+- `/app/frontend/src/components/TrendsPage.js` - Uses API statistics
+- `/app/php-api/comparison.php` - Complete rewrite for correct comparison
+- `/app/php-api/trends.php` - Separate 12hr/24hr queries
 - `/app/docs/FIX_CHECKLIST_FEB2026.md` (NEW)
+
+### Comparison Logic Summary
+- **Today** = Current/Latest reading from database
+- **Yesterday** = Average of all readings from yesterday
+- **CO2, O2, H2S**: If `(today - yesterday_avg) < 0` = **IMPROVED**
 
 ---
 
