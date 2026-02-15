@@ -108,12 +108,19 @@ try {
     
     // Get TODAY's totalizer differences (Midnight-to-Midnight: 00:00 AM to 11:59 PM)
     // Resets at midnight for daily production tracking
+    // Also returns MIN/MAX for debugging
     $stmt24hr = $pdo->query("
         SELECT 
             COUNT(*) as sample_count,
             COUNT(raw_biogas_totalizer) as raw_biogas_samples,
             COUNT(purified_gas_totalizer) as purified_gas_samples,
             COUNT(product_gas_totalizer) as product_gas_samples,
+            COALESCE(MIN(raw_biogas_totalizer), 0) as min_raw_biogas_totalizer,
+            COALESCE(MAX(raw_biogas_totalizer), 0) as max_raw_biogas_totalizer,
+            COALESCE(MIN(purified_gas_totalizer), 0) as min_purified_gas_totalizer,
+            COALESCE(MAX(purified_gas_totalizer), 0) as max_purified_gas_totalizer,
+            COALESCE(MIN(product_gas_totalizer), 0) as min_product_gas_totalizer,
+            COALESCE(MAX(product_gas_totalizer), 0) as max_product_gas_totalizer,
             COALESCE(MAX(raw_biogas_totalizer) - MIN(raw_biogas_totalizer), 0) as totalizer_raw_biogas,
             COALESCE(MAX(purified_gas_totalizer) - MIN(purified_gas_totalizer), 0) as totalizer_purified_gas,
             COALESCE(MAX(product_gas_totalizer) - MIN(product_gas_totalizer), 0) as totalizer_product_gas,
