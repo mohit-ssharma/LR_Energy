@@ -92,7 +92,6 @@ try {
     
     if ($checkDuplicate->fetch()) {
         $executionTime = round((microtime(true) - $startTime) * 1000);
-        logApiRequest('receive_data.php', 'POST', 200, 'Duplicate data', $executionTime);
         sendResponse([
             'status' => 'duplicate',
             'message' => 'Data for this timestamp already exists',
