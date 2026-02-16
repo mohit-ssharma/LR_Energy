@@ -505,55 +505,46 @@ function PreviewModal({ show, onClose, reportType, dateRange, customStartDate, c
                 </div>
               </div>
 
-              {/* Data Quality Summary */}
-              <DataQualitySummary 
-                expectedRecords={expectedRecords}
-                actualRecords={actualRecords}
-                gaps={[]}
-              />
-
               {/* Summary Cards */}
               <div className="grid grid-cols-4 gap-4 mb-6">
                 {summaryCards}
               </div>
 
-              {/* Trend Chart */}
+              {/* Trend Chart - Shows all metrics from daily breakdown */}
               <div className="bg-white rounded-lg p-5 border border-slate-200 mb-6 shadow-sm">
-                <h4 className="font-semibold text-slate-800 mb-4">{chartConfig.label} - Trend</h4>
+                <h4 className="font-semibold text-slate-800 mb-4">Daily Production Trend</h4>
                 <ResponsiveContainer width="100%" height={250}>
                   <LineChart data={chartData}>
                     <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
                     <XAxis dataKey="date" tick={{ fontSize: 10 }} interval={Math.max(0, Math.floor(chartData.length / 10))} />
                     <YAxis tick={{ fontSize: 10 }} />
                     <Tooltip contentStyle={{ backgroundColor: 'white', border: '1px solid #e2e8f0', borderRadius: '8px', fontSize: '12px' }} />
-                    <Line type="monotone" dataKey={chartConfig.dataKey} stroke={chartConfig.color} strokeWidth={2} dot={false} />
+                    {reportType === 'production' && (
+                      <>
+                        <Line type="monotone" dataKey="rawBiogas" stroke="#10b981" strokeWidth={2} dot={false} name="Raw Biogas" />
+                        <Line type="monotone" dataKey="purifiedGas" stroke="#8b5cf6" strokeWidth={2} dot={false} name="Purified Gas" />
+                        <Line type="monotone" dataKey="productGas" stroke="#06b6d4" strokeWidth={2} dot={false} name="Product Gas" />
+                      </>
+                    )}
+                    {reportType === 'quality' && (
+                      <>
+                        <Line type="monotone" dataKey="ch4" stroke="#f59e0b" strokeWidth={2} dot={false} name="CH₄ %" />
+                        <Line type="monotone" dataKey="co2" stroke="#8b5cf6" strokeWidth={2} dot={false} name="CO₂ %" />
+                        <Line type="monotone" dataKey="o2" stroke="#10b981" strokeWidth={2} dot={false} name="O₂ %" />
+                      </>
+                    )}
+                    {reportType === 'performance' && (
+                      <>
+                        <Line type="monotone" dataKey="d1Temp" stroke="#f97316" strokeWidth={2} dot={false} name="D1 Temp" />
+                        <Line type="monotone" dataKey="d2Temp" stroke="#06b6d4" strokeWidth={2} dot={false} name="D2 Temp" />
+                        <Line type="monotone" dataKey="tankLevel" stroke="#10b981" strokeWidth={2} dot={false} name="Tank Level" />
+                      </>
+                    )}
+                    {(reportType === 'custom' || !['production', 'quality', 'performance'].includes(reportType)) && (
+                      <Line type="monotone" dataKey="rawBiogas" stroke="#10b981" strokeWidth={2} dot={false} name="Raw Biogas" />
+                    )}
                   </LineChart>
                 </ResponsiveContainer>
-              </div>
-
-              {/* Statistics Summary */}
-              <div className="grid grid-cols-3 gap-4 mb-6">
-                <div className="bg-emerald-50 rounded-lg p-4 border border-emerald-200">
-                  <div className="flex items-center space-x-2 mb-2">
-                    <TrendingUp className="w-5 h-5 text-emerald-600" />
-                    <span className="text-sm font-semibold text-emerald-800">Maximum</span>
-                  </div>
-                  <div className="text-2xl font-bold font-mono text-emerald-700">{stats.max}</div>
-                </div>
-                <div className="bg-blue-50 rounded-lg p-4 border border-blue-200">
-                  <div className="flex items-center space-x-2 mb-2">
-                    <Minus className="w-5 h-5 text-blue-600" />
-                    <span className="text-sm font-semibold text-blue-800">Average</span>
-                  </div>
-                  <div className="text-2xl font-bold font-mono text-blue-700">{stats.avg}</div>
-                </div>
-                <div className="bg-amber-50 rounded-lg p-4 border border-amber-200">
-                  <div className="flex items-center space-x-2 mb-2">
-                    <TrendingDown className="w-5 h-5 text-amber-600" />
-                    <span className="text-sm font-semibold text-amber-800">Minimum</span>
-                  </div>
-                  <div className="text-2xl font-bold font-mono text-amber-700">{stats.min}</div>
-                </div>
               </div>
 
               {/* Daily Breakdown Table */}
