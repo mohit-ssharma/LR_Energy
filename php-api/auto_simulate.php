@@ -51,7 +51,7 @@ echo "<h1>🤖 Auto PLC Simulator</h1>";
 
 // Scenario Reference
 echo "<div class='card info'>";
-echo "<h3>📋 10 Distinct Scenarios (Cycles Through)</h3>";
+echo "<h3>📋 11 Distinct Scenarios (Cycles Through)</h3>";
 echo "<table style='width:100%; border-collapse: collapse; font-size:12px;'>";
 echo "<tr style='background:#f1f5f9;'><th style='padding:6px;'>#</th><th style='padding:6px; text-align:left;'>Scenario</th><th style='padding:6px;'>Key Change</th></tr>";
 echo "<tr><td style='padding:4px; text-align:center;'>1</td><td>✅ Normal Operation</td><td>Optimal values</td></tr>";
@@ -64,6 +64,7 @@ echo "<tr><td style='padding:4px; text-align:center;'>7</td><td>🚨 High Tank</
 echo "<tr style='background:#f8fafc;'><td style='padding:4px; text-align:center;'>8</td><td>⚠️ Low PSA</td><td>PSA Efficiency 88.5%</td></tr>";
 echo "<tr><td style='padding:4px; text-align:center;'>9</td><td>🌙 Night Operation</td><td>Reduced load -15%</td></tr>";
 echo "<tr style='background:#f8fafc;'><td style='padding:4px; text-align:center;'>10</td><td>🏆 Peak Performance</td><td>Max values, CH₄ 97.5%</td></tr>";
+echo "<tr><td style='padding:4px; text-align:center;'>11</td><td>📊 Flow Meter Only</td><td>Partial Data (Others NULL)</td></tr>";
 echo "</table>";
 echo "</div>";
 
