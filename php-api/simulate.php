@@ -137,6 +137,8 @@ curl_setopt($ch, CURLOPT_HTTPHEADER, [
     'Content-Type: application/json',
     'X-API-Key: ' . $API_KEY
 ]);
+curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);  // For GoDaddy SSL
+curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, 0);      // For GoDaddy SSL
 
 $response = curl_exec($ch);
 $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
