@@ -41,13 +41,13 @@ function generateData($mode) {
         'plant_id' => 'KARNAL',
         'timestamp' => $timestamp,
         
-        // Gas Flow
+        // Gas Flow (with decimal totalizers)
         'raw_biogas_flow' => 1250 + rand(-50, 50),
-        'raw_biogas_totalizer' => 150000 + rand(0, 100),
+        'raw_biogas_totalizer' => round(150000 + rand(0, 10000) / 100, 2),
         'purified_gas_flow' => 1180 + rand(-40, 40),
-        'purified_gas_totalizer' => 142000 + rand(0, 100),
+        'purified_gas_totalizer' => round(142000 + rand(0, 10000) / 100, 2),
         'product_gas_flow' => 1150 + rand(-35, 35),
-        'product_gas_totalizer' => 138000 + rand(0, 100),
+        'product_gas_totalizer' => round(138000 + rand(0, 10000) / 100, 2),
         
         // Gas Composition
         'ch4_concentration' => 96.8 + (rand(-10, 10) / 10),
@@ -76,15 +76,15 @@ function generateData($mode) {
         'buffer_tank_level' => 82 + rand(-10, 10),
         'lagoon_tank_level' => 76 + rand(-10, 10),
         
-        // Water Flow
+        // Water Flow (with decimal totalizers)
         'feed_fm1_flow' => 42 + rand(-5, 5),
-        'feed_fm1_totalizer' => 5000 + rand(0, 50),
+        'feed_fm1_totalizer' => round(5000 + rand(0, 5000) / 100, 2),
         'feed_fm2_flow' => 38 + rand(-5, 5),
-        'feed_fm2_totalizer' => 4500 + rand(0, 50),
+        'feed_fm2_totalizer' => round(4500 + rand(0, 5000) / 100, 2),
         'fresh_water_flow' => 12 + rand(-3, 3),
-        'fresh_water_totalizer' => 1500 + rand(0, 20),
+        'fresh_water_totalizer' => round(1500 + rand(0, 2000) / 100, 2),
         'recycle_water_flow' => 26 + rand(-4, 4),
-        'recycle_water_totalizer' => 3000 + rand(0, 30),
+        'recycle_water_totalizer' => round(3000 + rand(0, 3000) / 100, 2),
         
         // Equipment
         'psa_status' => 1,
