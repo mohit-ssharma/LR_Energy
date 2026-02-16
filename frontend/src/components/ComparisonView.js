@@ -433,6 +433,16 @@ const ComparisonView = () => {
             </div>
           )}
           
+          {/* No Today Data Banner */}
+          {!hasTodayData && !error && (
+            <div className="mb-4 p-3 rounded-lg flex items-center bg-slate-50 border border-slate-200">
+              <AlertTriangle className="w-4 h-4 mr-2 text-slate-500" />
+              <span className="text-sm text-slate-600">
+                No data uploaded for today. Showing yesterday's averages only.
+              </span>
+            </div>
+          )}
+          
           {/* Summary Badges */}
           <div className="grid grid-cols-4 gap-4 mb-6">
             <SummaryBadge 
