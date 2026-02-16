@@ -301,6 +301,13 @@ function ReportsPage() {
     };
     const periodStr = formatDate(startDate) + ' - ' + formatDate(endDate);
     
+    // Prepare chart data for PDF
+    const chartData = data.map(d => ({
+      date: d.date,
+      value: d.avg_raw_biogas_flow || 0,
+      rawBiogas: d.avg_raw_biogas_flow || 0
+    }));
+    
     await generatePDFReport({
       title: name,
       subtitle: 'LR Energy Biogas Plant - Karnal | SCADA Monitoring System',
@@ -316,6 +323,8 @@ function ReportsPage() {
         avg: avgRawBiogas,
         min: minRawBiogas.toFixed(2)
       },
+      chartData: chartData,
+      chartTitle: 'Daily Raw Biogas Flow (Nm³/hr)',
       tableHeaders: ['Date', 'Raw Biogas', 'Purified Gas', 'Product Gas (Kg/hr)', 'Efficiency'],
       tableData: tableData
     });
