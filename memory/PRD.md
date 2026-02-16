@@ -3,8 +3,8 @@
 ## Project Overview
 Web-based SCADA (Supervisory Control and Data Acquisition) monitoring system for a biogas plant at Karnal, India.
 
-**Document Version:** 3.0  
-**Last Updated:** February 2026
+**Document Version:** 3.1  
+**Last Updated:** February 16, 2026
 
 ---
 
@@ -37,22 +37,30 @@ Web-based SCADA (Supervisory Control and Data Acquisition) monitoring system for
 - [x] Digester monitoring (D1 & D2)
 - [x] Equipment status (PSA, Compressor, LT Panel)
 - [x] Graceful handling of NULL/missing data
+- [x] **MNRE Dashboard Product Gas Flow unit: Kg/hr** (Fixed Feb 16)
 
 ### Trends Page
 - [x] Historical data charts (24h, 7d, 30d)
 - [x] Multiple parameters: Gas Flow, Gas Composition, Digester, Equipment
+- [x] **Category Filter with checkboxes** (Updated Feb 16)
 - [x] **Daily Production Section** with:
-  - Today's Raw Biogas Production (Nm³)
-  - Today's Product Gas Production (Kg)
-  - Historic Production Bar Chart (30 days)
-  - **Daily Production Summary Table**
+  - Today's Raw Biogas Production (Nm³) - Latest Totalizer Value
+  - Today's Product Gas Production (Kg) - Latest Totalizer Value
+  - **Daily Production Summary Table** (using latest totalizer values per day)
+- [x] **Historic Daily Production Graph REMOVED** (Feb 16)
 - [x] Statistics from real database data
 - [x] Auto-refresh every 60 seconds
+- [x] **Parameter Statistics section (HEAD_OFFICE only)** - Removed from MNRE (Feb 16)
 
 ### Reports Page
-- [x] Report Types: Production, Quality, Performance, Compliance, Custom
+- [x] Report Types: Production, Quality, Performance, Custom
+- [x] **Compliance Report REMOVED** (Feb 16)
 - [x] Date Range: Today, Week, Month, Quarter, Year, Custom
 - [x] Preview Modal with real API data
+- [x] **Data Quality Summary REMOVED from Preview** (Feb 16)
+- [x] **Max/Avg/Min Statistics REMOVED from Preview** (Feb 16)
+- [x] **Daily Breakdown shows totalizer values** (Raw Gas, Purified Gas, Product Gas)
+- [x] **Graph shows all metrics from daily breakdown** (Feb 16)
 - [x] PDF Download with **SVG Bar Chart included**
 - [x] CSV Download
 - [x] **Recent Reports** stored in localStorage (last 7 days only)
