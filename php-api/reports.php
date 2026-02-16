@@ -226,60 +226,6 @@ try {
         'execution_time_ms' => $executionTime,
         'generated_at' => date('Y-m-d H:i:s')
     ];
-                
-                // Daily Production (from totalizer difference)
-                'raw_biogas' => round(floatval($day['daily_raw_biogas']), 2),
-                'purified_gas' => round(floatval($day['daily_purified_gas']), 2),
-                'product_gas' => round(floatval($day['daily_product_gas']), 2),
-                
-                // Daily Averages (flow rates)
-                'avg_raw_biogas_flow' => round(floatval($day['avg_raw_biogas_flow']), 2),
-                'avg_purified_gas_flow' => round(floatval($day['avg_purified_gas_flow']), 2),
-                'avg_product_gas_flow' => round(floatval($day['avg_product_gas_flow']), 2),
-                
-                // Gas Composition
-                'avg_ch4' => round(floatval($day['avg_ch4']), 2),
-                'avg_co2' => round(floatval($day['avg_co2']), 2),
-                'avg_o2' => round(floatval($day['avg_o2']), 2),
-                'avg_h2s' => round(floatval($day['avg_h2s']), 0),
-                'avg_dew_point' => round(floatval($day['avg_dew_point']), 2),
-                'min_ch4' => round(floatval($day['min_ch4']), 2),
-                'max_ch4' => round(floatval($day['max_ch4']), 2),
-                'min_h2s' => round(floatval($day['min_h2s']), 0),
-                'max_h2s' => round(floatval($day['max_h2s']), 0),
-                
-                // Digester 1
-                'avg_d1_temp' => round(floatval($day['avg_d1_temp']), 1),
-                'avg_d1_pressure' => round(floatval($day['avg_d1_pressure']), 2),
-                'avg_d1_slurry' => round(floatval($day['avg_d1_slurry']), 2),
-                'avg_d1_gas_level' => round(floatval($day['avg_d1_gas_level']), 1),
-                
-                // Digester 2
-                'avg_d2_temp' => round(floatval($day['avg_d2_temp']), 1),
-                'avg_d2_pressure' => round(floatval($day['avg_d2_pressure']), 2),
-                'avg_d2_slurry' => round(floatval($day['avg_d2_slurry']), 2),
-                'avg_d2_gas_level' => round(floatval($day['avg_d2_gas_level']), 1),
-                
-                // Tank Levels
-                'avg_buffer_tank' => round(floatval($day['avg_buffer_tank']), 1),
-                'avg_lagoon_tank' => round(floatval($day['avg_lagoon_tank']), 1),
-                
-                // Equipment
-                'psa_hours' => round(intval($day['psa_running_minutes']) / 60, 2),
-                'compressor_hours' => round(intval($day['compressor_running_minutes']) / 60, 2),
-                'avg_psa_efficiency' => round(floatval($day['avg_psa_efficiency']), 2),
-                'avg_lt_power' => round(floatval($day['avg_lt_power']), 2),
-                
-                // Water
-                'feed_water' => round(floatval($day['daily_feed_fm1']) + floatval($day['daily_feed_fm2']), 2),
-                'fresh_water' => round(floatval($day['daily_fresh_water']), 2),
-                'recycle_water' => round(floatval($day['daily_recycle_water']), 2)
-            ];
-        }, $dailyData),
-        
-        'generated_at' => date('Y-m-d H:i:s'),
-        'execution_time_ms' => $executionTime
-    ];
     
     sendResponse($response);
     
