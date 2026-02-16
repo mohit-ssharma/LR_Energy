@@ -619,13 +619,30 @@ function MNRETrendsPage({ userRole = 'MNRE' }) {
               <Eye className="w-4 h-4 text-slate-600" />
               <span className="text-sm font-semibold text-slate-700">Category Filter</span>
             </div>
-            <select
-              value={selectedCategory}
-              onChange={function(e) { setSelectedCategory(e.target.value); }}
-              className="w-full px-4 py-2 rounded-md text-sm font-medium bg-slate-100 text-slate-600 border border-slate-200 focus:outline-none focus:ring-2 focus:ring-cyan-500"
-            >
-              {categoryOptions}
-            </select>
+            <div className="space-y-2 max-h-48 overflow-y-auto bg-slate-50 p-3 rounded-lg border border-slate-200">
+              <label className="flex items-center space-x-2 p-2 rounded hover:bg-white cursor-pointer transition-colors">
+                <input
+                  type="checkbox"
+                  checked={selectedCategory === 'all'}
+                  onChange={function() { setSelectedCategory('all'); }}
+                  className="w-4 h-4 rounded border-slate-300 text-emerald-600 focus:ring-emerald-500"
+                />
+                <span className="text-sm font-medium text-slate-700">All Categories</span>
+              </label>
+              {Object.keys(parameterCategories).map(function(cat) {
+                return (
+                  <label key={cat} className="flex items-center space-x-2 p-2 rounded hover:bg-white cursor-pointer transition-colors">
+                    <input
+                      type="checkbox"
+                      checked={selectedCategory === cat}
+                      onChange={function() { setSelectedCategory(selectedCategory === cat ? 'all' : cat); }}
+                      className="w-4 h-4 rounded border-slate-300 text-emerald-600 focus:ring-emerald-500"
+                    />
+                    <span className="text-sm text-slate-600">{cat}</span>
+                  </label>
+                );
+              })}
+            </div>
           </div>
         </div>
       </div>
