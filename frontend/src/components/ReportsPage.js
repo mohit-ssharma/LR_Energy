@@ -355,13 +355,6 @@ function ReportsPage() {
       description: 'Equipment performance and operational efficiency'
     },
     {
-      id: 'compliance',
-      label: 'Compliance Report',
-      icon: FileText,
-      color: 'bg-amber-600',
-      description: 'Regulatory compliance and safety metrics'
-    },
-    {
       id: 'custom',
       label: 'Custom Report',
       icon: Settings,
