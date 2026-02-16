@@ -8,7 +8,7 @@ require_once 'config.php';
  * 
  * Usage:
  * - Manual: /flow_simulator.php?send=1
- * - Auto mode: /flow_simulator.php?auto=1 (sends every 60 seconds)
+ * - Auto mode: /flow_simulator.php?auto=1 (sends every 30 seconds)
  * - Stop auto: /flow_simulator.php?stop=1
  */
 
@@ -32,7 +32,7 @@ if ($stop) {
 <html>
 <head>
     <title>Flow Meter Only Simulator</title>
-    <meta http-equiv="refresh" content="<?php echo ($mode == 'auto' && !$stop) ? '60' : '9999'; ?>">
+    <meta http-equiv="refresh" content="<?php echo ($mode == 'auto' && !$stop) ? '30' : '9999'; ?>">
     <style>
         body { font-family: Arial, sans-serif; padding: 20px; max-width: 900px; margin: 0 auto; }
         .card { background: #f8f9fa; border: 1px solid #dee2e6; padding: 20px; margin: 20px 0; border-radius: 8px; }
