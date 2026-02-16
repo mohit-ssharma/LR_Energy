@@ -60,6 +60,74 @@ const createStatsHTML = (statistics) => {
   '</div>';
 };
 
+// Helper function to create SVG bar chart for PDF
+const createChartSVG = (chartData, chartTitle) => {
+  if (!chartData || chartData.length === 0) return '';
+  
+  const width = 700;
+  const height = 200;
+  const padding = 40;
+  const barWidth = Math.max(15, Math.min(40, (width - padding * 2) / chartData.length - 5));
+  
+  // Find max value for scaling
+  let maxValue = 0;
+  for (let i = 0; i < chartData.length; i++) {
+    const val = chartData[i].value || chartData[i].rawBiogas || 0;
+    if (val > maxValue) maxValue = val;
+  }
+  if (maxValue === 0) maxValue = 100;
+  
+  // Generate bars
+  let bars = '';
+  let labels = '';
+  const barSpacing = (width - padding * 2) / chartData.length;
+  
+  for (let i = 0; i < chartData.length; i++) {
+    const d = chartData[i];
+    const val = d.value || d.rawBiogas || 0;
+    const barHeight = (val / maxValue) * (height - padding * 2);
+    const x = padding + i * barSpacing + (barSpacing - barWidth) / 2;
+    const y = height - padding - barHeight;
+    
+    bars += '<rect x="' + x + '" y="' + y + '" width="' + barWidth + '" height="' + barHeight + '" fill="#10b981" rx="2"/>';
+    
+    // Add value label on top of bar
+    if (chartData.length <= 15) {
+      bars += '<text x="' + (x + barWidth/2) + '" y="' + (y - 5) + '" text-anchor="middle" font-size="8" fill="#333">' + val.toFixed(0) + '</text>';
+    }
+    
+    // Add date label
+    const dateLabel = d.date || d.fullDate || '';
+    if (chartData.length <= 10) {
+      labels += '<text x="' + (x + barWidth/2) + '" y="' + (height - padding + 15) + '" text-anchor="middle" font-size="8" fill="#666">' + dateLabel.slice(-5) + '</text>';
+    } else if (i % 3 === 0) {
+      labels += '<text x="' + (x + barWidth/2) + '" y="' + (height - padding + 15) + '" text-anchor="middle" font-size="7" fill="#666">' + dateLabel.slice(-5) + '</text>';
+    }
+  }
+  
+  // Y-axis labels
+  const yAxisLabels = 
+    '<text x="' + (padding - 5) + '" y="' + padding + '" text-anchor="end" font-size="8" fill="#666">' + maxValue.toFixed(0) + '</text>' +
+    '<text x="' + (padding - 5) + '" y="' + (height - padding) + '" text-anchor="end" font-size="8" fill="#666">0</text>' +
+    '<text x="' + (padding - 5) + '" y="' + ((height - padding + padding) / 2) + '" text-anchor="end" font-size="8" fill="#666">' + (maxValue/2).toFixed(0) + '</text>';
+  
+  // Grid lines
+  const gridLines = 
+    '<line x1="' + padding + '" y1="' + padding + '" x2="' + (width - padding) + '" y2="' + padding + '" stroke="#e2e8f0" stroke-dasharray="3,3"/>' +
+    '<line x1="' + padding + '" y1="' + ((height - padding + padding) / 2) + '" x2="' + (width - padding) + '" y2="' + ((height - padding + padding) / 2) + '" stroke="#e2e8f0" stroke-dasharray="3,3"/>' +
+    '<line x1="' + padding + '" y1="' + (height - padding) + '" x2="' + (width - padding) + '" y2="' + (height - padding) + '" stroke="#e2e8f0"/>';
+  
+  return '<div style="margin-bottom: 25px;">' +
+    '<h3 style="font-size: 14px; font-weight: bold; color: #1e293b; margin-bottom: 10px;">' + (chartTitle || 'Trend Chart') + '</h3>' +
+    '<svg width="' + width + '" height="' + height + '" style="background: #fafafa; border: 1px solid #e2e8f0; border-radius: 8px;">' +
+      gridLines +
+      bars +
+      labels +
+      yAxisLabels +
+    '</svg>' +
+  '</div>';
+};
+
 // Standard PDF report template
 export const generatePDFReport = async (reportData) => {
   const title = reportData.title || 'Report';
