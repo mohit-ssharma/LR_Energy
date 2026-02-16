@@ -328,7 +328,6 @@ function PreviewModal({ show, onClose, reportType, dateRange, customStartDate, c
   function getChartConfig() {
     if (reportType === 'quality') return { dataKey: 'ch4', color: '#8b5cf6', label: 'CH₄ Concentration (%)' };
     if (reportType === 'performance') return { dataKey: 'd1Temp', color: '#06b6d4', label: 'Digester 1 Temperature (°C)' };
-    if (reportType === 'compliance') return { dataKey: 'h2s', color: '#f59e0b', label: 'H₂S Levels (ppm)' };
     return { dataKey: 'rawBiogas', color: '#10b981', label: 'Raw Biogas Flow (Nm³/hr)' };
   }
 
