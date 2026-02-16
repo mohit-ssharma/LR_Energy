@@ -336,7 +336,6 @@ function PreviewModal({ show, onClose, reportType, dateRange, customStartDate, c
       production: 'from-emerald-600 to-teal-600',
       quality: 'from-violet-600 to-purple-600',
       performance: 'from-cyan-600 to-blue-600',
-      compliance: 'from-amber-500 to-orange-500',
       custom: 'from-slate-600 to-slate-700'
     };
     return colors[reportType] || colors.production;
