@@ -76,7 +76,7 @@ function RecentReportRow({ report, index, onView, onDownloadCSV, onDownloadPDF, 
     <tr className="border-b border-slate-100 hover:bg-slate-50 transition-colors" data-testid={'recent-report-' + index}>
       <td className="py-3 px-4 text-sm text-slate-800">{report.name}</td>
       <td className="py-3 px-4 text-sm text-slate-600 font-mono">{report.date}</td>
-      <td className="py-3 px-4 text-sm text-slate-600">{report.size}</td>
+      <td className="py-3 px-4 text-sm text-slate-600 font-mono">{report.time || '--:--'}</td>
       <td className="py-3 px-4">
         <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-700">
           {report.format}
