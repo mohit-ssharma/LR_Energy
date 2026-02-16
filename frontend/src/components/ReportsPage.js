@@ -316,9 +316,10 @@ function ReportsPage() {
         avg: avgRawBiogas,
         min: minRawBiogas.toFixed(2)
       },
-      tableHeaders: ['Date', 'Raw Biogas', 'Purified Gas', 'Product Gas', 'Efficiency'],
+      tableHeaders: ['Date', 'Raw Biogas', 'Purified Gas', 'Product Gas (Kg/hr)', 'Efficiency'],
       tableData: tableData
     });
+    saveToRecentReports(name, 'PDF');
     setShowDownloadMenu(null);
   }
 
