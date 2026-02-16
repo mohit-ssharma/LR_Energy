@@ -185,69 +185,47 @@ try {
             'label' => date('M d, Y', strtotime($startDate)) . ' - ' . date('M d, Y', strtotime($endDate))
         ],
         
-        'data_quality' => [
-            'total_records' => intval($summary['total_records']),
-            'expected_records' => $expectedRecords,
-            'coverage_percent' => $expectedRecords > 0 ? round((intval($summary['total_records']) / $expectedRecords) * 100, 1) : 0,
-            'operating_days' => intval($summary['operating_days']),
-            'missing_records' => $expectedRecords - intval($summary['total_records'])
-        ],
-        
         'summary' => [
-            // Production Totals
-            'total_raw_biogas' => round(floatval($summary['total_raw_biogas']), 2),
-            'total_purified_gas' => round(floatval($summary['total_purified_gas']), 2),
-            'total_product_gas' => round(floatval($summary['total_product_gas']), 2),
-            
-            // Average Flows
-            'avg_raw_biogas_flow' => round(floatval($summary['avg_raw_biogas_flow']), 2),
-            'avg_purified_gas_flow' => round(floatval($summary['avg_purified_gas_flow']), 2),
-            'avg_product_gas_flow' => round(floatval($summary['avg_product_gas_flow']), 2),
-            
-            // Efficiency
-            'overall_efficiency' => $efficiency,
-            'avg_psa_efficiency' => round(floatval($summary['avg_psa_efficiency']), 2),
-            
-            // Gas Composition
-            'ch4' => [
-                'avg' => round(floatval($summary['avg_ch4']), 2),
-                'min' => round(floatval($summary['min_ch4']), 2),
-                'max' => round(floatval($summary['max_ch4']), 2)
-            ],
-            'co2' => [
-                'avg' => round(floatval($summary['avg_co2']), 2),
-                'min' => round(floatval($summary['min_co2']), 2),
-                'max' => round(floatval($summary['max_co2']), 2)
-            ],
-            'h2s' => [
-                'avg' => round(floatval($summary['avg_h2s']), 0),
-                'min' => round(floatval($summary['min_h2s']), 0),
-                'max' => round(floatval($summary['max_h2s']), 0)
-            ],
-            'dew_point' => [
-                'avg' => round(floatval($summary['avg_dew_point']), 2),
-                'min' => round(floatval($summary['min_dew_point']), 2),
-                'max' => round(floatval($summary['max_dew_point']), 2)
-            ],
-            
-            // Equipment Running Hours
-            'psa_running_hours' => round(intval($summary['total_psa_minutes']) / 60, 2),
-            'compressor_running_hours' => round(intval($summary['total_compressor_minutes']) / 60, 2),
-            'avg_lt_power_kw' => round(floatval($summary['avg_lt_power']), 2),
-            
-            // Water Consumption
-            'total_feed_water' => round(floatval($summary['total_feed_fm1']) + floatval($summary['total_feed_fm2']), 2),
-            'total_fresh_water' => round(floatval($summary['total_fresh_water']), 2),
-            'total_recycle_water' => round(floatval($summary['total_recycle_water']), 2)
+            // Production Totals (Sum of daily latest totalizer values)
+            'total_records' => $summary['total_records'],
+            'operating_days' => $summary['operating_days'],
+            'total_raw_biogas' => $summary['total_raw_biogas'],
+            'total_purified_gas' => $summary['total_purified_gas'],
+            'total_product_gas' => $summary['total_product_gas'],
+            'overall_efficiency' => $efficiency
         ],
         
-        // Daily breakdown data
+        // Daily breakdown data (using latest totalizer values per day)
         'daily_data' => array_map(function($day) {
             return [
                 'date' => $day['date'],
                 'sample_count' => intval($day['sample_count']),
-                'expected_samples' => 1440,
-                'coverage_percent' => round((intval($day['sample_count']) / 1440) * 100, 1),
+                // Gas Production - Latest timestamp totalizer values
+                'daily_raw_biogas' => round(floatval($day['daily_raw_biogas']), 2),
+                'daily_purified_gas' => round(floatval($day['daily_purified_gas']), 2),
+                'daily_product_gas' => round(floatval($day['daily_product_gas']), 2),
+                // Flow values at latest timestamp
+                'avg_raw_biogas_flow' => round(floatval($day['avg_raw_biogas_flow']), 2),
+                'avg_purified_gas_flow' => round(floatval($day['avg_purified_gas_flow']), 2),
+                'avg_product_gas_flow' => round(floatval($day['avg_product_gas_flow']), 2),
+                // Gas composition at latest timestamp
+                'avg_ch4' => round(floatval($day['avg_ch4']), 2),
+                'avg_co2' => round(floatval($day['avg_co2']), 2),
+                'avg_o2' => round(floatval($day['avg_o2']), 2),
+                'avg_h2s' => round(floatval($day['avg_h2s']), 0),
+                'avg_dew_point' => round(floatval($day['avg_dew_point']), 2),
+                // Digester values at latest timestamp
+                'avg_d1_temp' => round(floatval($day['avg_d1_temp']), 2),
+                'avg_d2_temp' => round(floatval($day['avg_d2_temp']), 2),
+                // Tank levels at latest timestamp
+                'avg_buffer_tank' => round(floatval($day['avg_buffer_tank']), 1),
+                'avg_lagoon_tank' => round(floatval($day['avg_lagoon_tank']), 1)
+            ];
+        }, $dailyData),
+        
+        'execution_time_ms' => $executionTime,
+        'generated_at' => date('Y-m-d H:i:s')
+    ];
                 
                 // Daily Production (from totalizer difference)
                 'raw_biogas' => round(floatval($day['daily_raw_biogas']), 2),
