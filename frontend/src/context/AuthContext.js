@@ -1,25 +1,10 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
+import { loginUser } from '../services/api';
 
 // Define roles
 export const ROLES = {
   HEAD_OFFICE: 'HEAD_OFFICE',
   MNRE: 'MNRE'
-};
-
-// User credentials (in production, this would be in backend)
-const USERS = {
-  'ho@lrenergy.in': {
-    password: 'qwerty@1234',
-    role: ROLES.HEAD_OFFICE,
-    name: 'Head Office Admin',
-    email: 'ho@lrenergy.in'
-  },
-  'mnre@lrenergy.in': {
-    password: 'qwerty@1234',
-    role: ROLES.MNRE,
-    name: 'MNRE User',
-    email: 'mnre@lrenergy.in'
-  }
 };
 
 const AuthContext = createContext(null);
@@ -44,35 +29,41 @@ export const AuthProvider = ({ children }) => {
     setIsLoading(false);
   }, []);
 
-  const login = (email, password) => {
+  const login = async (email, password) => {
     const normalizedEmail = email.toLowerCase().trim();
-    const userRecord = USERS[normalizedEmail];
+    
+    try {
+      // Call the PHP API for authentication
+      const result = await loginUser(normalizedEmail, password);
+      
+      if (result.success && result.user) {
+        const userData = {
+          id: result.user.id,
+          email: result.user.email,
+          name: result.user.name,
+          role: result.user.role
+        };
 
-    if (!userRecord) {
-      return { success: false, error: 'Invalid email address' };
+        setUser(userData);
+        setIsAuthenticated(true);
+        localStorage.setItem('scada_user', JSON.stringify(userData));
+        localStorage.setItem('scada_token', result.token);
+
+        return { success: true, user: userData };
+      } else {
+        return { success: false, error: result.error || 'Invalid credentials' };
+      }
+    } catch (error) {
+      console.error('Login error:', error);
+      return { success: false, error: 'Login failed. Please try again.' };
     }
-
-    if (userRecord.password !== password) {
-      return { success: false, error: 'Invalid password' };
-    }
-
-    const userData = {
-      email: userRecord.email,
-      name: userRecord.name,
-      role: userRecord.role
-    };
-
-    setUser(userData);
-    setIsAuthenticated(true);
-    localStorage.setItem('scada_user', JSON.stringify(userData));
-
-    return { success: true, user: userData };
   };
 
   const logout = () => {
     setUser(null);
     setIsAuthenticated(false);
     localStorage.removeItem('scada_user');
+    localStorage.removeItem('scada_token');
   };
 
   const isHeadOffice = () => user?.role === ROLES.HEAD_OFFICE;
