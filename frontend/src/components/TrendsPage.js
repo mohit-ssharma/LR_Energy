@@ -701,13 +701,14 @@ function TrendsPage({ userRole = 'HEAD_OFFICE' }) {
             <div className="flex items-center space-x-2 mb-3">
               <Eye className="w-4 h-4 text-slate-600" />
               <span className="text-sm font-semibold text-slate-700">Category Filter</span>
+              <span className="text-xs text-slate-500">({selectedCategories.includes('all') ? 'All' : selectedCategories.length + ' selected'})</span>
             </div>
             <div className="space-y-2 max-h-48 overflow-y-auto bg-slate-50 p-3 rounded-lg border border-slate-200">
               <label className="flex items-center space-x-2 p-2 rounded hover:bg-white cursor-pointer transition-colors">
                 <input
                   type="checkbox"
-                  checked={selectedCategory === 'all'}
-                  onChange={function() { setSelectedCategory('all'); }}
+                  checked={selectedCategories.includes('all')}
+                  onChange={function() { toggleCategorySelection('all'); }}
                   className="w-4 h-4 rounded border-slate-300 text-emerald-600 focus:ring-emerald-500"
                 />
                 <span className="text-sm font-medium text-slate-700">All Categories</span>
@@ -717,8 +718,8 @@ function TrendsPage({ userRole = 'HEAD_OFFICE' }) {
                   <label key={cat} className="flex items-center space-x-2 p-2 rounded hover:bg-white cursor-pointer transition-colors">
                     <input
                       type="checkbox"
-                      checked={selectedCategory === cat}
-                      onChange={function() { setSelectedCategory(selectedCategory === cat ? 'all' : cat); }}
+                      checked={selectedCategories.includes(cat) || selectedCategories.includes('all')}
+                      onChange={function() { toggleCategorySelection(cat); }}
                       className="w-4 h-4 rounded border-slate-300 text-emerald-600 focus:ring-emerald-500"
                     />
                     <span className="text-sm text-slate-600">{cat}</span>
