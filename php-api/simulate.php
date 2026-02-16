@@ -12,13 +12,14 @@
 header('Content-Type: text/html; charset=UTF-8');
 
 // Configuration - Auto-detect environment
-$is_local = ($_SERVER['SERVER_NAME'] === 'localhost' || $_SERVER['SERVER_NAME'] === '127.0.0.1');
+$serverName = $_SERVER['SERVER_NAME'] ?? $_SERVER['HTTP_HOST'] ?? 'localhost';
+$is_local = ($serverName === 'localhost' || $serverName === '127.0.0.1' || strpos($serverName, 'localhost') !== false);
 
 if ($is_local) {
     $API_URL = 'http://localhost/scada-api/receive_data.php';
 } else {
-    // Production URL - Update this after GoDaddy deployment
-    $API_URL = 'https://' . $_SERVER['SERVER_NAME'] . '/scada-api/receive_data.php';
+    // Production URL
+    $API_URL = 'https://' . $serverName . '/scada-api/receive_data.php';
 }
 
 // Load API key from config
