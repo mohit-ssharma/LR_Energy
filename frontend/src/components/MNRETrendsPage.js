@@ -689,7 +689,7 @@ function MNRETrendsPage({ userRole = 'MNRE' }) {
             </div>
             <div className="text-3xl font-bold font-mono text-cyan-700">
               {todayProduction ? todayProduction.productGas.toFixed(2) : '--'}
-              <span className="text-sm font-normal text-cyan-600 ml-1">Nm³</span>
+              <span className="text-sm font-normal text-cyan-600 ml-1">Kg</span>
             </div>
             <p className="text-xs text-cyan-600 mt-1">Max Totalizer - Min Totalizer (Today)</p>
           </div>
@@ -718,12 +718,13 @@ function MNRETrendsPage({ userRole = 'MNRE' }) {
                   }}
                   formatter={(value, name) => {
                     const label = name === 'rawBiogas' ? 'Raw Biogas' : 'Product Gas';
-                    return [`${value.toFixed(2)} Nm³`, label];
+                    const unit = name === 'productGas' ? 'Kg' : 'Nm³';
+                    return [`${value.toFixed(2)} ${unit}`, label];
                   }}
                 />
                 <Legend />
-                <Bar dataKey="rawBiogas" name="Raw Biogas" fill="#10b981" radius={[4, 4, 0, 0]} />
-                <Bar dataKey="productGas" name="Product Gas" fill="#06b6d4" radius={[4, 4, 0, 0]} />
+                <Bar dataKey="rawBiogas" name="Raw Biogas (Nm³)" fill="#10b981" radius={[4, 4, 0, 0]} />
+                <Bar dataKey="productGas" name="Product Gas (Kg)" fill="#06b6d4" radius={[4, 4, 0, 0]} />
               </BarChart>
             </ResponsiveContainer>
           ) : (
@@ -735,6 +736,35 @@ function MNRETrendsPage({ userRole = 'MNRE' }) {
             </div>
           )}
         </div>
+        
+        {/* Historic Production Table */}
+        {dailyProductionData.length > 0 && (
+          <div className="mt-4">
+            <h4 className="text-sm font-semibold text-slate-700 mb-3">Daily Production Summary Table</h4>
+            <div className="overflow-x-auto border border-slate-200 rounded-lg">
+              <table className="w-full text-sm">
+                <thead className="bg-slate-100">
+                  <tr>
+                    <th className="text-left py-3 px-4 font-semibold text-slate-700 border-b">Date</th>
+                    <th className="text-right py-3 px-4 font-semibold text-slate-700 border-b">Raw Biogas Production (Nm³)</th>
+                    <th className="text-right py-3 px-4 font-semibold text-slate-700 border-b">Product Gas Production (Kg)</th>
+                    <th className="text-right py-3 px-4 font-semibold text-slate-700 border-b">Records</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {[...dailyProductionData].reverse().map((day, idx) => (
+                    <tr key={day.fullDate || idx} className={idx % 2 === 0 ? 'bg-white' : 'bg-slate-50'}>
+                      <td className="py-2 px-4 font-mono text-slate-700 border-b border-slate-100">{day.fullDate || day.date}</td>
+                      <td className="py-2 px-4 font-mono text-right text-emerald-700 border-b border-slate-100">{(day.rawBiogas || 0).toFixed(2)}</td>
+                      <td className="py-2 px-4 font-mono text-right text-cyan-700 border-b border-slate-100">{(day.productGas || 0).toFixed(2)}</td>
+                      <td className="py-2 px-4 font-mono text-right text-slate-600 border-b border-slate-100">{day.samples || 0}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        )}
       </div>
 
       {/* Selected Parameter Statistics - From Database Only */}
