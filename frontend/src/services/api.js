@@ -212,11 +212,13 @@ export default {
     getComparisonData,
     getTrendsData,
     getReportData,
+    getDailyProductionData,
     getSyncStatus,
     loginUser,
     testConnection,
     formatNumber,
     formatTimestamp,
+    formatLastUpdated,
     getStatusColor,
     calculateDataQuality
 };
