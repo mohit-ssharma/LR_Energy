@@ -183,8 +183,14 @@ if ($mode == 'manual' || $mode == 'auto') {
     
     $result = sendFlowMeterOnlyData();
     
+    // Show which URL was used
+    $serverName = $_SERVER['SERVER_NAME'] ?? $_SERVER['HTTP_HOST'] ?? 'localhost';
+    $is_local = ($serverName === 'localhost' || $serverName === '127.0.0.1' || strpos($serverName, 'localhost') !== false);
+    $usedUrl = $is_local ? 'http://localhost/scada-api/receive_data.php' : 'https://' . $serverName . '/scada-api/receive_data.php';
+    
     echo '<div class="card ' . ($result['http_code'] == 201 ? 'success' : 'warning') . '">';
     echo '<h3>📤 Data Sent - ' . ($mode == 'auto' ? 'AUTO MODE' : 'Manual') . '</h3>';
+    echo '<p><strong>API URL:</strong> ' . htmlspecialchars($usedUrl) . '</p>';
     echo '<p><strong>HTTP Status:</strong> ' . $result['http_code'] . '</p>';
     
     if ($result['error']) {
