@@ -470,7 +470,9 @@ function ReportsPage() {
         show={showPreview} 
         onClose={function() { setShowPreview(false); }} 
         reportType={reportType} 
-        dateRange={dateRange} 
+        dateRange={dateRange}
+        customStartDate={customStartDate}
+        customEndDate={customEndDate}
         reportTemplates={reportTemplates} 
       />
       <CustomBuilderModal 
