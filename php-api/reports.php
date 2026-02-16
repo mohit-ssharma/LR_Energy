@@ -134,68 +134,42 @@ try {
     $stmtDaily = $pdo->query($sqlDaily);
     $dailyData = $stmtDaily->fetchAll();
     
-    // Get period totals and averages
+    // Calculate totals from the daily data (sum of latest totalizer values)
+    $totalRawBiogas = 0;
+    $totalPurifiedGas = 0;
+    $totalProductGas = 0;
+    $totalRecords = 0;
+    
+    foreach ($dailyData as $row) {
+        $totalRawBiogas += floatval($row['daily_raw_biogas']);
+        $totalPurifiedGas += floatval($row['daily_purified_gas']);
+        $totalProductGas += floatval($row['daily_product_gas']);
+        $totalRecords += intval($row['sample_count']);
+    }
+    
+    // Get basic statistics from all records in date range
     $sqlSummary = "
         SELECT 
             COUNT(*) as total_records,
-            COUNT(DISTINCT DATE(timestamp)) as operating_days,
-            
-            -- Total Production (Period)
-            COALESCE(MAX(raw_biogas_totalizer) - MIN(raw_biogas_totalizer), 0) as total_raw_biogas,
-            COALESCE(MAX(purified_gas_totalizer) - MIN(purified_gas_totalizer), 0) as total_purified_gas,
-            COALESCE(MAX(product_gas_totalizer) - MIN(product_gas_totalizer), 0) as total_product_gas,
-            
-            -- Average Flows
-            COALESCE(AVG(raw_biogas_flow), 0) as avg_raw_biogas_flow,
-            COALESCE(AVG(purified_gas_flow), 0) as avg_purified_gas_flow,
-            COALESCE(AVG(product_gas_flow), 0) as avg_product_gas_flow,
-            
-            -- Gas Composition Statistics
-            COALESCE(AVG(ch4_concentration), 0) as avg_ch4,
-            COALESCE(MIN(ch4_concentration), 0) as min_ch4,
-            COALESCE(MAX(ch4_concentration), 0) as max_ch4,
-            
-            COALESCE(AVG(co2_level), 0) as avg_co2,
-            COALESCE(MIN(co2_level), 0) as min_co2,
-            COALESCE(MAX(co2_level), 0) as max_co2,
-            
-            COALESCE(AVG(o2_concentration), 0) as avg_o2,
-            COALESCE(MIN(o2_concentration), 0) as min_o2,
-            COALESCE(MAX(o2_concentration), 0) as max_o2,
-            
-            COALESCE(AVG(h2s_content), 0) as avg_h2s,
-            COALESCE(MIN(h2s_content), 0) as min_h2s,
-            COALESCE(MAX(h2s_content), 0) as max_h2s,
-            
-            COALESCE(AVG(dew_point), 0) as avg_dew_point,
-            COALESCE(MIN(dew_point), 0) as min_dew_point,
-            COALESCE(MAX(dew_point), 0) as max_dew_point,
-            
-            -- Equipment Running Hours
-            SUM(CASE WHEN psa_status = 1 THEN 1 ELSE 0 END) as total_psa_minutes,
-            SUM(CASE WHEN compressor_status = 1 THEN 1 ELSE 0 END) as total_compressor_minutes,
-            
-            -- Average Equipment Values
-            COALESCE(AVG(psa_efficiency), 0) as avg_psa_efficiency,
-            COALESCE(AVG(lt_panel_power), 0) as avg_lt_power,
-            
-            -- Total Water Flow
-            COALESCE(MAX(feed_fm1_totalizer) - MIN(feed_fm1_totalizer), 0) as total_feed_fm1,
-            COALESCE(MAX(feed_fm2_totalizer) - MIN(feed_fm2_totalizer), 0) as total_feed_fm2,
-            COALESCE(MAX(fresh_water_totalizer) - MIN(fresh_water_totalizer), 0) as total_fresh_water,
-            COALESCE(MAX(recycle_water_totalizer) - MIN(recycle_water_totalizer), 0) as total_recycle_water
-            
+            COUNT(DISTINCT DATE(timestamp)) as operating_days
         FROM scada_readings 
         WHERE plant_id = '" . PLANT_ID . "' 
         AND $dateCondition
     ";
     
     $stmtSummary = $pdo->query($sqlSummary);
-    $summary = $stmtSummary->fetch();
+    $summaryStats = $stmtSummary->fetch();
+    
+    // Build summary object with calculated totals
+    $summary = [
+        'total_records' => intval($summaryStats['total_records']),
+        'operating_days' => intval($summaryStats['operating_days']),
+        'total_raw_biogas' => round($totalRawBiogas, 2),
+        'total_purified_gas' => round($totalPurifiedGas, 2),
+        'total_product_gas' => round($totalProductGas, 2)
+    ];
     
     // Calculate efficiency
-    $totalRawBiogas = floatval($summary['total_raw_biogas']);
-    $totalPurifiedGas = floatval($summary['total_purified_gas']);
     $efficiency = $totalRawBiogas > 0 ? round(($totalPurifiedGas / $totalRawBiogas) * 100, 2) : 0;
     
     $executionTime = round((microtime(true) - $startTime) * 1000);
