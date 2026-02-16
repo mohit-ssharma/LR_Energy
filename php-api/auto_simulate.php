@@ -89,8 +89,8 @@ echo "</div>";
 function generateRealisticData($readingNumber) {
     $timestamp = date('Y-m-d H:i:s');
     
-    // 10 Distinct Scenarios - cycles through them
-    $scenarioIndex = ($readingNumber - 1) % 10;
+    // 11 Distinct Scenarios - cycles through them
+    $scenarioIndex = ($readingNumber - 1) % 11;
     
     // Define 10 distinct data combinations
     $scenarios = [
