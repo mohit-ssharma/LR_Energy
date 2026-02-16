@@ -292,7 +292,7 @@ function PreviewModal({ show, onClose, reportType, dateRange, customStartDate, c
     return summaries[reportType] || summaries.production;
   }
 
-  // Build table data from real data
+  // Build table data from real data - Using latest totalizer values
   function buildTableData() {
     if (!chartData || chartData.length === 0) return [];
     
@@ -302,11 +302,10 @@ function PreviewModal({ show, onClose, reportType, dateRange, customStartDate, c
       if (reportType === 'quality') {
         result.push([d.fullDate, d.ch4.toFixed(2), d.co2.toFixed(2), d.o2.toFixed(2), d.h2s.toFixed(2)]);
       } else if (reportType === 'performance') {
-        result.push([d.fullDate, d.d1Temp.toFixed(1), d.d2Temp.toFixed(1), d.tankLevel.toFixed(1), d.efficiency.toFixed(1)]);
-      } else if (reportType === 'compliance') {
-        result.push([d.fullDate, d.ch4.toFixed(2), d.h2s.toFixed(2), d.h2s > 15 ? 'Warning' : 'Normal']);
+        result.push([d.fullDate, d.d1Temp.toFixed(1), d.d2Temp.toFixed(1), d.tankLevel.toFixed(1)]);
       } else {
-        result.push([d.fullDate, d.rawBiogas.toFixed(2), d.purifiedGas.toFixed(2), d.productGas.toFixed(2), d.efficiency.toFixed(1) + '%']);
+        // Production report - show totalizer values (Raw Gas, Purified Gas, Product Gas)
+        result.push([d.fullDate, d.rawBiogas.toFixed(2), d.purifiedGas.toFixed(2), d.productGas.toFixed(2)]);
       }
     }
     return result;
@@ -319,12 +318,10 @@ function PreviewModal({ show, onClose, reportType, dateRange, customStartDate, c
       return { headers: ['Date', 'CH₄ (%)', 'CO₂ (%)', 'O₂ (%)', 'H₂S (ppm)'], data };
     }
     if (reportType === 'performance') {
-      return { headers: ['Date', 'D1 Temp (°C)', 'D2 Temp (°C)', 'Tank Level (%)', 'Efficiency (%)'], data };
+      return { headers: ['Date', 'D1 Temp (°C)', 'D2 Temp (°C)', 'Tank Level (%)'], data };
     }
-    if (reportType === 'compliance') {
-      return { headers: ['Date', 'CH₄ (%)', 'H₂S (ppm)', 'Status'], data };
-    }
-    return { headers: ['Date', 'Raw Biogas', 'Purified Gas', 'Product Gas', 'Efficiency'], data };
+    // Production report headers - show totalizer values
+    return { headers: ['Date', 'Raw Gas (Nm³)', 'Purified Gas (Nm³)', 'Product Gas (Kg)'], data };
   }
 
   // Get chart config based on report type
