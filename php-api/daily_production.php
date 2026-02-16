@@ -4,8 +4,8 @@ require_once 'config.php';
 
 /**
  * Daily Production API
- * Returns daily production values based on totalizer differences
- * Daily Production = Last Totalizer Value of Day - First Totalizer Value of Day
+ * Returns LATEST TIMESTAMP TOTALIZER VALUES for each day
+ * NOT the difference between max and min - just the latest totalizer value
  * 
  * Query Parameters:
  * - days: Number of days to fetch (default: 30, max: 365)
@@ -31,26 +31,30 @@ try {
     $endDate = date('Y-m-d');
     $startDate = date('Y-m-d', strtotime("-{$days} days"));
     
-    // Query to get daily production based on totalizer min/max per day
+    // Query to get the LATEST totalizer values for each day
+    // Uses a subquery to find the latest timestamp per day, then joins to get the totalizer values
     $sql = "SELECT 
-                DATE(timestamp) as date,
-                MIN(raw_biogas_totalizer) as min_raw_totalizer,
-                MAX(raw_biogas_totalizer) as max_raw_totalizer,
-                (MAX(raw_biogas_totalizer) - MIN(raw_biogas_totalizer)) as raw_biogas_production,
-                MIN(product_gas_totalizer) as min_product_totalizer,
-                MAX(product_gas_totalizer) as max_product_totalizer,
-                (MAX(product_gas_totalizer) - MIN(product_gas_totalizer)) as product_gas_production,
-                MIN(purified_gas_totalizer) as min_purified_totalizer,
-                MAX(purified_gas_totalizer) as max_purified_totalizer,
-                (MAX(purified_gas_totalizer) - MIN(purified_gas_totalizer)) as purified_gas_production,
-                COUNT(*) as sample_count,
-                MIN(timestamp) as first_reading,
-                MAX(timestamp) as last_reading
-            FROM scada_readings
-            WHERE DATE(timestamp) >= :start_date
-            AND DATE(timestamp) <= :end_date
-            GROUP BY DATE(timestamp)
-            ORDER BY DATE(timestamp) DESC";
+                s.date,
+                s.raw_biogas_totalizer as raw_biogas_production,
+                s.product_gas_totalizer as product_gas_production,
+                s.purified_gas_totalizer as purified_gas_production,
+                s.sample_count,
+                s.last_reading
+            FROM (
+                SELECT 
+                    DATE(timestamp) as date,
+                    raw_biogas_totalizer,
+                    product_gas_totalizer,
+                    purified_gas_totalizer,
+                    timestamp as last_reading,
+                    COUNT(*) OVER (PARTITION BY DATE(timestamp)) as sample_count,
+                    ROW_NUMBER() OVER (PARTITION BY DATE(timestamp) ORDER BY timestamp DESC) as rn
+                FROM scada_readings
+                WHERE DATE(timestamp) >= :start_date
+                AND DATE(timestamp) <= :end_date
+            ) s
+            WHERE s.rn = 1
+            ORDER BY s.date DESC";
     
     $stmt = $pdo->prepare($sql);
     $stmt->execute([
@@ -81,16 +85,11 @@ try {
             'product_gas_production' => $productProd,
             'purified_gas_production' => $purifiedProd,
             'sample_count' => intval($row['sample_count']),
-            'first_reading' => $row['first_reading'],
-            'last_reading' => $row['last_reading'],
-            'min_raw_totalizer' => round(floatval($row['min_raw_totalizer']), 2),
-            'max_raw_totalizer' => round(floatval($row['max_raw_totalizer']), 2),
-            'min_product_totalizer' => round(floatval($row['min_product_totalizer']), 2),
-            'max_product_totalizer' => round(floatval($row['max_product_totalizer']), 2)
+            'last_reading' => $row['last_reading']
         ];
     }
     
-    // Get today's current production (might be partial day)
+    // Get today's data (latest totalizer values for today)
     $todayData = null;
     if (count($formattedData) > 0 && $formattedData[0]['date'] === $endDate) {
         $todayData = $formattedData[0];
