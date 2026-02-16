@@ -319,6 +319,9 @@ try {
         'period_label' => $periodLabel,
         'generated_at' => date('Y-m-d H:i:s'),
         'comparison_note' => 'Today = Current/Latest reading, Yesterday = Average of all readings',
+        'has_today_data' => $hasTodayData,
+        'latest_reading_date' => $latestDate,
+        'today_date' => $todayDate,
         
         'summary' => $statusCounts,
         
