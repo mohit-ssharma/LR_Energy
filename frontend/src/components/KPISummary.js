@@ -426,10 +426,10 @@ const KPISummary = () => {
       {
         title: 'Product Gas Flow',
         value: formatNumber(current?.product_gas_flow, 1),
-        unit: 'Nm³/hr',
+        unit: 'Kg/hr',
         totalizer: 'Totalizer',
         totalizerValue: formatNumber(Math.round(current?.product_gas_totalizer || 0), 0),
-        totalizerUnit: 'Nm³',
+        totalizerUnit: 'Kg',
         avgLabel: null,
         avgValue: null,
         avgSamples: { samples: totalizer_24hr?.sample_count || 0, expected: totalizer_24hr?.expected_samples || 1440 },
