@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { LineChart, Line, AreaChart, Area, ResponsiveContainer, XAxis, YAxis, CartesianGrid, Tooltip, Legend } from 'recharts';
-import { TrendingUp, Calendar, BarChart3, Eye, X, Maximize2, RefreshCw, Wifi, WifiOff, Database, AlertTriangle } from 'lucide-react';
-import { getTrendsData } from '../services/api';
+import { LineChart, Line, AreaChart, Area, BarChart, Bar, ResponsiveContainer, XAxis, YAxis, CartesianGrid, Tooltip, Legend } from 'recharts';
+import { TrendingUp, Calendar, BarChart3, Eye, X, Maximize2, RefreshCw, Wifi, WifiOff, Database, AlertTriangle, Flame } from 'lucide-react';
+import { getTrendsData, getDailyProductionData, formatLastUpdated } from '../services/api';
 
 function MNRETrendsPage({ userRole = 'MNRE' }) {
   const [timeRange, setTimeRange] = useState('24h');
@@ -14,6 +14,11 @@ function MNRETrendsPage({ userRole = 'MNRE' }) {
   const [apiStats, setApiStats] = useState(null);
   const [apiStatistics, setApiStatistics] = useState(null);
   const [error, setError] = useState(null);
+  
+  // Daily Production State
+  const [dailyProductionData, setDailyProductionData] = useState([]);
+  const [dailyProductionLoading, setDailyProductionLoading] = useState(true);
+  const [todayProduction, setTodayProduction] = useState(null);
 
   // Check if user is HEAD_OFFICE to show stats bar
   const showStatsBar = userRole === 'HEAD_OFFICE';
