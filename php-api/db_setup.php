@@ -141,10 +141,11 @@ echo $conn->query($sql) ? "<p>✅ alerts</p>" : "<p>❌ " . $conn->error . "</p>
 
 // Insert users
 echo "<h2>Creating Users...</h2>";
-$hash = password_hash('qwerty@1234', PASSWORD_DEFAULT);
+$hoHash = password_hash('qwerty@1234', PASSWORD_DEFAULT);
+$mnreHash = password_hash('mnre@mnre', PASSWORD_DEFAULT);
 $sql = "INSERT IGNORE INTO users (email, password, role, name) VALUES 
-('ho@lrenergy.in', '$hash', 'HEAD_OFFICE', 'Head Office'),
-('mnre@lrenergy.in', '$hash', 'MNRE', 'MNRE User')";
+('ho@lrenergy.in', '$hoHash', 'HEAD_OFFICE', 'Head Office'),
+('mnre@lrenergy.in', '$mnreHash', 'MNRE', 'MNRE User')";
 
 echo $conn->query($sql) ? "<p>✅ Users created</p>" : "<p>❌ " . $conn->error . "</p>";
 
