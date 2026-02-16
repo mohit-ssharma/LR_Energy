@@ -739,7 +739,7 @@ function TrendsPage({ userRole = 'HEAD_OFFICE' }) {
             </div>
             <div className="text-3xl font-bold font-mono text-cyan-700">
               {todayProduction ? todayProduction.productGas.toFixed(2) : '--'}
-              <span className="text-sm font-normal text-cyan-600 ml-1">Nm³</span>
+              <span className="text-sm font-normal text-cyan-600 ml-1">Kg</span>
             </div>
             <p className="text-xs text-cyan-600 mt-1">Max Totalizer - Min Totalizer (Today)</p>
           </div>
