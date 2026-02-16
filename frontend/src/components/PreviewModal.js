@@ -119,13 +119,11 @@ function PreviewModal({ show, onClose, reportType, dateRange, customStartDate, c
   const [error, setError] = useState(null);
   const [reportData, setReportData] = useState(null);
   const [chartData, setChartData] = useState([]);
-  
-  if (!show) return null;
 
-  const template = reportTemplates.find(function(r) { return r.id === reportType; }) || reportTemplates[0];
+  const template = (reportTemplates || []).find(function(r) { return r.id === reportType; }) || (reportTemplates || [])[0];
 
-  // Calculate date range
-  function getDateRange() {
+  // Calculate date range - moved to useCallback-like pattern
+  const getDateRange = React.useCallback(() => {
     const today = new Date();
     let startDate, endDate;
     
@@ -156,9 +154,9 @@ function PreviewModal({ show, onClose, reportType, dateRange, customStartDate, c
     }
     
     return { startDate, endDate };
-  }
+  }, [dateRange, customStartDate, customEndDate]);
 
-  // Fetch data on mount
+  // Fetch data on mount - useEffect must be called unconditionally
   useEffect(() => {
     async function fetchPreviewData() {
       if (!show) return;
@@ -215,7 +213,10 @@ function PreviewModal({ show, onClose, reportType, dateRange, customStartDate, c
     }
     
     fetchPreviewData();
-  }, [show, dateRange, reportType, customStartDate, customEndDate]);
+  }, [show, dateRange, reportType, customStartDate, customEndDate, getDateRange]);
+  
+  // Early return AFTER all hooks
+  if (!show) return null;
 
   // Calculate stats from real data
   function calculateStats(data, key) {
