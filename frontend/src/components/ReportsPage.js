@@ -370,11 +370,53 @@ function ReportsPage() {
     return includes[id] || [];
   }
 
-  const recentReports = [
-    { name: 'Daily Production Report - Feb 01, 2026', date: '2026-02-01', size: '2.4 MB', format: 'PDF', status: 'Ready' },
-    { name: 'Weekly Quality Report - Jan 26-Feb 01', date: '2026-02-01', size: '5.1 MB', format: 'Excel', status: 'Ready' },
-    { name: 'Monthly Performance Report - January 2026', date: '2026-01-31', size: '8.7 MB', format: 'PDF', status: 'Ready' }
-  ];
+  // Recent reports - stored in localStorage, filtered to last 7 days
+  const [recentReports, setRecentReports] = React.useState([]);
+  
+  // Load recent reports from localStorage
+  React.useEffect(() => {
+    try {
+      const stored = localStorage.getItem('scada_recent_reports');
+      if (stored) {
+        const reports = JSON.parse(stored);
+        // Filter to last 7 days
+        const oneWeekAgo = new Date();
+        oneWeekAgo.setDate(oneWeekAgo.getDate() - 7);
+        const filtered = reports.filter(r => new Date(r.date) >= oneWeekAgo);
+        setRecentReports(filtered.slice(0, 10)); // Max 10 reports
+      }
+    } catch (e) {
+      console.error('Error loading recent reports:', e);
+    }
+  }, []);
+  
+  // Save report to recent reports
+  function saveToRecentReports(name, format) {
+    const newReport = {
+      name: name,
+      date: new Date().toISOString().split('T')[0],
+      time: new Date().toLocaleTimeString('en-IN', { hour12: false }),
+      format: format,
+      status: 'Ready'
+    };
+    
+    try {
+      const stored = localStorage.getItem('scada_recent_reports') || '[]';
+      const reports = JSON.parse(stored);
+      reports.unshift(newReport);
+      // Keep only last 50 reports
+      const trimmed = reports.slice(0, 50);
+      localStorage.setItem('scada_recent_reports', JSON.stringify(trimmed));
+      
+      // Update state (filtered to last 7 days)
+      const oneWeekAgo = new Date();
+      oneWeekAgo.setDate(oneWeekAgo.getDate() - 7);
+      const filtered = trimmed.filter(r => new Date(r.date) >= oneWeekAgo);
+      setRecentReports(filtered.slice(0, 10));
+    } catch (e) {
+      console.error('Error saving recent report:', e);
+    }
+  }
 
   const dateRanges = ['today', 'week', 'month', 'quarter', 'year', 'custom'];
   const exportFormats = [
