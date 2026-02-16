@@ -155,7 +155,7 @@ function MNRETrendsPage({ userRole = 'MNRE' }) {
     'Gas Flow': [
       { key: 'rawBiogas', label: 'Raw Biogas Flow', color: '#10b981', unit: 'Nm³/hr' },
       { key: 'purifiedGas', label: 'Purified Gas Flow', color: '#8b5cf6', unit: 'Nm³/hr' },
-      { key: 'productGas', label: 'Product Gas Flow', color: '#06b6d4', unit: 'Nm³/hr' }
+      { key: 'productGas', label: 'Product Gas Flow', color: '#06b6d4', unit: 'Kg/hr' }
     ],
     'Gas Composition': [
       { key: 'ch4', label: 'CH₄ Concentration', color: '#f59e0b', unit: '%' },
