@@ -156,12 +156,12 @@ function TrendsPage({ userRole = 'HEAD_OFFICE' }) {
     fetchDailyProduction();
   }, [fetchData, fetchDailyProduction]);
 
-  // Auto-refresh every 60 seconds
+  // Auto-refresh every 30 seconds
   useEffect(() => {
     const interval = setInterval(() => {
       fetchData();
       fetchDailyProduction();
-    }, 60000);
+    }, 30000);
     return () => clearInterval(interval);
   }, [fetchData, fetchDailyProduction]);
 
