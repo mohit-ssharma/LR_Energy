@@ -111,7 +111,16 @@ const ComingSoonPage = ({ plantName, onBack }) => {
 
 // MNRE User App - Restricted View (logged in as MNRE user)
 const MNREApp = ({ onLogout, showBackButton = false, onBack }) => {
-  const [currentPage, setCurrentPage] = useState('dashboard');
+  // Persist currentPage to localStorage for page refresh persistence
+  const [currentPage, setCurrentPage] = useState(() => {
+    const saved = localStorage.getItem('mnre_current_page');
+    return saved || 'dashboard';
+  });
+
+  // Save currentPage to localStorage when it changes
+  useEffect(() => {
+    localStorage.setItem('mnre_current_page', currentPage);
+  }, [currentPage]);
 
   const renderPage = () => {
     switch(currentPage) {
