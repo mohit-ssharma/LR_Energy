@@ -461,7 +461,7 @@ function TrendsPage({ userRole = 'HEAD_OFFICE' }) {
     Object.keys(parameterCategories).forEach(function(categoryName) {
       const params = parameterCategories[categoryName];
       const hasSelected = params.some(function(p) { return selectedParams.includes(p.key); });
-      if (hasSelected && (selectedCategory === 'all' || selectedCategory === categoryName)) {
+      if (hasSelected && (selectedCategories.includes('all') || selectedCategories.includes(categoryName))) {
         categories.push({ name: categoryName, params: params });
       }
     });
