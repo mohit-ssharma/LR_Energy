@@ -236,12 +236,45 @@ function TrendsPage({ userRole = 'HEAD_OFFICE' }) {
   });
 
   function getFilteredCategories() {
-    if (selectedCategory === 'all') {
+    // If 'all' is selected, show all categories
+    if (selectedCategories.includes('all')) {
       return parameterCategories;
     }
+    // Otherwise, show only selected categories
     const result = {};
-    result[selectedCategory] = parameterCategories[selectedCategory];
+    selectedCategories.forEach(function(cat) {
+      if (parameterCategories[cat]) {
+        result[cat] = parameterCategories[cat];
+      }
+    });
     return result;
+  }
+
+  // Toggle category selection (multiple selection support)
+  function toggleCategorySelection(cat) {
+    if (cat === 'all') {
+      // If selecting 'all', clear other selections
+      setSelectedCategories(['all']);
+    } else {
+      setSelectedCategories(function(prev) {
+        // Remove 'all' if it was selected
+        let newSelection = prev.filter(function(c) { return c !== 'all'; });
+        
+        if (newSelection.includes(cat)) {
+          // Deselect the category
+          newSelection = newSelection.filter(function(c) { return c !== cat; });
+        } else {
+          // Add the category
+          newSelection = [...newSelection, cat];
+        }
+        
+        // If nothing selected, default to 'all'
+        if (newSelection.length === 0) {
+          return ['all'];
+        }
+        return newSelection;
+      });
+    }
   }
 
   const filteredCategories = getFilteredCategories();
