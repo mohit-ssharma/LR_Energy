@@ -341,6 +341,7 @@ const ComparisonView = () => {
 
   const summary = comparisonData?.summary || { improved: 0, stable: 0, warning: 0, declined: 0 };
   const metrics = comparisonData?.metrics || {};
+  const hasTodayData = comparisonData?.has_today_data !== false; // Default true if not specified
 
   // Group metrics by category
   const gasProduction = Object.entries(metrics).filter(([_, m]) => m.category === 'gas_production');
