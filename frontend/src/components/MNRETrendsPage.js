@@ -150,18 +150,12 @@ function MNRETrendsPage({ userRole = 'MNRE' }) {
     return () => clearInterval(interval);
   }, [fetchData, fetchDailyProduction]);
 
-  // MNRE can only see these 2 parameter categories (Gas Flow and Gas Composition)
+  // MNRE can only see Gas Flow category (Gas Composition removed per user request)
   const parameterCategories = {
     'Gas Flow': [
       { key: 'rawBiogas', label: 'Raw Biogas Flow', color: '#10b981', unit: 'Nm³/hr' },
       { key: 'purifiedGas', label: 'Purified Gas Flow', color: '#8b5cf6', unit: 'Nm³/hr' },
       { key: 'productGas', label: 'Product Gas Flow', color: '#06b6d4', unit: 'Kg/hr' }
-    ],
-    'Gas Composition': [
-      { key: 'ch4', label: 'CH₄ Concentration', color: '#f59e0b', unit: '%' },
-      { key: 'co2', label: 'CO₂ Concentration', color: '#8b5cf6', unit: '%' },
-      { key: 'o2', label: 'O₂ Concentration', color: '#10b981', unit: '%' },
-      { key: 'h2s', label: 'H₂S Content', color: '#ef4444', unit: 'ppm' }
     ]
   };
 
