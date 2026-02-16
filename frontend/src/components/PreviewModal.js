@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { X, Check, TrendingUp, TrendingDown, Minus, FileText, FileSpreadsheet, AlertTriangle, CheckCircle, Database, Loader2 } from 'lucide-react';
+import { X, Check, FileText, FileSpreadsheet, AlertTriangle, Database, Loader2 } from 'lucide-react';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 import { generatePDFReport, generateCSVDownload } from '../utils/pdfUtils';
 import { getReportData } from '../services/api';
