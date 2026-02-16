@@ -120,9 +120,7 @@ function PreviewModal({ show, onClose, reportType, dateRange, customStartDate, c
   const [reportData, setReportData] = useState(null);
   const [chartData, setChartData] = useState([]);
   
-  if (!show) return null;
-
-  const template = reportTemplates.find(function(r) { return r.id === reportType; }) || reportTemplates[0];
+  const template = (reportTemplates && reportTemplates.find(function(r) { return r.id === reportType; })) || (reportTemplates && reportTemplates[0]) || { label: 'Report' };
 
   // Calculate date range
   function getDateRange() {
