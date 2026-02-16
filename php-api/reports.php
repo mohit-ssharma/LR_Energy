@@ -266,15 +266,20 @@ try {
                 'expected_samples' => 1440,
                 'coverage_percent' => round((intval($day['sample_count']) / 1440) * 100, 1),
                 
-                // Daily Production
+                // Daily Production (from totalizer difference)
                 'raw_biogas' => round(floatval($day['daily_raw_biogas']), 2),
                 'purified_gas' => round(floatval($day['daily_purified_gas']), 2),
                 'product_gas' => round(floatval($day['daily_product_gas']), 2),
                 
-                // Daily Averages
+                // Daily Averages (flow rates)
                 'avg_raw_biogas_flow' => round(floatval($day['avg_raw_biogas_flow']), 2),
+                'avg_purified_gas_flow' => round(floatval($day['avg_purified_gas_flow']), 2),
+                'avg_product_gas_flow' => round(floatval($day['avg_product_gas_flow']), 2),
                 'avg_ch4' => round(floatval($day['avg_ch4']), 2),
+                'avg_co2' => round(floatval($day['avg_co2']), 2),
+                'avg_o2' => round(floatval($day['avg_o2']), 2),
                 'avg_h2s' => round(floatval($day['avg_h2s']), 0),
+                'avg_dew_point' => round(floatval($day['avg_dew_point']), 2),
                 
                 // Equipment
                 'psa_hours' => round(intval($day['psa_running_minutes']) / 60, 2),
