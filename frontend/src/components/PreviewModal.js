@@ -247,15 +247,13 @@ function PreviewModal({ show, onClose, reportType, dateRange, customStartDate, c
   function getSummaryData() {
     if (!chartData || chartData.length === 0) {
       return {
-        'Total Production': '0 Nm³',
+        'Total Production': '0 Kg',
         'Avg Daily Flow': '0 Nm³/hr',
-        'Avg Efficiency': '0%',
         'Operating Days': '0 days'
       };
     }
     
-    const rawBiogasStats = calculateStats(chartData, 'rawBiogas');
-    const efficiencyStats = calculateStats(chartData, 'efficiency');
+    const productGasStats = calculateStats(chartData, 'productGas');
     const ch4Stats = calculateStats(chartData, 'ch4');
     const co2Stats = calculateStats(chartData, 'co2');
     const o2Stats = calculateStats(chartData, 'o2');
@@ -264,11 +262,12 @@ function PreviewModal({ show, onClose, reportType, dateRange, customStartDate, c
     const d2TempStats = calculateStats(chartData, 'd2Temp');
     const tankLevelStats = calculateStats(chartData, 'tankLevel');
     
+    // Total Production = Sum of Product Gas Totalizer values (in Kg)
+    const totalProductGas = parseFloat(productGasStats.total) || 0;
+    
     const summaries = {
       production: {
-        'Total Production': parseFloat(rawBiogasStats.total).toLocaleString() + ' Nm³',
-        'Avg Daily Flow': rawBiogasStats.avg + ' Nm³/hr',
-        'Avg Efficiency': efficiencyStats.avg + '%',
+        'Total Production': totalProductGas.toLocaleString() + ' Kg',
         'Operating Days': chartData.length + ' days'
       },
       quality: {
@@ -282,12 +281,6 @@ function PreviewModal({ show, onClose, reportType, dateRange, customStartDate, c
         'Avg D2 Temp': d2TempStats.avg + '°C',
         'Avg Tank Level': tankLevelStats.avg + '%',
         'Days Recorded': chartData.length + ' days'
-      },
-      compliance: {
-        'Avg CH₄': ch4Stats.avg + '%',
-        'Max H₂S': h2sStats.max + ' ppm',
-        'Operating Days': chartData.length + ' days',
-        'Data Points': reportData?.summary?.total_records || 0
       },
       custom: {
         'Parameters': 'Custom',
