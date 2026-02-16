@@ -91,10 +91,36 @@ export async function getSyncStatus() {
  * Endpoint: POST /auth.php
  */
 export async function loginUser(email, password) {
-    return fetchAPI('auth.php', {
-        method: 'POST',
-        body: JSON.stringify({ email, password })
-    });
+    const url = `${API_BASE_URL}/auth.php`;
+    
+    try {
+        const response = await fetch(url, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ email, password })
+        });
+        
+        const data = await response.json();
+        
+        if (response.ok && data.status === 'success') {
+            return { 
+                success: true, 
+                user: data.user, 
+                token: data.token 
+            };
+        } else {
+            return { 
+                success: false, 
+                error: data.message || 'Invalid email or password' 
+            };
+        }
+        
+    } catch (error) {
+        console.error('Login API Error:', error);
+        return { success: false, error: 'Connection failed. Please check your network.' };
+    }
 }
 
 /**
