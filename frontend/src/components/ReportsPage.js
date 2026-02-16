@@ -1,8 +1,9 @@
 import React, { useState } from 'react';
-import { FileText, Download, Calendar, FileSpreadsheet, Eye, Check, Settings, ChevronDown, FileCode } from 'lucide-react';
+import { FileText, Download, Calendar, FileSpreadsheet, Eye, Check, Settings, ChevronDown, FileCode, Loader2 } from 'lucide-react';
 import PreviewModal from './PreviewModal';
 import CustomBuilderModal from './CustomBuilderModal';
-import { generatePDFReport, generateCSVDownload, generateMonthlyData } from '../utils/pdfUtils';
+import { generatePDFReport, generateCSVDownload } from '../utils/pdfUtils';
+import { getReportData } from '../services/api';
 
 // Helper component for report template card
 function ReportTemplateCard({ template, isSelected, onClick, includes }) {
