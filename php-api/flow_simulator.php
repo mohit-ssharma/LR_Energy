@@ -141,17 +141,28 @@ function sendFlowMeterOnlyData() {
     ];
     
     // Send to receive_data.php - Auto-detect environment
-    $is_local = ($_SERVER['SERVER_NAME'] === 'localhost' || $_SERVER['SERVER_NAME'] === '127.0.0.1');
-    $baseUrl = $is_local ? 'http://localhost' : 'https://' . $_SERVER['SERVER_NAME'];
-    $apiUrl = $baseUrl . '/scada-api/receive_data.php?api_key=' . API_KEY;
+    $serverName = $_SERVER['SERVER_NAME'] ?? $_SERVER['HTTP_HOST'] ?? 'localhost';
+    $is_local = ($serverName === 'localhost' || $serverName === '127.0.0.1' || strpos($serverName, 'localhost') !== false);
+    
+    if ($is_local) {
+        $apiUrl = 'http://localhost/scada-api/receive_data.php?api_key=' . API_KEY;
+    } else {
+        // Production - use HTTPS
+        $apiUrl = 'https://' . $serverName . '/scada-api/receive_data.php?api_key=' . API_KEY;
+    }
     
     $ch = curl_init($apiUrl);
     curl_setopt_array($ch, [
         CURLOPT_RETURNTRANSFER => true,
         CURLOPT_POST => true,
         CURLOPT_POSTFIELDS => json_encode($data),
-        CURLOPT_HTTPHEADER => ['Content-Type: application/json'],
-        CURLOPT_TIMEOUT => 30
+        CURLOPT_HTTPHEADER => [
+            'Content-Type: application/json',
+            'X-API-Key: ' . API_KEY
+        ],
+        CURLOPT_TIMEOUT => 30,
+        CURLOPT_SSL_VERIFYPEER => false,  // For GoDaddy SSL
+        CURLOPT_SSL_VERIFYHOST => 0       // For GoDaddy SSL
     ]);
     
     $response = curl_exec($ch);
