@@ -58,68 +58,77 @@ try {
     // Base query for the date range (midnight-to-midnight for each day)
     $dateCondition = "DATE(timestamp) >= '$startDate' AND DATE(timestamp) <= '$endDate'";
     
-    // Get daily aggregated data
+    // Get daily data with LATEST totalizer values (not differences)
+    // First get the latest timestamp per day
     $sqlDaily = "
         SELECT 
-            DATE(timestamp) as date,
-            COUNT(*) as sample_count,
-            
-            -- Gas Production Totalizers (Daily)
-            COALESCE(MAX(raw_biogas_totalizer) - MIN(raw_biogas_totalizer), 0) as daily_raw_biogas,
-            COALESCE(MAX(purified_gas_totalizer) - MIN(purified_gas_totalizer), 0) as daily_purified_gas,
-            COALESCE(MAX(product_gas_totalizer) - MIN(product_gas_totalizer), 0) as daily_product_gas,
-            
-            -- Gas Production Averages
-            COALESCE(AVG(raw_biogas_flow), 0) as avg_raw_biogas_flow,
-            COALESCE(AVG(purified_gas_flow), 0) as avg_purified_gas_flow,
-            COALESCE(AVG(product_gas_flow), 0) as avg_product_gas_flow,
-            
-            -- Gas Composition Averages
-            COALESCE(AVG(ch4_concentration), 0) as avg_ch4,
-            COALESCE(AVG(co2_level), 0) as avg_co2,
-            COALESCE(AVG(o2_concentration), 0) as avg_o2,
-            COALESCE(AVG(h2s_content), 0) as avg_h2s,
-            COALESCE(AVG(dew_point), 0) as avg_dew_point,
-            
-            -- Gas Composition Min/Max
-            COALESCE(MIN(ch4_concentration), 0) as min_ch4,
-            COALESCE(MAX(ch4_concentration), 0) as max_ch4,
-            COALESCE(MIN(h2s_content), 0) as min_h2s,
-            COALESCE(MAX(h2s_content), 0) as max_h2s,
-            
-            -- Digester 1 Averages
-            COALESCE(AVG(d1_temp_bottom), 0) as avg_d1_temp,
-            COALESCE(AVG(d1_gas_pressure), 0) as avg_d1_pressure,
-            COALESCE(AVG(d1_slurry_height), 0) as avg_d1_slurry,
-            COALESCE(AVG(d1_gas_level), 0) as avg_d1_gas_level,
-            
-            -- Digester 2 Averages
-            COALESCE(AVG(d2_temp_bottom), 0) as avg_d2_temp,
-            COALESCE(AVG(d2_gas_pressure), 0) as avg_d2_pressure,
-            COALESCE(AVG(d2_slurry_height), 0) as avg_d2_slurry,
-            COALESCE(AVG(d2_gas_level), 0) as avg_d2_gas_level,
-            
-            -- Tank Levels
-            COALESCE(AVG(buffer_tank_level), 0) as avg_buffer_tank,
-            COALESCE(AVG(lagoon_tank_level), 0) as avg_lagoon_tank,
-            
-            -- Equipment
-            COALESCE(AVG(psa_efficiency), 0) as avg_psa_efficiency,
-            COALESCE(AVG(lt_panel_power), 0) as avg_lt_power,
-            SUM(CASE WHEN psa_status = 1 THEN 1 ELSE 0 END) as psa_running_minutes,
-            SUM(CASE WHEN compressor_status = 1 THEN 1 ELSE 0 END) as compressor_running_minutes,
-            
-            -- Water Flow Totalizers (Daily)
-            COALESCE(MAX(feed_fm1_totalizer) - MIN(feed_fm1_totalizer), 0) as daily_feed_fm1,
-            COALESCE(MAX(feed_fm2_totalizer) - MIN(feed_fm2_totalizer), 0) as daily_feed_fm2,
-            COALESCE(MAX(fresh_water_totalizer) - MIN(fresh_water_totalizer), 0) as daily_fresh_water,
-            COALESCE(MAX(recycle_water_totalizer) - MIN(recycle_water_totalizer), 0) as daily_recycle_water
-            
-        FROM scada_readings 
-        WHERE plant_id = '" . PLANT_ID . "' 
-        AND $dateCondition
-        GROUP BY DATE(timestamp)
-        ORDER BY DATE(timestamp) ASC
+            r.date,
+            r.sample_count,
+            r.raw_biogas_totalizer as daily_raw_biogas,
+            r.purified_gas_totalizer as daily_purified_gas,
+            r.product_gas_totalizer as daily_product_gas,
+            r.raw_biogas_flow as avg_raw_biogas_flow,
+            r.purified_gas_flow as avg_purified_gas_flow,
+            r.product_gas_flow as avg_product_gas_flow,
+            r.ch4_concentration as avg_ch4,
+            r.co2_level as avg_co2,
+            r.o2_concentration as avg_o2,
+            r.h2s_content as avg_h2s,
+            r.dew_point as avg_dew_point,
+            r.d1_temp_bottom as avg_d1_temp,
+            r.d1_gas_pressure as avg_d1_pressure,
+            r.d1_slurry_height as avg_d1_slurry,
+            r.d1_gas_level as avg_d1_gas_level,
+            r.d2_temp_bottom as avg_d2_temp,
+            r.d2_gas_pressure as avg_d2_pressure,
+            r.d2_slurry_height as avg_d2_slurry,
+            r.d2_gas_level as avg_d2_gas_level,
+            r.buffer_tank_level as avg_buffer_tank,
+            r.lagoon_tank_level as avg_lagoon_tank,
+            r.psa_efficiency as avg_psa_efficiency,
+            r.lt_panel_power as avg_lt_power,
+            0 as psa_running_minutes,
+            0 as compressor_running_minutes,
+            0 as daily_feed_fm1,
+            0 as daily_feed_fm2,
+            0 as daily_fresh_water,
+            0 as daily_recycle_water
+        FROM (
+            SELECT 
+                DATE(s.timestamp) as date,
+                s.raw_biogas_totalizer,
+                s.purified_gas_totalizer,
+                s.product_gas_totalizer,
+                s.raw_biogas_flow,
+                s.purified_gas_flow,
+                s.product_gas_flow,
+                s.ch4_concentration,
+                s.co2_level,
+                s.o2_concentration,
+                s.h2s_content,
+                s.dew_point,
+                s.d1_temp_bottom,
+                s.d1_gas_pressure,
+                s.d1_slurry_height,
+                s.d1_gas_level,
+                s.d2_temp_bottom,
+                s.d2_gas_pressure,
+                s.d2_slurry_height,
+                s.d2_gas_level,
+                s.buffer_tank_level,
+                s.lagoon_tank_level,
+                s.psa_efficiency,
+                s.lt_panel_power,
+                t.sample_count
+            FROM scada_readings s
+            INNER JOIN (
+                SELECT DATE(timestamp) as dt, MAX(timestamp) as max_ts, COUNT(*) as sample_count
+                FROM scada_readings
+                WHERE plant_id = '" . PLANT_ID . "' AND $dateCondition
+                GROUP BY DATE(timestamp)
+            ) t ON DATE(s.timestamp) = t.dt AND s.timestamp = t.max_ts
+        ) r
+        ORDER BY r.date ASC
     ";
     
     $stmtDaily = $pdo->query($sqlDaily);
