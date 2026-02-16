@@ -141,60 +141,174 @@ function ReportsPage() {
   const [customStartDate, setCustomStartDate] = useState('');
   const [customEndDate, setCustomEndDate] = useState('');
   const [showDownloadMenu, setShowDownloadMenu] = useState(null);
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState(null);
 
-  // Download CSV function
-  function downloadCSV(reportName) {
-    const name = reportName || 'Report';
-    const data = generateMonthlyData(30);
-    const rows = [];
-    for (let i = 0; i < data.length; i++) {
-      const d = data[i];
-      rows.push([d.fullDate, d.rawBiogas.toFixed(2), d.purifiedGas.toFixed(2), d.productGas.toFixed(2), d.ch4.toFixed(2), d.efficiency.toFixed(2)]);
+  // Helper function to get date range
+  function getDateRange() {
+    const today = new Date();
+    let startDate, endDate;
+    
+    switch (dateRange) {
+      case 'today':
+        startDate = today.toISOString().split('T')[0];
+        endDate = startDate;
+        break;
+      case 'week':
+        const weekAgo = new Date(today);
+        weekAgo.setDate(weekAgo.getDate() - 7);
+        startDate = weekAgo.toISOString().split('T')[0];
+        endDate = today.toISOString().split('T')[0];
+        break;
+      case 'month':
+        const monthAgo = new Date(today);
+        monthAgo.setMonth(monthAgo.getMonth() - 1);
+        startDate = monthAgo.toISOString().split('T')[0];
+        endDate = today.toISOString().split('T')[0];
+        break;
+      case 'custom':
+        startDate = customStartDate;
+        endDate = customEndDate;
+        break;
+      default:
+        startDate = today.toISOString().split('T')[0];
+        endDate = startDate;
     }
+    
+    return { startDate, endDate };
+  }
+
+  // Fetch real data from API
+  async function fetchReportData() {
+    const { startDate, endDate } = getDateRange();
+    
+    if (!startDate || !endDate) {
+      setError('Please select a valid date range');
+      return null;
+    }
+    
+    setIsLoading(true);
+    setError(null);
+    
+    try {
+      const result = await getReportData(startDate, endDate, reportType);
+      
+      if (result.success && result.data) {
+        return result.data;
+      } else {
+        setError('Failed to fetch report data: ' + (result.error || 'Unknown error'));
+        return null;
+      }
+    } catch (err) {
+      setError('Error fetching report data: ' + err.message);
+      return null;
+    } finally {
+      setIsLoading(false);
+    }
+  }
+
+  // Download CSV function - NOW USES REAL DATA
+  async function downloadCSV(reportName) {
+    const name = reportName || 'Report';
+    const apiData = await fetchReportData();
+    
+    if (!apiData || !apiData.daily_data || apiData.daily_data.length === 0) {
+      alert('No data available for the selected date range');
+      setShowDownloadMenu(null);
+      return;
+    }
+    
+    const rows = [];
+    for (let i = 0; i < apiData.daily_data.length; i++) {
+      const d = apiData.daily_data[i];
+      const efficiency = d.avg_raw_biogas_flow > 0 
+        ? ((d.avg_purified_gas_flow / d.avg_raw_biogas_flow) * 100).toFixed(2) 
+        : '0.00';
+      rows.push([
+        d.date, 
+        (d.avg_raw_biogas_flow || 0).toFixed(2), 
+        (d.avg_purified_gas_flow || 0).toFixed(2), 
+        (d.avg_product_gas_flow || 0).toFixed(2), 
+        (d.avg_ch4 || 0).toFixed(2), 
+        efficiency
+      ]);
+    }
+    
     generateCSVDownload({
       title: name,
-      headers: ['Date', 'Raw Biogas (Nm³/hr)', 'Purified Gas (Nm³/hr)', 'Product Gas (Kg/hr)', 'CH₄ (%)', 'Efficiency (%)'],
+      headers: ['Date', 'Raw Biogas (Nm³/hr)', 'Purified Gas (Nm³/hr)', 'Product Gas (Nm³/hr)', 'CH₄ (%)', 'Efficiency (%)'],
       data: rows
     });
     setShowDownloadMenu(null);
   }
 
-  // Download PDF function
+  // Download PDF function - NOW USES REAL DATA
   async function downloadPDF(reportName) {
     const name = reportName || 'Report';
-    const data = generateMonthlyData(30);
+    const apiData = await fetchReportData();
+    
+    if (!apiData || !apiData.daily_data || apiData.daily_data.length === 0) {
+      alert('No data available for the selected date range');
+      setShowDownloadMenu(null);
+      return;
+    }
+    
+    const data = apiData.daily_data;
+    const { startDate, endDate } = getDateRange();
     
     let sumRawBiogas = 0;
     let sumEfficiency = 0;
-    let minRawBiogas = data[0].rawBiogas;
-    let maxRawBiogas = data[0].rawBiogas;
+    let minRawBiogas = data[0].avg_raw_biogas_flow || 0;
+    let maxRawBiogas = data[0].avg_raw_biogas_flow || 0;
     
     for (let i = 0; i < data.length; i++) {
-      sumRawBiogas += data[i].rawBiogas;
-      sumEfficiency += data[i].efficiency;
-      if (data[i].rawBiogas < minRawBiogas) minRawBiogas = data[i].rawBiogas;
-      if (data[i].rawBiogas > maxRawBiogas) maxRawBiogas = data[i].rawBiogas;
+      const flow = data[i].avg_raw_biogas_flow || 0;
+      const purified = data[i].avg_purified_gas_flow || 0;
+      sumRawBiogas += flow;
+      const eff = flow > 0 ? (purified / flow) * 100 : 0;
+      sumEfficiency += eff;
+      if (flow < minRawBiogas) minRawBiogas = flow;
+      if (flow > maxRawBiogas) maxRawBiogas = flow;
     }
     
-    const avgRawBiogas = (sumRawBiogas / data.length).toFixed(2);
-    const avgEfficiency = (sumEfficiency / data.length).toFixed(2);
+    const avgRawBiogas = data.length > 0 ? (sumRawBiogas / data.length).toFixed(2) : '0.00';
+    const avgEfficiency = data.length > 0 ? (sumEfficiency / data.length).toFixed(2) : '0.00';
+    
+    // Use summary data from API if available
+    const totalProduction = apiData.summary?.total_raw_biogas || sumRawBiogas;
     
     const tableData = [];
     const sliceEnd = Math.min(15, data.length);
     for (let i = 0; i < sliceEnd; i++) {
       const d = data[i];
-      tableData.push([d.fullDate, d.rawBiogas.toFixed(2), d.purifiedGas.toFixed(2), d.productGas.toFixed(2), d.efficiency.toFixed(1) + '%']);
+      const flow = d.avg_raw_biogas_flow || 0;
+      const purified = d.avg_purified_gas_flow || 0;
+      const eff = flow > 0 ? ((purified / flow) * 100).toFixed(1) : '0.0';
+      tableData.push([
+        d.date, 
+        (d.avg_raw_biogas_flow || 0).toFixed(2), 
+        (d.avg_purified_gas_flow || 0).toFixed(2), 
+        (d.avg_product_gas_flow || 0).toFixed(2), 
+        eff + '%'
+      ]);
     }
+    
+    // Format period string
+    const formatDate = (dateStr) => {
+      const d = new Date(dateStr);
+      return d.toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' });
+    };
+    const periodStr = formatDate(startDate) + ' - ' + formatDate(endDate);
     
     await generatePDFReport({
       title: name,
       subtitle: 'LR Energy Biogas Plant - Karnal | SCADA Monitoring System',
-      period: 'January 01 - January 30, 2026',
+      period: periodStr,
       summaryData: {
-        'Total Production': sumRawBiogas.toFixed(0) + ' Nm³',
+        'Total Production': totalProduction.toFixed(0) + ' Nm³',
         'Avg Daily Flow': avgRawBiogas + ' Nm³/hr',
         'Avg Efficiency': avgEfficiency + '%',
-        'Operating Days': '30 days'
+        'Operating Days': data.length + ' days'
       },
       statistics: {
         max: maxRawBiogas.toFixed(2),
