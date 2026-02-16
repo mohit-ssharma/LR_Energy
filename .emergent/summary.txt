@@ -7,45 +7,43 @@ The user wants to build a web-based SCADA (Supervisory Control and Data Acquisit
 - **Backend:** A PHP REST API on GoDaddy hosting.
 - **Database:** A MySQL database on GoDaddy.
 - **Data Ingestion:** The backend must have a  endpoint to accept HTTP POST requests from the plant's PLC system.
-- **Features:** Historical data trends, PDF/CSV reports, a real-time alert system, and a data comparison view.
+- **Features:** Historical data trends, PDF/CSV reports, a real-time alert system, a data comparison view, and robust handling of partial or missing data.
+- **Recent Requests (Implemented, Pending Verification):**
+    1. Add a historical production data table to the Trends page.
+    2. Ensure all report types (Quality, Performance, etc.) show correct, live values.
+    3. Display daily production data on the Reporting page.
+    4. Change Product Gas Flow unit to Kg/hr and its totalizer to Kg.
+    5. Fix the Recent Reports section to show real reports from the last week, not dummy data.
+    6. Add a summary graph to downloaded PDF reports.
+    7. Gracefully handle incomplete or partial data from the PLC across all application sections.
 
 **User's preferred language**: English
 
 **what currently exists?**
-The application consists of a React frontend and a PHP/MySQL backend. The codebase has been significantly improved with bug fixes, security enhancements, and deployment support. Key dashboard components are driven by live API data. The backend logic for trends and comparisons is stable. The  script has been enhanced with 10 distinct scenarios for robust testing. The  endpoint is updated for PLC compatibility. The user is currently in the process of deploying the application to a GoDaddy server with the agent's assistance, which involved creating helper scripts () and debugging production database connection issues. A floating-point precision bug in the API response was also identified and fixed.
+The application is a full-stack React (frontend) and PHP/MySQL (backend) SCADA system. The frontend has been deployed to the user's GoDaddy server, but this process revealed several build and environment-related issues which were subsequently fixed. The agent has just implemented a large batch of 7 feature requests and bug fixes, primarily focused on improving the reporting functionality, data handling, and adding new data visualizations. The backend has been made more robust to handle partial or corrupted data from the PLC, and new simulators have been created for testing these scenarios. The UI has been reverted to its original state per the user's request, with new features added without altering the layout.
 
 **Last working item**:
-- **Last item agent was working:** The user requested three pieces of comprehensive documentation: (1) a guide for deploying the frontend, (2) instructions for testing with the simulator in production, and (3) a complete guide and data template to provide to the PLC developer. The agent created the three corresponding markdown files but has not yet presented their contents to the user.
-- **Status:** IN PROGRESS
-- **Agent Testing Done:** N/A
-- **Which testing method agent to use?** N/A. The next step is to view the created documentation files and present them to the user.
+- **Last item agent was working:** The agent addressed a comprehensive 7-point list of user requests, including fixing report data, adding new tables and graphs, changing units, and improving data sanitization on the backend. The final actions were to create simulators for partial data, implement all the fixes, and update the relevant documentation.
+- **Status:** USER VERIFICATION PENDING
+- **Agent Testing Done:** Y (Manual testing via curl and code inspection)
+- **Which testing method agent to use?** Manual testing by user. The user needs to test all 7 implemented features in their local environment first.
 - **User Testing Done:** N
 
 **All Pending/In progress Issue list**:
-- **Issue 1: Present Newly Created Documentation to User (P0)**
-  - **Description:** The agent has created three requested documentation files but needs to display their content to the user for review and confirmation.
-  - **Next debug checklist:**
-    1. Use the  tool to read the contents of:
-       - 
-       - 
-       - The third PLC documentation file (which was being created).
-    2. Present the contents of all three documents to the user.
-  - **Why fix this issue and what will be achieved with the fix?** To fulfill the user's latest request and provide them with the necessary information to complete deployment and PLC integration.
-  - **Status:** IN PROGRESS
-
-- **Issue 2: Comprehensive User Verification of All Recent Fixes (P1)**
-  - **Description:** A large number of critical data display, calculation, and data flow bugs were fixed in a previous session. The user needs to perform a full test of the application to validate these fixes once deployment is stable.
-  - **Next debug checklist:** User should follow the checklist in .
-  - **Why fix this issue and what will be achieved with the fix?** To confirm that the application is stable and accurate before moving on to new features.
+- **Issue 1: User Verification of 7-Point Feature/Fix Implementation (P0)**
+  - **Description:** The agent implemented a large batch of 7 features and fixes. The user needs to test all of them in their local environment before deploying to production.
   - **Status:** USER VERIFICATION PENDING
-
-- **Issue 3: Finalize Alert Thresholds (P1)**
-  - **Description:** The user's engineer needs to confirm the values in  so the agent can update .
-  - **Status:** NOT STARTED
-  - **Blocked on other issue:** User's engineer.
+  - **Next debug checklist:** The user should follow the test plan below:
+    1.  **Trends Page Table:** Verify the new Historic Daily Production table appears on both  and  trends pages and shows correct data.
+    2.  **All Report Types:** Generate Quality, Performance, and Compliance reports. Verify all values are correct and not zero or dummy data.
+    3.  **Reporting Page Daily Production:** Confirm the daily production data section is visible and accurate on the reports page.
+    4.  **Product Gas Units:** Check the Dashboard, Trends, and Reports to confirm Product Gas is now in  and .
+    5.  **Recent Reports:** Generate a few reports. Verify they appear in the Recent Reports list and that the list only shows reports from the last 7 days.
+    6.  **Graph in PDF:** Download a PDF report and confirm a bar chart graph is included.
+    7.  **Partial Data Handling:** Use the new  to send incomplete data. Check that the Dashboard, Trends, and Reports pages display the available data gracefully (showing  or ) without crashing.
 
 **In progress Task List**:
-- There are no other tasks in progress besides completing the documentation.
+- No other tasks are in progress. The focus is on user verification.
 
 **Upcoming and Future Tasks**
 - **Upcoming Tasks:**
@@ -56,20 +54,21 @@ The application consists of a React frontend and a PHP/MySQL backend. The codeba
 
 **Completed work in this session**
 - **Deployment & Debugging:**
-    - Provided extensive step-by-step guidance for GoDaddy deployment, including database setup (), file structure, and API testing.
-    - Debugged and resolved a production database connection issue (Access Denied) by correcting the MySQL password in  and .
-    - Created a clean  file without dummy data for production setup.
-- **Bug Fixes:**
-    - **Floating Point Precision:** Fixed an issue where API responses contained long, imprecise floating-point numbers. Updated  with  and a recursive rounding function to ensure clean JSON output.
-    - **H₂S Data Type:** Corrected the  database column from  to  in all schema files and created a live migration script ().
-- **P0 Feature Implementation:**
-    - **Hide Stats Bar:** The statistics bar on the  is now correctly hidden for  users.
-    - **Dashboard Switcher:** The dropdown in the header now correctly shows Karnal Plant.
-- **API & Documentation Enhancements:**
-    - **Auto-Simulator:** Updated  with 10 distinct, predefined scenarios.
-    - **PLC Integration:** Analyzed the Siemens LHTTP PDF and updated  to accept the API key in the URL.
-    - **Security:** Removed a hardcoded password bypass in .
-    - **Documentation:** Updated  and  with detailed information for the PLC developer.
+  - Provided detailed, step-by-step guidance for deploying the React frontend to GoDaddy.
+  - Diagnosed and fixed multiple frontend build issues, including incorrect environment variables ( vs ) and old build files causing the app to point to .
+- **Reporting System Overhaul:**
+  - **Fixed Dummy Data:** Replaced the mock data generator in the Reports page with live API calls, ensuring PDF/CSV downloads contain real data.
+  - **Enhanced Report API:** Updated  to return all necessary data fields for all report types.
+  - **Added Graph to PDF:** Implemented SVG-based bar chart generation in  so downloaded PDFs now include a visual graph.
+  - **Fixed Recent Reports:** Removed dummy data, implemented localStorage to save real generated reports, and filtered the list to the last 7 days.
+- **Feature Implementation & UI Fixes:**
+  - **Production Data Table:** Added a Historic Daily Production table to the  and .
+  - **Unit Conversion:** Changed Product Gas units from Nm³/hr to **Kg/hr** and Nm³ to **Kg** across the dashboard, trends, and reports.
+  - **UI Revert:** Reverted all agent-introduced UI layout changes on , , etc., as requested by the user.
+- **Data Integrity & Simulation:**
+  - **Robust Data Ingestion:** Updated  to properly sanitize incoming PLC data, handling empty strings, whitespace, and null values to prevent database corruption.
+  - **Partial Data Simulator:** Created a new  to test how the system behaves when receiving incomplete data (e.g., only flow meter values).
+  - **Enhanced Auto-Simulator:** Added a new Flow Meter Only scenario to .
 
 **Earlier issues found/mentioned but not fixed**
 - **Issue 1: Potential UI alignment issue at 100% zoom.**
@@ -85,66 +84,59 @@ The application consists of a React frontend and a PHP/MySQL backend. The codeba
 
 
 **Key Technical Concepts**
-- **PHP Environment Detection:**  uses  to automatically switch between local and production database credentials.
-- **API Key Flexibility:**  accepts the API key from a URL query parameter, JSON body, or header to ensure compatibility with various HTTP clients like the Siemens LHTTP library.
-- **Live Database Migration:** Small, single-purpose PHP scripts (, ) were used to perform schema setup and modifications directly on the production server.
-- **PHP Floating Point Handling:** A robust fix was implemented in  to handle PHP's serialization of floats, ensuring clean and accurate JSON responses by recursively rounding values.
+- **React Build Environments:** Differentiating between , , and  is critical for correct deployment. The build process embeds these variables, they are not used on the server.
+- **Backend Data Sanitization:** Implemented a  function in PHP to gracefully handle , empty strings, and whitespace in incoming API data, storing them as  in the database.
+- **Client-Side Report Storage:** Using  to persist a list of recently generated reports on the user's browser.
+- **Dynamic SVG in PDF:** Generating an SVG bar chart as an HTML string within  to include graphs in downloaded PDF reports.
 
 **key DB schema**
-- **scada_readings:** The  column type has been corrected to .
-- **users:** Passwords are now stored exclusively as  hashes, with the insecure plaintext fallback removed from .
-
-**changes in tech stack**
-- None.
+- No changes were made to the database schema in this session.
 
 **All files of reference**
-- **/app/docs/FRONTEND_DEPLOYMENT_GUIDE.md**: NEW - A guide for deploying the React frontend.
-- **/app/docs/PRODUCTION_SIMULATION_GUIDE.md**: NEW - A guide for running simulators in production.
-- **/app/php-api/config.php**: UPDATED - Contains production DB credentials, environment detection logic, and a critical fix for floating-point precision in JSON output.
-- **/app/php-api/auth.php**: UPDATED - Security fix to remove a hardcoded password bypass.
-- **/app/php-api/receive_data.php**: UPDATED - Now accepts an API key in the URL for PLC compatibility.
-- **/app/php-api/db_setup.php**: NEW - A temporary helper script to automate database table and user creation on the production server.
-- **/app/php-api/cleanup.php**: NEW - A temporary helper script to wipe test data from the production database.
-- **/app/php-api/fix_h2s.php**: NEW - A temporary migration script to change the  column type on the live database.
+- **/app/php-api/receive_data.php**: UPDATED - Now correctly sanitizes incoming data to handle null, empty, and invalid values gracefully.
+- **/app/php-api/reports.php**: UPDATED - API response for daily data now includes many more fields to correctly populate all report types.
+- **/app/php-api/flow_simulator.php**: NEW - A simulator specifically for testing partial data submission (e.g., only flow meter data).
+- **/app/php-api/auto_simulate.php**: UPDATED - An 11th scenario was added to test partial data submission.
+- **/app/frontend/src/components/ReportsPage.js**: UPDATED - Logic for Recent Reports now uses  instead of dummy data.
+- **/app/frontend/src/components/TrendsPage.js**: UPDATED - A new table for historic production data was added. Product gas units changed to Kg.
+- **/app/frontend/src/components/MNRETrendsPage.js**: UPDATED - Mirrored the changes from .
+- **/app/frontend/src/utils/pdfUtils.js**: UPDATED - Now includes logic to generate and embed an SVG bar chart into the PDF report.
+- **/app/docs/PLC_DEVELOPER_QUICK_GUIDE.md**: UPDATED - The field specifications table was updated to reflect the unit change for Product Gas (Kg/hr and Kg).
 
 **Areas that need refactoring**:
-- The  directory contains several temporary helper scripts (, , , , ). The user has been instructed to delete these from the server after use.
+- The  directory still contains several temporary helper/testing scripts (, , etc.) that should eventually be removed from a production environment.
 
 **key api endpoints**
--  (POST): The primary endpoint for the PLC. Now accepts  in the URL.
--  (GET): The main data endpoint for the UI. Output is now correctly rounded to prevent float precision errors.
--  (GET): Requires  and  parameters.
+-  (POST): Primary PLC data ingestion endpoint. Now more robust.
+-  (GET): Reporting endpoint. Now returns more complete data.
+-  (GET): New endpoint for testing partial data.
 
 **Critical Info for New Agent**
-- **Deployment is Active:** The user is in the middle of a manual deployment to a GoDaddy shared hosting environment. Be prepared to continue providing detailed, step-by-step support for this process. The backend is a standard LAMP stack, not a containerized environment.
-- **Temporary Helper Scripts:** The agent created several PHP scripts (, , etc.) to assist with deployment. You should be aware of their purpose and remind the user to delete them from their server after use for security.
-- **Present New Documentation:** The agent's last action was creating three documentation files as requested by the user. Your immediate next step is to view and present the content of these files to the user to unblock them.
+- **Local First:** The user wants all future changes to be fully tested and verified on their local environment before attempting another production deployment. Do not push the user to deploy until they are satisfied locally.
+- **Build Process Nuances:** Be very careful with the React build process. The user has had multiple issues with the wrong environment variables being baked into the build. Always explicitly confirm which  file is being used for  vs .
+- **UI Freeze:** The user has explicitly requested that the agent NOT make any stylistic or layout changes to the UI. All new features must be added while preserving the existing look and feel.
+- **Verification is Key:** The immediate next step is to guide the user through testing the 7 implemented items. Do not proceed with new tasks until the user confirms the current set of changes works as expected.
 
 **documents and test reports created in this job**
-- 
-- 
-- 
-- 
-- 
-- 
-- 
-- 
+-  (Updated)
+-  (Updated)
+-  (New)
 
 **Last 10 User Messages and any pending HUMAN messages**
-1. **User:** Asks for Postman tests for all APIs and which scripts to use for cleanup. (COMPLETED)
-2. **User:** Reports an error in the reports API ( required). (COMPLETED, agent provided correct params)
-3. **User:** Shares successful response from the corrected reports API. (ACKNOWLEDGED)
-4. **User:** After sending test data, asks what  means and points out float precision issues. (COMPLETED, agent explained the cause and fixed the precision)
-5. **User:** Asks for the correct test data for . (COMPLETED)
-6. **User:** Shares responses from  and , still showing the float precision issue. (ACKNOWLEDGED)
-7. **User:** States they are using the latest . (ACKNOWLEDGED, agent implemented a more robust fix in )
-8. **User:** Shares the corrected  response, confirming the float fix. (ACKNOWLEDGED)
-9. **User:** **PENDING:** Asks for detailed guides for (1) Frontend Deployment, (2) Production Simulation, and (3) a template/documentation for the PLC developer. (IN PROGRESS, agent created files but hasn't shown content)
-10. **(No new messages)**
+1.  **User:** Asks for the PLC integration guide again. (COMPLETED)
+2.  **User:** Asks if the provided PLC guide is the latest version. (COMPLETED, agent verified it)
+3.  **User:** Reports dummy data is appearing in downloaded reports on production. (IN PROGRESS)
+4.  **User:** Provides a list of 7 new issues/requests to fix, including report data, UI changes, new tables, unit changes, and partial data handling. (IN PROGRESS)
+5.  **User:** Confirms they are testing on their local environment first. (ACKNOWLEDGED)
+6.  **User:** Provides the local API response, confirming the API returns 157 records grouped into 2 days. (ACKNOWLEDGED)
+7.  **User:** Posts a screenshot showing incorrect 0.00 values in the Report Preview and expresses frustration with UI changes. (ACKNOWLEDGED)
+8.  **User:** Clarifies the 7 requests again, asking for the table in the trends page, verification of all reports, and other features. (ACKNOWLEDGED)
+9.  **User:** Confirms the plan to add the graph to the PDF. Asks for analysis of partial/corrupted data handling and requests a simulator for it. (IN PROGRESS)
+10. **User:** Asks for the documentation to be updated based on all the recent changes. (COMPLETED)
 
 **Project Health Check:**
-- **Broken:** No. The core application logic is stable. The user is navigating the challenges of a manual deployment to a shared hosting environment, which has been the source of recent issues.
-- **Mocked:** No.
+- **Broken:** No. The core application is functional. A large number of features and fixes have just been implemented and are pending user verification.
+- **Mocked:** No. All mock data in the reporting system has been replaced with live API calls.
 
 **3rd Party Integrations**
 -  (for client-side PDF generation)
@@ -152,11 +144,12 @@ The application consists of a React frontend and a PHP/MySQL backend. The codeba
 **Testing status**
 - **Testing agent used after significant changes:** NO
 - **Troubleshoot agent used after agent stuck in loop:** NO
-- **Test files created:** Multiple PHP helper scripts for debugging and setup have been created. No automated test files.
-- **Known regressions:** None.
+- **Test files created:**
+    - 
+- **Known regressions:** None, but a large set of changes is pending verification.
 
 **Credentials to test flow:**
-FTP and MySQL credentials were provided by the user in the chat history. They should be handled securely and not be re-exposed. They are necessary for any further deployment assistance.
+User is testing on their local environment. No credentials are needed by the agent.
 
 **What agent forgot to execute**
-The agent was in the middle of fulfilling a user request for three pieces of documentation. It successfully created the files for the guides but did not present the content of these files to the user before the session ended. The immediate next action should be to view and share the content of these documents.</analysis>
+The agent has addressed all 7 points from the user's latest request. The primary pending action is for the user to test and verify these changes. The agent did not forget to execute any specific task from the last user interaction.</analysis>
