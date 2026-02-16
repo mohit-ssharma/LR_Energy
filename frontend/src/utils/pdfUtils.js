@@ -167,6 +167,7 @@ export const generatePDFReport = async (reportData) => {
     '</div>' +
     summarySection +
     statsSection +
+    chartSection +
     tableSection +
     '<div style="margin-top: 30px; padding-top: 15px; border-top: 1px solid #e2e8f0;">' +
       '<div style="display: flex; justify-content: space-between; font-size: 10px; color: #94a3b8;">' +
