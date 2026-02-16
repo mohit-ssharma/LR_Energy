@@ -137,6 +137,8 @@ export const generatePDFReport = async (reportData) => {
   const tableHeaders = reportData.tableHeaders || [];
   const tableData = reportData.tableData || [];
   const statistics = reportData.statistics || null;
+  const chartData = reportData.chartData || [];
+  const chartTitle = reportData.chartTitle || 'Daily Trend';
 
   const dateStr = new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
   const fullDateStr = new Date().toLocaleString();
@@ -144,6 +146,7 @@ export const generatePDFReport = async (reportData) => {
   const periodSection = period ? '<div style="font-size: 12px; color: #666; margin-top: 5px;">Period: ' + period + '</div>' : '';
   const summarySection = createSummaryCards(summaryData);
   const statsSection = createStatsHTML(statistics);
+  const chartSection = createChartSVG(chartData, chartTitle);
   const tableSection = createTableHTML(tableHeaders, tableData);
 
   const htmlContent = '<div style="font-family: Arial, sans-serif; padding: 20px; color: #333; max-width: 800px; margin: 0 auto;">' +
