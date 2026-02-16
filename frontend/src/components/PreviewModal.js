@@ -120,7 +120,9 @@ function PreviewModal({ show, onClose, reportType, dateRange, customStartDate, c
   const [reportData, setReportData] = useState(null);
   const [chartData, setChartData] = useState([]);
   
-  const template = (reportTemplates && reportTemplates.find(function(r) { return r.id === reportType; })) || (reportTemplates && reportTemplates[0]) || { label: 'Report' };
+  if (!show) return null;
+
+  const template = reportTemplates.find(function(r) { return r.id === reportType; }) || reportTemplates[0];
 
   // Calculate date range
   function getDateRange() {
@@ -214,9 +216,6 @@ function PreviewModal({ show, onClose, reportType, dateRange, customStartDate, c
     
     fetchPreviewData();
   }, [show, dateRange, reportType, customStartDate, customEndDate]);
-
-  // Early return after hooks
-  if (!show) return null;
 
   // Calculate stats from real data
   function calculateStats(data, key) {
