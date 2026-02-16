@@ -365,10 +365,9 @@ function ReportsPage() {
 
   function getReportIncludes(id) {
     const includes = {
-      production: ['Raw Biogas Flow', 'Purified Gas Flow', 'Product Gas Flow', 'CH₄ Average', 'Efficiency', 'Production Summary'],
-      quality: ['CH₄ Min/Max/Avg', 'CO₂ Levels', 'O₂ Min/Max/Avg', 'H₂S Content', 'Dew Point', 'Compliance Status'],
+      production: ['Raw Biogas Totalizer', 'Purified Gas Totalizer', 'Product Gas Totalizer', 'Production Summary', 'Daily Trend Chart'],
+      quality: ['CH₄ Min/Max/Avg', 'CO₂ Levels', 'O₂ Min/Max/Avg', 'H₂S Content', 'Dew Point', 'Quality Status'],
       performance: ['Digester Temps', 'Pressures', 'Gas Levels', 'Tank Levels', 'Flow Meters', 'Uptime', 'Trends'],
-      compliance: ['Gas Composition', 'Threshold Breaches', 'H₂S Compliance', 'Operating Hours', 'Alarm History'],
       custom: ['Select Parameters', 'Choose Date Range', 'Pick Format', 'Add Notes', 'Save Template']
     };
     return includes[id] || [];
