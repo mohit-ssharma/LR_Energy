@@ -76,9 +76,15 @@ try {
         sendResponse([
             'status' => 'no_data',
             'message' => 'No current data available',
-            'data' => null
+            'data' => null,
+            'has_today_data' => false
         ]);
     }
+    
+    // Check if the latest reading is from today
+    $latestDate = date('Y-m-d', strtotime($latest['timestamp']));
+    $todayDate = date('Y-m-d');
+    $hasTodayData = ($latestDate === $todayDate);
     
     // =====================================================
     // Query 2: Get TODAY's sample count
