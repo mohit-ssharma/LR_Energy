@@ -5,6 +5,29 @@ import { getDashboardData, formatNumber } from '../services/api';
 
 // Connection Status Component
 const ConnectionStatus = ({ isConnected, isDemo, dataStatus, lastUpdate, lastKnownTime, onRetry }) => {
+  // Format last known time - show only time if today, else show date + time
+  const formatLastKnown = (timestamp) => {
+    if (!timestamp) return '';
+    const date = new Date(timestamp);
+    const today = new Date();
+    
+    const isToday = date.getDate() === today.getDate() &&
+                    date.getMonth() === today.getMonth() &&
+                    date.getFullYear() === today.getFullYear();
+    
+    if (isToday) {
+      return date.toLocaleTimeString('en-IN', { hour12: false });
+    } else {
+      return date.toLocaleString('en-IN', {
+        day: '2-digit',
+        month: 'short',
+        hour: '2-digit',
+        minute: '2-digit',
+        hour12: false
+      });
+    }
+  };
+
   const getStatusInfo = () => {
     if (isDemo) {
       return {
@@ -19,7 +42,7 @@ const ConnectionStatus = ({ isConnected, isDemo, dataStatus, lastUpdate, lastKno
       return {
         icon: <WifiOff className="w-4 h-4" />,
         text: 'OFFLINE',
-        subtext: lastKnownTime ? `Last data: ${new Date(lastKnownTime).toLocaleTimeString()}` : 'Reconnecting...',
+        subtext: lastKnownTime ? `Last data: ${formatLastKnown(lastKnownTime)}` : 'Reconnecting...',
         color: 'bg-red-100 text-red-700 border-red-200'
       };
     }
