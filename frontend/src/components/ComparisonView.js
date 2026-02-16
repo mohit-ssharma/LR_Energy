@@ -482,6 +482,7 @@ const ComparisonView = () => {
                     goodDirection="higher"
                     status={metric.status}
                     changePercent={metric.change_percent}
+                    hasNoTodayData={!hasTodayData}
                   />
                 ))}
               </div>
@@ -505,6 +506,7 @@ const ComparisonView = () => {
                       goodDirection={goodDirection}
                       status={metric.status}
                       changePercent={metric.change_percent}
+                      hasNoTodayData={!hasTodayData}
                     />
                   );
                 })}
@@ -529,6 +531,8 @@ const ComparisonView = () => {
                       goodDirection={goodDirection}
                       status={metric.status}
                       changePercent={metric.change_percent}
+                      hasNoTodayData={!hasTodayData}
+                    />
                     />
                   );
                 })}
