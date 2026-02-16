@@ -6,7 +6,7 @@ import { getTrendsData, getDailyProductionData, formatLastUpdated } from '../ser
 function TrendsPage({ userRole = 'HEAD_OFFICE' }) {
   const [timeRange, setTimeRange] = useState('24h');
   const [chartType, setChartType] = useState('area');
-  const [selectedCategory, setSelectedCategory] = useState('all');
+  const [selectedCategories, setSelectedCategories] = useState(['all']); // Changed to array for multiple selection
   const [maximizedChart, setMaximizedChart] = useState(null);
   const [trendData, setTrendData] = useState([]);
   const [loading, setLoading] = useState(true);
