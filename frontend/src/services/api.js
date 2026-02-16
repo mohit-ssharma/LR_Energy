@@ -143,6 +143,51 @@ export function formatTimestamp(timestamp) {
 }
 
 /**
+ * Get daily production data (based on totalizer differences)
+ * Endpoint: GET /daily_production.php?days=30
+ * 
+ * @param {number} days - Number of days to fetch (default: 30, max: 365)
+ */
+export async function getDailyProductionData(days = 30) {
+    return fetchAPI(`daily_production.php?days=${days}`);
+}
+
+/**
+ * Format "Last updated" time - show only time if today, else show date + time
+ * @param {string} timestamp - ISO timestamp string
+ * @returns {string} Formatted time string
+ */
+export function formatLastUpdated(timestamp) {
+    if (!timestamp) return 'N/A';
+    
+    const date = new Date(timestamp);
+    const today = new Date();
+    
+    const isToday = date.getDate() === today.getDate() &&
+                    date.getMonth() === today.getMonth() &&
+                    date.getFullYear() === today.getFullYear();
+    
+    if (isToday) {
+        // Today - show only time
+        return date.toLocaleString('en-IN', {
+            hour: '2-digit',
+            minute: '2-digit',
+            second: '2-digit',
+            hour12: false
+        });
+    } else {
+        // Not today - show date + time
+        return date.toLocaleString('en-IN', {
+            day: '2-digit',
+            month: 'short',
+            hour: '2-digit',
+            minute: '2-digit',
+            hour12: false
+        });
+    }
+}
+
+/**
  * Get status color class based on data status
  */
 export function getStatusColor(status) {
