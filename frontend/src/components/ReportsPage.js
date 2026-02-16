@@ -555,6 +555,11 @@ function ReportsPage() {
             </div>
 
             <div className="pt-4 border-t border-slate-200 space-y-2">
+              {error && (
+                <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg text-sm mb-2">
+                  {error}
+                </div>
+              )}
               <button
                 onClick={function() { setShowPreview(true); }}
                 className="w-full bg-cyan-600 text-white py-3 rounded-lg font-semibold hover:bg-cyan-700 transition-colors flex items-center justify-center space-x-2 shadow-sm"
