@@ -215,6 +215,9 @@ function PreviewModal({ show, onClose, reportType, dateRange, customStartDate, c
     fetchPreviewData();
   }, [show, dateRange, reportType, customStartDate, customEndDate]);
 
+  // Early return after hooks
+  if (!show) return null;
+
   // Calculate stats from real data
   function calculateStats(data, key) {
     if (!data || data.length === 0) return { min: '0', max: '0', avg: '0', total: '0' };
