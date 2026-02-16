@@ -652,6 +652,91 @@ function MNRETrendsPage({ userRole = 'MNRE' }) {
         </div>
       </div>
 
+      {/* Daily Production Section */}
+      <div className="bg-white rounded-lg border border-slate-200 p-5 shadow-sm mb-6">
+        <h3 className="text-lg font-semibold text-slate-800 mb-4 flex items-center space-x-2">
+          <Flame className="w-5 h-5 text-orange-500" />
+          <span>Daily Production (Based on Totalizer)</span>
+          {dailyProductionLoading && <RefreshCw className="w-4 h-4 animate-spin text-slate-400" />}
+        </h3>
+        
+        {/* Today's Production Cards */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+          <div className="bg-gradient-to-br from-emerald-50 to-teal-50 rounded-lg p-4 border border-emerald-200">
+            <div className="flex items-center justify-between mb-2">
+              <span className="text-sm font-semibold text-emerald-800">Today's Raw Biogas Production</span>
+              {todayProduction?.lastReading && (
+                <span className="text-xs text-emerald-600">
+                  Last: {formatLastUpdated(todayProduction.lastReading)}
+                </span>
+              )}
+            </div>
+            <div className="text-3xl font-bold font-mono text-emerald-700">
+              {todayProduction ? todayProduction.rawBiogas.toFixed(2) : '--'}
+              <span className="text-sm font-normal text-emerald-600 ml-1">Nm³</span>
+            </div>
+            <p className="text-xs text-emerald-600 mt-1">Max Totalizer - Min Totalizer (Today)</p>
+          </div>
+          
+          <div className="bg-gradient-to-br from-cyan-50 to-blue-50 rounded-lg p-4 border border-cyan-200">
+            <div className="flex items-center justify-between mb-2">
+              <span className="text-sm font-semibold text-cyan-800">Today's Product Gas Production</span>
+              {todayProduction?.lastReading && (
+                <span className="text-xs text-cyan-600">
+                  Last: {formatLastUpdated(todayProduction.lastReading)}
+                </span>
+              )}
+            </div>
+            <div className="text-3xl font-bold font-mono text-cyan-700">
+              {todayProduction ? todayProduction.productGas.toFixed(2) : '--'}
+              <span className="text-sm font-normal text-cyan-600 ml-1">Nm³</span>
+            </div>
+            <p className="text-xs text-cyan-600 mt-1">Max Totalizer - Min Totalizer (Today)</p>
+          </div>
+        </div>
+        
+        {/* Historic Production Chart */}
+        <div className="mb-4">
+          <h4 className="text-sm font-semibold text-slate-700 mb-3">Historic Daily Production (Last 30 Days)</h4>
+          {dailyProductionData.length > 0 ? (
+            <ResponsiveContainer width="100%" height={300}>
+              <BarChart data={dailyProductionData} margin={{ top: 5, right: 20, left: 0, bottom: 5 }}>
+                <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
+                <XAxis 
+                  dataKey="date" 
+                  stroke="#94a3b8" 
+                  style={{ fontSize: '10px' }}
+                  interval={Math.max(0, Math.floor(dailyProductionData.length / 10))}
+                />
+                <YAxis stroke="#94a3b8" style={{ fontSize: '10px' }} />
+                <Tooltip 
+                  contentStyle={{ 
+                    backgroundColor: 'white', 
+                    border: '1px solid #e2e8f0',
+                    borderRadius: '6px',
+                    fontSize: '11px'
+                  }}
+                  formatter={(value, name) => {
+                    const label = name === 'rawBiogas' ? 'Raw Biogas' : 'Product Gas';
+                    return [`${value.toFixed(2)} Nm³`, label];
+                  }}
+                />
+                <Legend />
+                <Bar dataKey="rawBiogas" name="Raw Biogas" fill="#10b981" radius={[4, 4, 0, 0]} />
+                <Bar dataKey="productGas" name="Product Gas" fill="#06b6d4" radius={[4, 4, 0, 0]} />
+              </BarChart>
+            </ResponsiveContainer>
+          ) : (
+            <div className="flex items-center justify-center h-48 bg-slate-50 rounded-lg">
+              <div className="text-center text-slate-500">
+                <Database className="w-8 h-8 mx-auto mb-2 text-slate-400" />
+                <p className="text-sm">No production data available</p>
+              </div>
+            </div>
+          )}
+        </div>
+      </div>
+
       {/* Selected Parameter Statistics - From Database Only */}
       <div className="bg-white rounded-lg border border-slate-200 p-5 shadow-sm">
         <h3 className="text-lg font-semibold text-slate-800 mb-4 flex items-center space-x-2">
