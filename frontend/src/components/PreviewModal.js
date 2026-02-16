@@ -345,10 +345,9 @@ function PreviewModal({ show, onClose, reportType, dateRange, customStartDate, c
 
   function getIncludes() {
     const includes = {
-      production: ['Raw Biogas Flow', 'Purified Gas Flow', 'Product Gas Flow', 'Efficiency Metrics', 'Daily Totals', 'Summary Statistics'],
-      quality: ['CH₄ Concentration', 'CO₂ Levels', 'O₂ Levels', 'H₂S Content', 'Daily Averages', 'Compliance Status'],
-      performance: ['Digester Temperatures', 'Tank Levels', 'Equipment Status', 'Efficiency Trends', 'Uptime Stats', 'Performance Metrics'],
-      compliance: ['Gas Composition', 'Safety Thresholds', 'H₂S Compliance', 'Regulatory Standards', 'Daily Status', 'Compliance Summary'],
+      production: ['Raw Biogas Totalizer', 'Purified Gas Totalizer', 'Product Gas Totalizer', 'Daily Production Summary', 'Production Trend Chart'],
+      quality: ['CH₄ Concentration', 'CO₂ Levels', 'O₂ Levels', 'H₂S Content', 'Daily Averages', 'Quality Trend Chart'],
+      performance: ['Digester Temperatures', 'Tank Levels', 'Equipment Status', 'Performance Trend Chart', 'Daily Metrics'],
       custom: ['Selected Parameters', 'Custom Date Range', 'Export Format', 'Notes', 'Template Settings']
     };
     return includes[reportType] || includes.production;
