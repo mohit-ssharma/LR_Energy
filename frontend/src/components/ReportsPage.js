@@ -576,17 +576,19 @@ function ReportsPage() {
                   <div className="absolute top-full left-0 right-0 mt-2 bg-white border border-slate-200 rounded-lg shadow-lg z-10">
                     <button 
                       onClick={function() { downloadCSV(getCurrentReportLabel()); }}
-                      className="w-full px-4 py-3 text-left hover:bg-slate-50 flex items-center space-x-2 text-slate-700"
+                      disabled={isLoading}
+                      className="w-full px-4 py-3 text-left hover:bg-slate-50 flex items-center space-x-2 text-slate-700 disabled:opacity-50 disabled:cursor-not-allowed"
                     >
-                      <FileSpreadsheet className="w-4 h-4 text-cyan-600" />
-                      <span>Download as CSV</span>
+                      {isLoading ? <Loader2 className="w-4 h-4 text-cyan-600 animate-spin" /> : <FileSpreadsheet className="w-4 h-4 text-cyan-600" />}
+                      <span>{isLoading ? 'Fetching data...' : 'Download as CSV'}</span>
                     </button>
                     <button 
                       onClick={function() { downloadPDF(getCurrentReportLabel()); }}
-                      className="w-full px-4 py-3 text-left hover:bg-slate-50 flex items-center space-x-2 text-slate-700 border-t border-slate-100"
+                      disabled={isLoading}
+                      className="w-full px-4 py-3 text-left hover:bg-slate-50 flex items-center space-x-2 text-slate-700 border-t border-slate-100 disabled:opacity-50 disabled:cursor-not-allowed"
                     >
-                      <FileText className="w-4 h-4 text-rose-600" />
-                      <span>Download as PDF</span>
+                      {isLoading ? <Loader2 className="w-4 h-4 text-rose-600 animate-spin" /> : <FileText className="w-4 h-4 text-rose-600" />}
+                      <span>{isLoading ? 'Fetching data...' : 'Download as PDF'}</span>
                     </button>
                   </div>
                 )}
