@@ -146,21 +146,58 @@ try {
 
     $booleanFields = ['psa_status', 'compressor_status'];
 
-    foreach ($numericFields as $field) {
-        if (isset($data[$field]) && $data[$field] !== null) {
-            if (!is_numeric($data[$field])) {
-                sendError("Field '$field' must be numeric", 400);
+    // Helper function to clean and validate values
+    function cleanValue($value, $isNumeric = true) {
+        // Handle null
+        if ($value === null) {
+            return null;
+        }
+        
+        // Convert to string and trim whitespace
+        $value = trim(strval($value));
+        
+        // Empty string becomes null
+        if ($value === '') {
+            return null;
+        }
+        
+        // For numeric fields, validate it's actually numeric
+        if ($isNumeric) {
+            if (!is_numeric($value)) {
+                return null; // Return null for invalid numeric data instead of error
             }
+            return floatval($value);
+        }
+        
+        return $value;
+    }
+
+    // Clean and validate all numeric fields
+    $cleanedData = [];
+    foreach ($numericFields as $field) {
+        if (isset($data[$field])) {
+            $cleanedData[$field] = cleanValue($data[$field], true);
+        } else {
+            $cleanedData[$field] = null;
         }
     }
 
+    // Clean and validate boolean fields (0 or 1)
     foreach ($booleanFields as $field) {
-        if (isset($data[$field]) && $data[$field] !== null) {
-            if (!in_array($data[$field], [0, 1, '0', '1'], true)) {
-                sendError("Field '$field' must be 0 or 1", 400);
+        if (isset($data[$field])) {
+            $cleaned = cleanValue($data[$field], true);
+            if ($cleaned !== null) {
+                $cleanedData[$field] = ($cleaned == 1) ? 1 : 0;
+            } else {
+                $cleanedData[$field] = null;
             }
+        } else {
+            $cleanedData[$field] = null;
         }
     }
+
+    // Merge cleaned data back
+    $data = array_merge($data, $cleanedData);
 
     // Define all fields
     $allFields = [
