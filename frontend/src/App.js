@@ -151,8 +151,24 @@ const MNREApp = ({ onLogout, showBackButton = false, onBack }) => {
 
 // Head Office App - Full Access with Dashboard Switcher
 const HeadOfficeApp = ({ onLogout, onBackToDashboardList }) => {
-  const [currentPage, setCurrentPage] = useState('dashboard');
-  const [currentDashboard, setCurrentDashboard] = useState('karnal'); // 'karnal' or 'mnre'
+  // Persist currentPage and currentDashboard to localStorage for page refresh persistence
+  const [currentPage, setCurrentPage] = useState(() => {
+    const saved = localStorage.getItem('ho_current_page');
+    return saved || 'dashboard';
+  });
+  const [currentDashboard, setCurrentDashboard] = useState(() => {
+    const saved = localStorage.getItem('ho_current_dashboard');
+    return saved || 'karnal';
+  });
+
+  // Save to localStorage when they change
+  useEffect(() => {
+    localStorage.setItem('ho_current_page', currentPage);
+  }, [currentPage]);
+
+  useEffect(() => {
+    localStorage.setItem('ho_current_dashboard', currentDashboard);
+  }, [currentDashboard]);
 
   const handleSwitchDashboard = (dashboardId) => {
     setCurrentDashboard(dashboardId);
