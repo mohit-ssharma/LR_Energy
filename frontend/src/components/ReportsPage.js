@@ -650,24 +650,32 @@ function ReportsPage() {
       </div>
 
       <div className="bg-white rounded-lg border border-slate-200 p-6 shadow-sm">
-        <h2 className="text-lg font-semibold text-slate-800 mb-4">Recent Reports</h2>
-        <div className="overflow-x-auto">
-          <table className="w-full">
-            <thead>
-              <tr className="border-b border-slate-200">
-                <th className="text-left py-3 px-4 text-sm font-semibold text-slate-700">Report Name</th>
-                <th className="text-left py-3 px-4 text-sm font-semibold text-slate-700">Date</th>
-                <th className="text-left py-3 px-4 text-sm font-semibold text-slate-700">Size</th>
-                <th className="text-left py-3 px-4 text-sm font-semibold text-slate-700">Format</th>
-                <th className="text-left py-3 px-4 text-sm font-semibold text-slate-700">Status</th>
-                <th className="text-left py-3 px-4 text-sm font-semibold text-slate-700">Actions</th>
-              </tr>
-            </thead>
-            <tbody>
-              {recentReportRows}
-            </tbody>
-          </table>
-        </div>
+        <h2 className="text-lg font-semibold text-slate-800 mb-4">Recent Reports (Last 7 Days)</h2>
+        {recentReports.length > 0 ? (
+          <div className="overflow-x-auto">
+            <table className="w-full">
+              <thead>
+                <tr className="border-b border-slate-200">
+                  <th className="text-left py-3 px-4 text-sm font-semibold text-slate-700">Report Name</th>
+                  <th className="text-left py-3 px-4 text-sm font-semibold text-slate-700">Date</th>
+                  <th className="text-left py-3 px-4 text-sm font-semibold text-slate-700">Time</th>
+                  <th className="text-left py-3 px-4 text-sm font-semibold text-slate-700">Format</th>
+                  <th className="text-left py-3 px-4 text-sm font-semibold text-slate-700">Status</th>
+                  <th className="text-left py-3 px-4 text-sm font-semibold text-slate-700">Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                {recentReportRows}
+              </tbody>
+            </table>
+          </div>
+        ) : (
+          <div className="text-center py-8 text-slate-500">
+            <FileText className="w-12 h-12 mx-auto mb-2 text-slate-300" />
+            <p className="text-sm">No reports generated in the last 7 days</p>
+            <p className="text-xs text-slate-400 mt-1">Generate a report to see it here</p>
+          </div>
+        )}
       </div>
     </div>
   );
