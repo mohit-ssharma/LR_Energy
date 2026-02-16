@@ -533,6 +533,7 @@ const ComparisonView = () => {
                       changePercent={metric.change_percent}
                       hasNoTodayData={!hasTodayData}
                     />
+                    />
                   );
                 })}
               </div>
