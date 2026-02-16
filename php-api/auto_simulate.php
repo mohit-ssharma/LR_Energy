@@ -3,9 +3,9 @@
  * Auto PLC Simulator - Continuous Data Generation
  * 
  * Usage:
- * 1. Browser: http://localhost/scada-api/auto_simulate.php?duration=10&interval=60
+ * 1. Browser: http://localhost/scada-api/auto_simulate.php?duration=10&interval=30
  *    - duration: minutes to run (default: 10)
- *    - interval: seconds between readings (default: 60)
+ *    - interval: seconds between readings (default: 30)
  * 
  * 2. Command Line: php auto_simulate.php
  */
@@ -28,7 +28,7 @@ if ($is_local) {
 $API_KEY = API_KEY;
 
 $duration = isset($_GET['duration']) ? intval($_GET['duration']) : 10; // minutes
-$interval = isset($_GET['interval']) ? intval($_GET['interval']) : 60; // seconds
+$interval = isset($_GET['interval']) ? intval($_GET['interval']) : 30; // seconds (changed from 60 to 30)
 
 $totalReadings = floor(($duration * 60) / $interval);
 
