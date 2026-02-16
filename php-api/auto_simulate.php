@@ -222,6 +222,19 @@ function generateRealisticData($readingNumber) {
             'buffer_tank_level' => 68, 'lagoon_tank_level' => 62,
             'feed_fm1_flow' => 50, 'feed_fm2_flow' => 47, 'fresh_water_flow' => 16, 'recycle_water_flow' => 32,
             'psa_status' => 1, 'psa_efficiency' => 97.0, 'lt_panel_power' => 275, 'compressor_status' => 1
+        ],
+        
+        // Scenario 11: Flow Meter Only (Partial Data - Other sensors offline)
+        [
+            'name' => '📊 Flow Meter Only (Partial Data)',
+            'raw_biogas_flow' => 1250, 'purified_gas_flow' => 1180, 'product_gas_flow' => 1150,
+            'ch4_concentration' => null, 'co2_level' => null, 'o2_concentration' => null, 'h2s_content' => null,
+            'dew_point' => null,
+            'd1_temp_bottom' => null, 'd1_temp_top' => null, 'd1_gas_pressure' => null, 'd1_air_pressure' => null, 'd1_slurry_height' => null, 'd1_gas_level' => null,
+            'd2_temp_bottom' => null, 'd2_temp_top' => null, 'd2_gas_pressure' => null, 'd2_air_pressure' => null, 'd2_slurry_height' => null, 'd2_gas_level' => null,
+            'buffer_tank_level' => null, 'lagoon_tank_level' => null,
+            'feed_fm1_flow' => null, 'feed_fm2_flow' => null, 'fresh_water_flow' => null, 'recycle_water_flow' => null,
+            'psa_status' => null, 'psa_efficiency' => null, 'lt_panel_power' => null, 'compressor_status' => null
         ]
     ];
     
