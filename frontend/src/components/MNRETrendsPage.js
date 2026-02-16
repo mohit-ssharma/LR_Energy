@@ -93,18 +93,62 @@ function MNRETrendsPage({ userRole = 'MNRE' }) {
     }
   }, [timeRange]);
 
+  // Fetch daily production data
+  const fetchDailyProduction = useCallback(async () => {
+    setDailyProductionLoading(true);
+    try {
+      const result = await getDailyProductionData(30);
+      
+      if (result.success && result.data?.data) {
+        // Transform data for chart (reverse to show oldest first)
+        const chartData = [...result.data.data].reverse().map(d => ({
+          date: d.date ? d.date.slice(5) : '', // MM-DD format
+          fullDate: d.date,
+          rawBiogas: d.raw_biogas_production || 0,
+          productGas: d.product_gas_production || 0,
+          purifiedGas: d.purified_gas_production || 0,
+          samples: d.sample_count || 0
+        }));
+        setDailyProductionData(chartData);
+        
+        // Set today's production
+        if (result.data.today) {
+          setTodayProduction({
+            rawBiogas: result.data.today.raw_biogas_production || 0,
+            productGas: result.data.today.product_gas_production || 0,
+            purifiedGas: result.data.today.purified_gas_production || 0,
+            lastReading: result.data.today.last_reading
+          });
+        } else {
+          setTodayProduction(null);
+        }
+      } else {
+        setDailyProductionData([]);
+        setTodayProduction(null);
+      }
+    } catch (err) {
+      console.error('Daily production API error:', err);
+      setDailyProductionData([]);
+      setTodayProduction(null);
+    } finally {
+      setDailyProductionLoading(false);
+    }
+  }, []);
+
   // Initial fetch and when timeRange changes
   useEffect(() => {
     fetchData();
-  }, [fetchData]);
+    fetchDailyProduction();
+  }, [fetchData, fetchDailyProduction]);
 
   // Auto-refresh every 60 seconds
   useEffect(() => {
     const interval = setInterval(() => {
       fetchData();
+      fetchDailyProduction();
     }, 60000);
     return () => clearInterval(interval);
-  }, [fetchData]);
+  }, [fetchData, fetchDailyProduction]);
 
   // MNRE can only see these 2 parameter categories (Gas Flow and Gas Composition)
   const parameterCategories = {
