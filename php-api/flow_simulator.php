@@ -140,8 +140,10 @@ function sendFlowMeterOnlyData() {
         'compressor_status' => null
     ];
     
-    // Send to receive_data.php
-    $apiUrl = 'http://localhost/scada-api/receive_data.php?api_key=' . API_KEY;
+    // Send to receive_data.php - Auto-detect environment
+    $is_local = ($_SERVER['SERVER_NAME'] === 'localhost' || $_SERVER['SERVER_NAME'] === '127.0.0.1');
+    $baseUrl = $is_local ? 'http://localhost' : 'https://' . $_SERVER['SERVER_NAME'];
+    $apiUrl = $baseUrl . '/scada-api/receive_data.php?api_key=' . API_KEY;
     
     $ch = curl_init($apiUrl);
     curl_setopt_array($ch, [
