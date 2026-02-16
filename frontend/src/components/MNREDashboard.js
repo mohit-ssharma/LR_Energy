@@ -143,10 +143,10 @@ const MNREKPISummary = ({ dashboardData, loading, error, isConnected, isDemo, on
       {
         title: 'Product Gas Flow',
         value: formatNumber(current?.product_gas_flow, 1),
-        unit: 'Nm³/hr',
+        unit: 'Kg/hr',
         totalizer: 'Totalizer',
         totalizerValue: formatNumber(Math.round(current?.product_gas_totalizer || 0), 0),
-        totalizerUnit: 'Nm³',
+        totalizerUnit: 'Kg',
         icon: TrendingUp,
         color: 'bg-cyan-600',
         trendData: generateTrendData(current?.product_gas_flow || 1150),
