@@ -236,9 +236,10 @@ function ReportsPage() {
     
     generateCSVDownload({
       title: name,
-      headers: ['Date', 'Raw Biogas (Nm³/hr)', 'Purified Gas (Nm³/hr)', 'Product Gas (Nm³/hr)', 'CH₄ (%)', 'Efficiency (%)'],
+      headers: ['Date', 'Raw Biogas (Nm³/hr)', 'Purified Gas (Nm³/hr)', 'Product Gas (Kg/hr)', 'CH₄ (%)', 'Efficiency (%)'],
       data: rows
     });
+    saveToRecentReports(name, 'CSV');
     setShowDownloadMenu(null);
   }
 
