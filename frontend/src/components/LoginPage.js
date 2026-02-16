@@ -21,12 +21,16 @@ const LoginPage = ({ onLogin }) => {
       return;
     }
 
-    const result = login(email, password);
-    
-    if (result.success) {
-      onLogin(result.user);
-    } else {
-      setError(result.error || 'Invalid credentials');
+    try {
+      const result = await login(email, password);
+      
+      if (result.success) {
+        onLogin(result.user);
+      } else {
+        setError(result.error || 'Invalid credentials');
+      }
+    } catch (err) {
+      setError('Login failed. Please try again.');
     }
     
     setIsLoading(false);
