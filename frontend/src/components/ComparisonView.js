@@ -3,9 +3,50 @@ import { TrendingUp, TrendingDown, Minus, ChevronDown, ChevronUp, BarChart3, Ref
 import { getComparisonData, formatNumber } from '../services/api';
 import { generatePDFReport } from '../utils/pdfUtils';
 
-// Comparison Card Component
-const ComparisonCard = ({ title, unit, todayValue, yesterdayValue, goodDirection, status, changePercent }) => {
+// Comparison Card Component - Handle null/undefined values for "no data"
+const ComparisonCard = ({ title, unit, todayValue, yesterdayValue, goodDirection, status, changePercent, hasNoTodayData }) => {
   let statusColor, statusBg, statusIcon;
+  
+  // If no today data, show a neutral/no-data state
+  if (hasNoTodayData) {
+    statusColor = 'text-slate-500';
+    statusBg = 'bg-slate-50 border-slate-200';
+    statusIcon = <Minus className="w-4 h-4" />;
+    
+    return (
+      <div className={`p-4 rounded-lg border ${statusBg}`}>
+        <div className="flex justify-between items-start mb-2">
+          <span className="text-sm font-medium text-slate-600">{title}</span>
+          <span className={`flex items-center space-x-1 text-xs font-semibold ${statusColor}`}>
+            {statusIcon}
+            <span>No Data</span>
+          </span>
+        </div>
+        
+        <div className="grid grid-cols-2 gap-4">
+          <div>
+            <div className="text-xs text-slate-500">Today (Current)</div>
+            <div className="text-xl font-bold font-mono text-slate-400">
+              --
+              <span className="text-sm font-normal text-slate-400 ml-1">{unit}</span>
+            </div>
+          </div>
+          <div>
+            <div className="text-xs text-slate-500">Yesterday (Avg)</div>
+            <div className="text-xl font-bold font-mono text-slate-500">
+              {formatNumber(yesterdayValue, title.includes('CH') || title.includes('CO') || title.includes('O₂') ? 1 : 0)}
+              <span className="text-sm font-normal text-slate-400 ml-1">{unit}</span>
+            </div>
+          </div>
+        </div>
+        
+        <div className="mt-2 flex items-center">
+          <span className="text-sm font-mono text-slate-400">--</span>
+          <span className="text-xs text-slate-400 ml-2">(No data uploaded today)</span>
+        </div>
+      </div>
+    );
+  }
   
   switch (status) {
     case 'improved':
