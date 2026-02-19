@@ -1,0 +1,184 @@
+<?php
+/**
+ * Database Configuration
+ * 
+ * LOCAL DEVELOPMENT (XAMPP):
+ * - Host: localhost
+ * - User: root
+ * - Password: (empty)
+ * - Database: scada_db
+ * 
+ * PRODUCTION (GoDaddy):
+ * - Update these values with your GoDaddy credentials
+ */
+
+// ============================================
+// ENVIRONMENT DETECTION
+// ============================================
+
+$is_local = ($_SERVER['SERVER_NAME'] === 'localhost' || $_SERVER['SERVER_NAME'] === '127.0.0.1');
+
+// ============================================
+// DATABASE CREDENTIALS
+// ============================================
+
+if ($is_local) {
+    // LOCAL DEVELOPMENT (XAMPP)
+    define('DB_HOST', 'localhost');
+    define('DB_NAME', 'scada_db');
+    define('DB_USER', 'root');
+    define('DB_PASS', '');  // XAMPP default is empty password
+} else {
+    // PRODUCTION (GoDaddy/Starter Starter)
+    define('DB_HOST', 'localhost');
+    define('DB_NAME', 'illionss_karnal_lre');
+    define('DB_USER', 'illionss_karnal_lre');
+    define('DB_PASS', '@xABi]j4hOBd');
+}
+
+// ============================================
+// API SECURITY
+// ============================================
+
+// API Key for PLC/sync script authentication
+// IMPORTANT: Change this key in production for security!
+define('API_KEY', 'SCADA_LR_ENERGY_2026_SECURE_KEY');
+
+// Optional: Whitelist IP (leave empty to allow all)
+define('ALLOWED_IP', '');
+
+// API Timeout (seconds) - ensures execution < 5 seconds
+define('API_TIMEOUT', 5);
+
+// ============================================
+// APPLICATION SETTINGS
+// ============================================
+
+define('PLANT_ID', 'KARNAL');
+define('TIMEZONE', 'Asia/Kolkata');
+
+// Set timezone
+date_default_timezone_set(TIMEZONE);
+
+// Fix floating point precision in JSON output
+ini_set('serialize_precision', 14);
+ini_set('precision', 14);
+
+// ============================================
+// DATABASE CONNECTION FUNCTION
+// ============================================
+
+function getDBConnection() {
+    try {
+        $dsn = "mysql:host=" . DB_HOST . ";dbname=" . DB_NAME . ";charset=utf8mb4";
+        $options = [
+            PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
+            PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
+            PDO::ATTR_EMULATE_PREPARES => false,
+        ];
+        
+        $pdo = new PDO($dsn, DB_USER, DB_PASS, $options);
+        return $pdo;
+        
+    } catch (PDOException $e) {
+        error_log("Database connection failed: " . $e->getMessage());
+        return null;
+    }
+}
+
+// ============================================
+// HELPER FUNCTIONS
+// ============================================
+
+/**
+ * Round float values recursively in array
+ */
+function roundFloats($data, $precision = 2) {
+    if (is_array($data)) {
+        foreach ($data as $key => $value) {
+            $data[$key] = roundFloats($value, $precision);
+        }
+        return $data;
+    } elseif (is_float($data)) {
+        return round($data, $precision);
+    }
+    return $data;
+}
+
+/**
+ * Send JSON response
+ */
+function sendResponse($data, $statusCode = 200) {
+    http_response_code($statusCode);
+    // Round all float values to fix precision issues
+    $data = roundFloats($data);
+    echo json_encode($data, JSON_PRESERVE_ZERO_FRACTION);
+    exit;
+}
+
+/**
+ * Send error response
+ */
+function sendError($message, $statusCode = 400) {
+    sendResponse(['status' => 'error', 'message' => $message], $statusCode);
+}
+
+/**
+ * Validate API key
+ */
+function validateApiKey($providedKey) {
+    if ($providedKey !== API_KEY) {
+        sendError('Invalid API key', 401);
+    }
+}
+
+/**
+ * Validate IP address (if whitelist is set)
+ */
+function validateIP() {
+    if (!empty(ALLOWED_IP)) {
+        $clientIP = $_SERVER['REMOTE_ADDR'];
+        if ($clientIP !== ALLOWED_IP) {
+            sendError('IP not allowed', 403);
+        }
+    }
+}
+
+/**
+ * Log API request
+ */
+function logAPIRequest($endpoint, $method, $requestBody, $responseCode, $responseMessage, $executionTime) {
+    $pdo = getDBConnection();
+    if (!$pdo) return;
+    
+    try {
+        $sql = "INSERT INTO api_logs (endpoint, method, ip_address, request_body, response_code, response_message, execution_time_ms) 
+                VALUES (?, ?, ?, ?, ?, ?, ?)";
+        $stmt = $pdo->prepare($sql);
+        $stmt->execute([
+            $endpoint,
+            $method,
+            $_SERVER['REMOTE_ADDR'] ?? 'unknown',
+            is_array($requestBody) ? json_encode($requestBody) : $requestBody,
+            $responseCode,
+            $responseMessage,
+            $executionTime
+        ]);
+    } catch (Exception $e) {
+        error_log("Failed to log API request: " . $e->getMessage());
+    }
+}
+
+/**
+ * Handle CORS preflight
+ */
+function handleCORS() {
+    if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
+        header('Access-Control-Allow-Origin: *');
+        header('Access-Control-Allow-Methods: GET, POST, OPTIONS');
+        header('Access-Control-Allow-Headers: Content-Type, Authorization');
+        http_response_code(200);
+        exit;
+    }
+}
+?>
