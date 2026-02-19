@@ -42,11 +42,18 @@ const MNREKPICard = ({ title, value, unit, totalizer, totalizerValue, totalizerU
 
   const colorClasses = getColorClasses(color);
   
-  // Format time from lastUpdate
+  // Format time from lastUpdate - show Date + Time always
   const formatTime = (timestamp) => {
     if (!timestamp) return '--:--:--';
     const date = new Date(timestamp);
-    return date.toLocaleTimeString('en-IN', { hour12: false });
+    // Always show Date + Time format: "19 Feb 14:30"
+    return date.toLocaleString('en-IN', {
+      day: '2-digit',
+      month: 'short',
+      hour: '2-digit',
+      minute: '2-digit',
+      hour12: false
+    });
   };
   
   return (
