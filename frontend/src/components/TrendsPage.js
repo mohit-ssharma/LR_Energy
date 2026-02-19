@@ -115,24 +115,34 @@ function TrendsPage({ userRole = 'HEAD_OFFICE' }) {
       const result = await getDailyProductionData(30);
       
       if (result.success && result.data?.data) {
-        // Transform data for chart (reverse to show oldest first)
-        const chartData = [...result.data.data].reverse().map(d => ({
+        // Transform data for table (newest first from API)
+        const tableData = result.data.data.map(d => ({
           date: d.date ? d.date.slice(5) : '', // MM-DD format
           fullDate: d.date,
-          rawBiogas: d.raw_biogas_production || 0,
-          productGas: d.product_gas_production || 0,
-          purifiedGas: d.purified_gas_production || 0,
+          prevDate: d.prev_date,
+          rawBiogas: d.raw_biogas_production,
+          productGas: d.product_gas_production,
+          purifiedGas: d.purified_gas_production,
+          prevRawTotalizer: d.prev_raw_totalizer,
+          prevProductTotalizer: d.prev_product_totalizer,
+          currentRawTotalizer: d.current_raw_totalizer,
+          currentProductTotalizer: d.current_product_totalizer,
           samples: d.sample_count || 0
         }));
-        setDailyProductionData(chartData);
+        setDailyProductionData(tableData);
         
-        // Set today's production
+        // Set today's production from API response
         if (result.data.today) {
           setTodayProduction({
-            rawBiogas: result.data.today.raw_biogas_production || 0,
-            productGas: result.data.today.product_gas_production || 0,
-            purifiedGas: result.data.today.purified_gas_production || 0,
-            lastReading: result.data.today.last_reading
+            rawBiogas: result.data.today.raw_biogas_production,
+            productGas: result.data.today.product_gas_production,
+            referenceDate: result.data.today.reference_date,
+            referenceRaw: result.data.today.reference_raw_biogas,
+            referenceProduct: result.data.today.reference_product_gas,
+            currentRaw: result.data.today.current_raw_biogas,
+            currentProduct: result.data.today.current_product_gas,
+            lastReading: result.data.today.last_reading,
+            isLive: result.data.today.is_live
           });
         } else {
           setTodayProduction(null);
