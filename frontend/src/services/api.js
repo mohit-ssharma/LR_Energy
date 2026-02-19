@@ -179,38 +179,23 @@ export async function getDailyProductionData(days = 30) {
 }
 
 /**
- * Format "Last updated" time - show only time if today, else show date + time
+ * Format "Last updated" time - always show Date + Time
  * @param {string} timestamp - ISO timestamp string
- * @returns {string} Formatted time string
+ * @returns {string} Formatted time string: "19 Feb 14:30"
  */
 export function formatLastUpdated(timestamp) {
     if (!timestamp) return 'N/A';
     
     const date = new Date(timestamp);
-    const today = new Date();
     
-    const isToday = date.getDate() === today.getDate() &&
-                    date.getMonth() === today.getMonth() &&
-                    date.getFullYear() === today.getFullYear();
-    
-    if (isToday) {
-        // Today - show only time
-        return date.toLocaleString('en-IN', {
-            hour: '2-digit',
-            minute: '2-digit',
-            second: '2-digit',
-            hour12: false
-        });
-    } else {
-        // Not today - show date + time
-        return date.toLocaleString('en-IN', {
-            day: '2-digit',
-            month: 'short',
-            hour: '2-digit',
-            minute: '2-digit',
-            hour12: false
-        });
-    }
+    // Always show Date + Time format: "19 Feb 14:30"
+    return date.toLocaleString('en-IN', {
+        day: '2-digit',
+        month: 'short',
+        hour: '2-digit',
+        minute: '2-digit',
+        hour12: false
+    });
 }
 
 /**
