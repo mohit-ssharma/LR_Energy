@@ -56,11 +56,17 @@ const GasComposition = ({ dashboardData }) => {
     }
   };
 
-  // Format timestamp
+  // Format timestamp - always show Date + Time
   const formatTime = (timestamp) => {
     if (!timestamp) return '--:--:--';
     const date = new Date(timestamp);
-    return date.toLocaleTimeString('en-IN', { hour12: false });
+    return date.toLocaleString('en-IN', {
+      day: '2-digit',
+      month: 'short',
+      hour: '2-digit',
+      minute: '2-digit',
+      hour12: false
+    });
   };
 
   const lastUpdate = dashboardData?.last_update;
