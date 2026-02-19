@@ -3,8 +3,8 @@
 ## Project Overview
 Web-based SCADA (Supervisory Control and Data Acquisition) monitoring system for a biogas plant at Karnal, India.
 
-**Document Version:** 3.1  
-**Last Updated:** February 16, 2026
+**Document Version:** 3.2  
+**Last Updated:** February 19, 2026
 
 ---
 
@@ -43,10 +43,12 @@ Web-based SCADA (Supervisory Control and Data Acquisition) monitoring system for
 - [x] Historical data charts (24h, 7d, 30d)
 - [x] Multiple parameters: Gas Flow, Gas Composition, Digester, Equipment
 - [x] **Category Filter with checkboxes** (Updated Feb 16)
-- [x] **Daily Production Section** with:
-  - Today's Raw Biogas Production (Nm³) - Latest Totalizer Value
-  - Today's Product Gas Production (Kg) - Latest Totalizer Value
-  - **Daily Production Summary Table** (using latest totalizer values per day)
+- [x] **Daily Production Section** with NEW CALCULATION (Feb 19):
+  - **Formula:** Production = Current Day's Last Totalizer - Previous Day's Last Totalizer
+  - Today's Raw Biogas Production (Nm³) - Shows calculated production with reference info
+  - Today's Product Gas Production (Kg) - Shows calculated production with reference info
+  - **Daily Production Summary Table** - Shows calculated daily production for all days
+  - Works for both HEAD_OFFICE and MNRE roles
 - [x] **Historic Daily Production Graph REMOVED** (Feb 16)
 - [x] Statistics from real database data
 - [x] Auto-refresh every 60 seconds
