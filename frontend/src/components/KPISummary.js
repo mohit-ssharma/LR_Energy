@@ -182,29 +182,18 @@ const KPICard = ({ title, value, unit, totalizer, totalizerValue, totalizerUnit,
   const colorClasses = getColorClasses(color);
   const isTotalizerCard = totalizer.includes('Totalizer');
   
-  // Format time from lastUpdate - show only time if today, else show date + time
+  // Format time from lastUpdate - always show Date + Time
   const formatTime = (timestamp) => {
     if (!timestamp) return '--:--:--';
     const date = new Date(timestamp);
-    const today = new Date();
-    
-    const isToday = date.getDate() === today.getDate() &&
-                    date.getMonth() === today.getMonth() &&
-                    date.getFullYear() === today.getFullYear();
-    
-    if (isToday) {
-      // Today - show only time
-      return date.toLocaleTimeString('en-IN', { hour12: false });
-    } else {
-      // Not today - show date + time
-      return date.toLocaleString('en-IN', {
-        day: '2-digit',
-        month: 'short',
-        hour: '2-digit',
-        minute: '2-digit',
-        hour12: false
-      });
-    }
+    // Always show Date + Time format: "19 Feb 14:30"
+    return date.toLocaleString('en-IN', {
+      day: '2-digit',
+      month: 'short',
+      hour: '2-digit',
+      minute: '2-digit',
+      hour12: false
+    });
   };
   
   return (
