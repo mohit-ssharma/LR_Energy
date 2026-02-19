@@ -776,38 +776,58 @@ function TrendsPage({ userRole = 'HEAD_OFFICE' }) {
           <div className="bg-gradient-to-br from-emerald-50 to-teal-50 rounded-lg p-4 border border-emerald-200">
             <div className="flex items-center justify-between mb-2">
               <span className="text-sm font-semibold text-emerald-800">Today's Raw Biogas Production</span>
-              {todayProduction?.lastReading && (
-                <span className="text-xs text-emerald-600">
-                  Last: {formatLastUpdated(todayProduction.lastReading)}
-                </span>
+              {todayProduction?.isLive && (
+                <span className="text-xs bg-emerald-100 text-emerald-700 px-2 py-0.5 rounded-full">LIVE</span>
               )}
             </div>
             <div className="text-3xl font-bold font-mono text-emerald-700">
-              {todayProduction ? todayProduction.rawBiogas.toFixed(2) : '--'}
+              {todayProduction && todayProduction.rawBiogas !== null ? todayProduction.rawBiogas.toFixed(2) : '--'}
               <span className="text-sm font-normal text-emerald-600 ml-1">Nm³</span>
             </div>
-            <p className="text-xs text-emerald-600 mt-1">Latest Totalizer Value (Today)</p>
+            {todayProduction?.referenceDate && (
+              <p className="text-xs text-emerald-600 mt-1">
+                Reference: {todayProduction.referenceDate} ({todayProduction.referenceRaw !== null ? todayProduction.referenceRaw.toFixed(2) : '--'} Nm³)
+              </p>
+            )}
+            {todayProduction?.lastReading && (
+              <p className="text-xs text-emerald-500 mt-0.5">
+                Last updated: {formatLastUpdated(todayProduction.lastReading)}
+              </p>
+            )}
+            {!todayProduction && (
+              <p className="text-xs text-emerald-600 mt-1">No data available for today</p>
+            )}
           </div>
           
           <div className="bg-gradient-to-br from-cyan-50 to-blue-50 rounded-lg p-4 border border-cyan-200">
             <div className="flex items-center justify-between mb-2">
               <span className="text-sm font-semibold text-cyan-800">Today's Product Gas Production</span>
-              {todayProduction?.lastReading && (
-                <span className="text-xs text-cyan-600">
-                  Last: {formatLastUpdated(todayProduction.lastReading)}
-                </span>
+              {todayProduction?.isLive && (
+                <span className="text-xs bg-cyan-100 text-cyan-700 px-2 py-0.5 rounded-full">LIVE</span>
               )}
             </div>
             <div className="text-3xl font-bold font-mono text-cyan-700">
-              {todayProduction ? todayProduction.productGas.toFixed(2) : '--'}
+              {todayProduction && todayProduction.productGas !== null ? todayProduction.productGas.toFixed(2) : '--'}
               <span className="text-sm font-normal text-cyan-600 ml-1">Kg</span>
             </div>
-            <p className="text-xs text-cyan-600 mt-1">Latest Totalizer Value (Today)</p>
+            {todayProduction?.referenceDate && (
+              <p className="text-xs text-cyan-600 mt-1">
+                Reference: {todayProduction.referenceDate} ({todayProduction.referenceProduct !== null ? todayProduction.referenceProduct.toFixed(2) : '--'} Kg)
+              </p>
+            )}
+            {todayProduction?.lastReading && (
+              <p className="text-xs text-cyan-500 mt-0.5">
+                Last updated: {formatLastUpdated(todayProduction.lastReading)}
+              </p>
+            )}
+            {!todayProduction && (
+              <p className="text-xs text-cyan-600 mt-1">No data available for today</p>
+            )}
           </div>
         </div>
         
-        {/* Daily Production Summary Table - Using Latest Totalizer Values */}
-        {dailyProductionData.length > 0 && (
+        {/* Daily Production Summary Table */}
+        {dailyProductionData.length > 0 ? (
           <div className="mt-4">
             <h4 className="text-sm font-semibold text-slate-700 mb-3">Daily Production Summary Table</h4>
             <div className="overflow-x-auto border border-slate-200 rounded-lg">
@@ -821,17 +841,35 @@ function TrendsPage({ userRole = 'HEAD_OFFICE' }) {
                   </tr>
                 </thead>
                 <tbody>
-                  {[...dailyProductionData].reverse().map((day, idx) => (
+                  {dailyProductionData.map((day, idx) => (
                     <tr key={day.fullDate || idx} className={idx % 2 === 0 ? 'bg-white' : 'bg-slate-50'}>
-                      <td className="py-2 px-4 font-mono text-slate-700 border-b border-slate-100">{day.fullDate || day.date}</td>
-                      <td className="py-2 px-4 font-mono text-right text-emerald-700 border-b border-slate-100">{(day.rawBiogas || 0).toFixed(2)}</td>
-                      <td className="py-2 px-4 font-mono text-right text-cyan-700 border-b border-slate-100">{(day.productGas || 0).toFixed(2)}</td>
+                      <td className="py-2 px-4 font-mono text-slate-700 border-b border-slate-100">
+                        {day.fullDate || day.date}
+                        {day.fullDate === new Date().toISOString().split('T')[0] && (
+                          <span className="ml-2 text-xs bg-emerald-100 text-emerald-700 px-1.5 py-0.5 rounded">Today</span>
+                        )}
+                      </td>
+                      <td className="py-2 px-4 font-mono text-right text-emerald-700 border-b border-slate-100">
+                        {day.rawBiogas !== null ? day.rawBiogas.toFixed(2) : '--'}
+                      </td>
+                      <td className="py-2 px-4 font-mono text-right text-cyan-700 border-b border-slate-100">
+                        {day.productGas !== null ? day.productGas.toFixed(2) : '--'}
+                      </td>
                       <td className="py-2 px-4 font-mono text-right text-slate-600 border-b border-slate-100">{day.samples || 0}</td>
                     </tr>
                   ))}
                 </tbody>
               </table>
             </div>
+            <p className="text-xs text-slate-500 mt-2">
+              * Production = Current Day Last Totalizer - Previous Day Last Totalizer
+            </p>
+          </div>
+        ) : (
+          <div className="text-center py-8 text-slate-500">
+            <Database className="w-10 h-10 mx-auto mb-2 text-slate-300" />
+            <p className="text-sm">No production data available</p>
+            <p className="text-xs text-slate-400 mt-1">Data will appear once readings are received</p>
           </div>
         )}
       </div>
