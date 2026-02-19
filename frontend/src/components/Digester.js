@@ -2,11 +2,17 @@ import React from 'react';
 import { Thermometer, Gauge, Layers, Activity, Fuel } from 'lucide-react';
 
 const Digester = ({ unit, data, lastUpdate }) => {
-  // Format timestamp
+  // Format timestamp - always show Date + Time
   const formatTime = (timestamp) => {
     if (!timestamp) return '--:--:--';
     const date = new Date(timestamp);
-    return date.toLocaleTimeString('en-IN', { hour12: false });
+    return date.toLocaleString('en-IN', {
+      day: '2-digit',
+      month: 'short',
+      hour: '2-digit',
+      minute: '2-digit',
+      hour12: false
+    });
   };
 
   const timeStr = formatTime(lastUpdate);
