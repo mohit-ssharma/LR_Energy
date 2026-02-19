@@ -4,12 +4,13 @@ require_once 'config.php';
 
 /**
  * Daily Production API
- * Returns LATEST TIMESTAMP TOTALIZER VALUES for each day
- * Shows the totalizer value from the latest reading of each day
+ * 
+ * Calculates ACTUAL PRODUCTION based on totalizer differences:
+ * - Today's Production = Current Totalizer - Yesterday's Last Totalizer
+ * - Past Day Production = That Day's Last Totalizer - Previous Day's Last Totalizer
  * 
  * Query Parameters:
  * - days: Number of days to fetch (default: 30, max: 365)
- * - type: 'raw_biogas' or 'product_gas' (default: both)
  */
 
 header('Content-Type: application/json');
@@ -25,20 +26,17 @@ try {
     
     // Get parameters
     $days = isset($_GET['days']) ? min(365, max(1, intval($_GET['days']))) : 30;
-    $type = isset($_GET['type']) ? $_GET['type'] : 'all';
     
-    // Calculate date range
+    // Calculate date range (add 1 extra day for previous day reference)
     $endDate = date('Y-m-d');
-    $startDate = date('Y-m-d', strtotime("-{$days} days"));
+    $startDate = date('Y-m-d', strtotime("-" . ($days + 1) . " days"));
     
     // Query to get the LATEST totalizer values for each day
-    // This uses a subquery to find the max timestamp per day, then joins to get values
-    // Compatible with MySQL 5.7+ and MySQL 8+
     $sql = "SELECT 
                 r.date,
-                r.raw_biogas_totalizer as raw_biogas_production,
-                r.product_gas_totalizer as product_gas_production,
-                r.purified_gas_totalizer as purified_gas_production,
+                r.raw_biogas_totalizer,
+                r.product_gas_totalizer,
+                r.purified_gas_totalizer,
                 r.sample_count,
                 r.last_reading
             FROM (
@@ -53,76 +51,147 @@ try {
                 INNER JOIN (
                     SELECT DATE(timestamp) as dt, MAX(timestamp) as max_ts, COUNT(*) as sample_count
                     FROM scada_readings
-                    WHERE DATE(timestamp) >= :start_date1
-                    AND DATE(timestamp) <= :end_date1
+                    WHERE plant_id = 'KARNAL'
+                    AND DATE(timestamp) >= :start_date
+                    AND DATE(timestamp) <= :end_date
                     GROUP BY DATE(timestamp)
                 ) t ON DATE(s.timestamp) = t.dt AND s.timestamp = t.max_ts
+                WHERE s.plant_id = 'KARNAL'
             ) r
-            ORDER BY r.date DESC";
+            ORDER BY r.date ASC";
     
     $stmt = $pdo->prepare($sql);
     $stmt->execute([
-        ':start_date1' => $startDate,
-        ':end_date1' => $endDate
+        ':start_date' => $startDate,
+        ':end_date' => $endDate
     ]);
     
-    $dailyData = $stmt->fetchAll(PDO::FETCH_ASSOC);
+    $rawData = $stmt->fetchAll(PDO::FETCH_ASSOC);
     
-    // Format the response
-    $formattedData = [];
-    $totalRawProduction = 0;
-    $totalProductProduction = 0;
-    $totalPurifiedProduction = 0;
+    // Calculate production for each day
+    $dailyData = [];
+    $prevDayData = null;
     
-    foreach ($dailyData as $row) {
-        $rawProd = round(floatval($row['raw_biogas_production']), 2);
-        $productProd = round(floatval($row['product_gas_production']), 2);
-        $purifiedProd = round(floatval($row['purified_gas_production']), 2);
+    foreach ($rawData as $index => $row) {
+        $currentDate = $row['date'];
         
-        $totalRawProduction += $rawProd;
-        $totalProductProduction += $productProd;
-        $totalPurifiedProduction += $purifiedProd;
+        // Get current day's last totalizer values (handle null/empty)
+        $currentRaw = isset($row['raw_biogas_totalizer']) && $row['raw_biogas_totalizer'] !== '' 
+            ? floatval($row['raw_biogas_totalizer']) : null;
+        $currentProduct = isset($row['product_gas_totalizer']) && $row['product_gas_totalizer'] !== '' 
+            ? floatval($row['product_gas_totalizer']) : null;
+        $currentPurified = isset($row['purified_gas_totalizer']) && $row['purified_gas_totalizer'] !== '' 
+            ? floatval($row['purified_gas_totalizer']) : null;
         
-        $formattedData[] = [
-            'date' => $row['date'],
-            'raw_biogas_production' => $rawProd,
-            'product_gas_production' => $productProd,
-            'purified_gas_production' => $purifiedProd,
-            'sample_count' => intval($row['sample_count']),
-            'last_reading' => $row['last_reading']
+        // Calculate production (Current - Previous Day's Last)
+        $rawProduction = null;
+        $productProduction = null;
+        $purifiedProduction = null;
+        
+        if ($prevDayData !== null) {
+            // Previous day exists - calculate production
+            if ($currentRaw !== null && $prevDayData['raw'] !== null) {
+                $rawProduction = round($currentRaw - $prevDayData['raw'], 2);
+                // Handle negative (totalizer reset) - set to null or 0
+                if ($rawProduction < 0) $rawProduction = null;
+            }
+            
+            if ($currentProduct !== null && $prevDayData['product'] !== null) {
+                $productProduction = round($currentProduct - $prevDayData['product'], 2);
+                if ($productProduction < 0) $productProduction = null;
+            }
+            
+            if ($currentPurified !== null && $prevDayData['purified'] !== null) {
+                $purifiedProduction = round($currentPurified - $prevDayData['purified'], 2);
+                if ($purifiedProduction < 0) $purifiedProduction = null;
+            }
+            
+            // Add to daily data (skip the first extra day we fetched for reference)
+            $dailyData[] = [
+                'date' => $currentDate,
+                'prev_date' => $prevDayData['date'],
+                'prev_raw_totalizer' => $prevDayData['raw'],
+                'prev_product_totalizer' => $prevDayData['product'],
+                'current_raw_totalizer' => $currentRaw,
+                'current_product_totalizer' => $currentProduct,
+                'raw_biogas_production' => $rawProduction,
+                'product_gas_production' => $productProduction,
+                'purified_gas_production' => $purifiedProduction,
+                'sample_count' => intval($row['sample_count']),
+                'last_reading' => $row['last_reading']
+            ];
+        }
+        
+        // Store current day as previous for next iteration
+        $prevDayData = [
+            'date' => $currentDate,
+            'raw' => $currentRaw,
+            'product' => $currentProduct,
+            'purified' => $currentPurified
         ];
     }
     
-    // Get today's data (latest totalizer values for today)
+    // Reverse to get newest first
+    $dailyData = array_reverse($dailyData);
+    
+    // Get today's data
     $todayData = null;
-    if (count($formattedData) > 0 && $formattedData[0]['date'] === $endDate) {
-        $todayData = $formattedData[0];
+    $today = date('Y-m-d');
+    
+    if (count($dailyData) > 0 && $dailyData[0]['date'] === $today) {
+        $todayData = [
+            'date' => $dailyData[0]['date'],
+            'reference_date' => $dailyData[0]['prev_date'],
+            'reference_raw_biogas' => $dailyData[0]['prev_raw_totalizer'],
+            'reference_product_gas' => $dailyData[0]['prev_product_totalizer'],
+            'current_raw_biogas' => $dailyData[0]['current_raw_totalizer'],
+            'current_product_gas' => $dailyData[0]['current_product_totalizer'],
+            'raw_biogas_production' => $dailyData[0]['raw_biogas_production'],
+            'product_gas_production' => $dailyData[0]['product_gas_production'],
+            'sample_count' => $dailyData[0]['sample_count'],
+            'last_reading' => $dailyData[0]['last_reading'],
+            'is_live' => true
+        ];
+    }
+    
+    // Calculate totals (only for days with valid production data)
+    $totalRawProduction = 0;
+    $totalProductProduction = 0;
+    $daysWithData = 0;
+    
+    foreach ($dailyData as $day) {
+        if ($day['raw_biogas_production'] !== null) {
+            $totalRawProduction += $day['raw_biogas_production'];
+        }
+        if ($day['product_gas_production'] !== null) {
+            $totalProductProduction += $day['product_gas_production'];
+        }
+        if ($day['raw_biogas_production'] !== null || $day['product_gas_production'] !== null) {
+            $daysWithData++;
+        }
     }
     
     // Calculate averages
-    $daysWithData = count($formattedData);
     $avgRawProduction = $daysWithData > 0 ? round($totalRawProduction / $daysWithData, 2) : 0;
     $avgProductProduction = $daysWithData > 0 ? round($totalProductProduction / $daysWithData, 2) : 0;
-    $avgPurifiedProduction = $daysWithData > 0 ? round($totalPurifiedProduction / $daysWithData, 2) : 0;
     
     echo json_encode([
         'status' => 'success',
-        'data' => $formattedData,
+        'data' => $dailyData,
         'today' => $todayData,
         'summary' => [
             'days_requested' => $days,
             'days_with_data' => $daysWithData,
             'date_range' => [
-                'start' => $startDate,
+                'start' => date('Y-m-d', strtotime("-{$days} days")),
                 'end' => $endDate
             ],
             'total_raw_biogas_production' => round($totalRawProduction, 2),
             'total_product_gas_production' => round($totalProductProduction, 2),
-            'total_purified_gas_production' => round($totalPurifiedProduction, 2),
             'avg_daily_raw_biogas' => $avgRawProduction,
-            'avg_daily_product_gas' => $avgProductProduction,
-            'avg_daily_purified_gas' => $avgPurifiedProduction
+            'avg_daily_product_gas' => $avgProductProduction
         ],
+        'calculation_method' => 'Current Day Last Totalizer - Previous Day Last Totalizer',
         'generated_at' => date('Y-m-d H:i:s')
     ]);
     
